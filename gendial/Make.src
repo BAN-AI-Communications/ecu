@@ -1,0 +1,122 @@
+#+-------------------------------------------------------------------
+# ECU generic dialer makefile
+# wht@wht.net
+#
+# you must be root to run this
+# edit PROGRAMS to choose the dialers you want
+#--------------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:38-wht@n4hgf-ECU release 3.20 BETA
+#:07-27-1992-05:04-wht@n4hgf-fix COMMON_OBJ misdeclaration
+#:07-17-1992-18:26-wht@n4hgf-use ../nap.o
+#:05-11-1992-17:03-wht@gyro-add dialgT3000
+#:01-26-1992-15:31-wht@n4hgf-gendial 1.2 for ecu 3.20- better hangup
+#:07-25-1991-12:58-wht@n4hgf-ECU release 3.10
+#:04-21-1991-12:05-wht@n4hgf-convert to Make.src
+
+PROGRAMS = \
+	dialgHA24 
+#	dialgHA24 \
+#	dialgMC9624 \
+#	dialgMPAD \
+#	dialgT2500 \
+#	dialgT3000 \
+#	dialgTBPlus \
+#	dialgUSR24
+
+SHELL = /bin/sh
+
+CFLAGS_EXTRA = -DHDB_UUCP
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+
+SRC = \
+	dceHA24.c \
+	dceMC9624.c \
+	dceMPAD.c \
+	dceT2500.c \
+	dceT3000.c \
+	dceTBPlus.c \
+	dceUSR24.c \
+	gendial.c
+
+COMMON_OBJ = \
+	../nap.o \
+	gendial.o
+
+all:    $(PROGRAMS)
+
+dialgMC9624: $(COMMON_OBJ) dceMC9624.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceMC9624.o $(LIBS) -o $@
+
+dceTBPlus.o: tbit.sync.h
+dialgTBPlus: $(COMMON_OBJ) dceTBPlus.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceTBPlus.o $(LIBS) -o $@
+
+dceT2500.o: tbit.sync.h
+dialgT2500: $(COMMON_OBJ) dceT2500.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceT2500.o $(LIBS) -o $@
+
+dceT3000.o: tbit.sync.h
+dialgT3000: $(COMMON_OBJ) dceT3000.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceT3000.o $(LIBS) -o $@
+
+dialgHA24: $(COMMON_OBJ) dceHA24.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceHA24.o $(LIBS) -o $@
+
+dialgUSR24: $(COMMON_OBJ) dceUSR24.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceUSR24.o $(LIBS) -o $@
+
+dialgMPAD: $(COMMON_OBJ) dceMPAD.o
+	$(BINTIME) $(CC) $(LDFLAGS) $(COMMON_OBJ) dceMPAD.o $(LIBS) -o $@
+
+../nap.o:
+	cd ..;make nap.o
+
+install: $(PROGRAMS)
+	-chmod +x ./install_dialer
+	./install_dialer $(HDBLIBDIR) $(PROGRAMS)
+
+neat:
+	rm -f .make.* *.tmp Makefile.new *.bak *.BAK
+	rm -f core tags cscope.out
+
+clean: neat
+	rm -f *.o
+
+clobber: clean
+	rm -f dialg*
+
+#regenerate .o:.h dependencies automatically
+depend:
+	rm -f depend.tmp
+	grep '^#include' $(SRC) \
+	| sed \
+		-e '/</d'\
+		-e 's?:[^"]*"\([^"]*\)".*?: \1?'\
+		-e 's?\(.*\)\.c?\1.o?'\
+	 >> depend.tmp
+
+	echo '/^# DO NOT DELETE THIS LINE' >eddep.tmp
+	echo '.+1,$$d' >>eddep.tmp
+	echo 'r depend.tmp' >> eddep.tmp
+	echo 'w' >> eddep.tmp
+	cp Makefile Makefile.new
+	ed Makefile.new < eddep.tmp
+	rm eddep.tmp depend.tmp
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >>Makefile.new
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY'>>Makefile.new
+	echo '# see make depend above'>>Makefile.new
+	mv Makefile Makefile.bak
+	mv Makefile.new Makefile
+
+# DO NOT DELETE THIS LINE
+# see make depend above

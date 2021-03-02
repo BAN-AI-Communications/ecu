@@ -1,0 +1,33 @@
+#!/bin/sh
+#+------------------------------------------------------------------
+#  mk.targz - ECU tar maker
+#  wht@wht.net
+#
+# argument 1 is destination filename
+# files to be included must be in shar.fls
+#-------------------------------------------------------------------
+#+:EDITS:
+#:04-26-2000-11:16-wht@bob-RELEASE 4.42
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-23-1995-11:00-wht@kepler-creation
+
+DEST=$1.gz
+DIR=`/bin/pwd`
+DIR=`basename $DIR`
+
+	echo "*****************************************************************"
+	echo making $DEST from distribution in $DIR
+	echo "*****************************************************************"
+	cd doc; make; cd ..
+	rm -f /tmp/ecu.tar.fls ./tar.fls
+	make shar.fls
+	cat shar.fls > /tmp/ecu.tar.fls
+	echo doc/ecu.man >> /tmp/ecu.tar.fls
+	echo doc/proc.man >> /tmp/ecu.tar.fls
+	sed -e 's:^:'$DIR'/:' < /tmp/ecu.tar.fls | sort -y > tar.fls; 
+	rm -f $DEST
+	cd ..;tar cf - `cat $DIR/tar.fls` | gzip -9 > $DEST
+	cd $DIR
+	gunzip < $DEST | tar tfv - | head

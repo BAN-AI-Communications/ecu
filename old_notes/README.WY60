@@ -1,0 +1,88 @@
+
+This is a hurriedly composed note to let you know what I know
+about Wyse 60 support (not much :-)).  I really cannot help
+with Wyse 60s any more than this.  Please ask me no questtions,
+but please, if you can and wish, provide me a robust explanation
+of where I am wrong and I'll put in into the mill with profuse
+thanks and credit.
+
+1. The Wyse 60 comes in several flavors of keytops and who knows
+what quantity of ROM versions.  The one I have is an early "Native"
+or "Non-PC-Keytop" version.
+
+2. The choice of keycodes (emitted character sequences) for the cursor
+keys are quite, quite stupid, though they seem to have had SOME form of
+thinking behind them.  The arrow down key is a NEWLINE!  The cursor
+left is a BACKSPACE.
+
+3. You can redefine the keycodes emitted by keys.  I lost my Wyse
+60 manual several years ago, but with luck, you still have yours
+and can follow in my feeble steps to finish the job I have started
+and try to explain below.
+
+4. There are IS entries in the models/funckeymap file entry for the
+wyse60.  They are undocumented anywhere else.  These entries are
+used by ECU only to spit initialization strings at the terminal in
+the order they appear in the file.
+
+If you really don't want this stuff to happen, comment out or remove
+the IS strings, comment the ANSI-fied definitions and uncomment
+the un-ANSI-fied ones.  I omitted the braindead CUL and CUD entries, but
+if you want them:
+
+#   CUL:CUL:        bs            # not useful (for reference only)
+#   CU5:CU5:                      # nyet
+    CUR:CUR:        ff
+    CUD:CUD:        nl # use only if you NEVER need to send a line feed
+
+5.  The strings I emit with the supplied IS strings are the same as
+the SCO 'wyse60ak' termcap entry 'ti' string.
+
+6.  You should really use the wyse60ak termcap entry, not the wyse60.
+
+7.  If you are not on SCO you probably don't have 'wyse60ak'.  I
+hope the time-honored tradition of sharing termcap entries amongst
+the UNIX brethren will not bring writs and suits and "suits" against
+me.  Here it is:
+
+#    Wyse 60
+#    Clearing of arrow keys useful in 'is' in case this entry is
+#    used after wy60ak entry was used.
+#
+w7|wy60|wyse60|Wyse WY-60 with 80 column/24 line screen in wy60 mode:\
+	:is=\E`\072\Ee(\EO\Ee6\Ec41\E~4\Ec21\Ed/\EZ1+\177\EZ1,\177\EZ1-\177\EZ1.\177\EZ1\\\177\EZ1q\177\Ec72:\
+	:if=/usr/lib/tabset/std:pt:\
+	:CF=\E`0:CO=\E`1:\
+	:G1=3:G2=2:G3=1:G4=5:\
+	:GC=8:GD=0:GE=\EH^C:GF=7:GG#0:GH=\072:\
+	:GU==:GV=6:GR=4:GS=\EH^B:GL=9:\
+	:PU=\EJ:PD=\EK:mb=\EG2:me=\EG0:\
+	:al=4\EE:am:bs:bt=\EI:cd=100\EY:ce=\ET:cl=100\E+:\
+	:cm=\Ea%i%dR%dC:co#80:dc=11\EW:dl=5\ER:ei=\Er:im=\Eq:k0=^AI\r:\
+	:k1=^A@\r:k2=^AA\r:k3=^AB\r:k4=^AC\r:k5=^AD\r:k6=^AE\r:k7=^AF\r:\
+	:k8=^AG\r:k9=^AH\r:kd=^J:kh=^~:kl=^H:kr=^L:ku=^K:\
+	:li#24:mi:nd=^L:se=\EG0:so=\EG4:ug#0:ue=\EG0:ul:up=^K:us=\EG8:\
+	:PN=\Ed#:PS=^T:hs:ts=\Ez(:fs=^M:
+#
+# Wy60ak:
+# Arrow keys are programmed to emit ANSI standard sequences.  Allows 
+# applications to distinguish between destructive Back Space and
+# non-destructive Left Arrow Key.  END and INS keys also emit
+# ANSI standard sequences.
+# Held out `te' string so that `is' will remain in effect
+# throughout login session.
+# On the Enhanced PC Keyboard, only the Cursor Keypad between the Main
+# Keypad and the Numeric Keypad is programmable.  These arrow keys
+# and special cursor motion keys will function as labeled when using
+# wy60ak with applications supporting the wy60ak entry. The Numeric
+# Keypad cursor motion keys will continue to emit their default values.
+#
+WA|wy60ak|wyse60ak|Wyse 60 in wy60 mode with ANSI arrow keys +:\
+	:is=\E`\072\Ee(\EO\Ee6\Ec41\E~4\Ec21\Ed/\EZ1+\E[A\177\EZ1,\E[B\177\EZ1-\E[D\177\EZ1.\E[C\177\EZ1\\\E[F\177\EZ1q\E[L\177\Ec72:\
+	:ti=\EZ1+\E[A\177\EZ1,\E[B\177\EZ1-\E[D\177\EZ1.\E[C\177\EZ1\\\E[F\177\EZ1q\E[L\177:\
+	:kd=\E[B:kl=\E[D:kr=\E[C:ku=\E[A:\
+	:EN=\E[F:\
+	:tc=wy60:
+
+8.  The ECU interactive command "kbdtest" may be of some assistance
+in analyzing and debugging this type of problem.

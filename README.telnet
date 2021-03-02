@@ -1,0 +1,81 @@
+Last updated Mon Sep 16 08:08:40 EDT 1996
+
+INSTALLATION DETAIL
+-------------------
+For SCO, Linux or SunOS, you need do nothing special at installation
+time. (If the SCO Development System does not have inet support,
+namely libsocket.a, no attempt will be made to include the
+telenet option);
+
+To enable the feature otherwise, you must add (or add to) a file
+in the ecu distribution directory named 'config.local' as follows:
+
+1. The file must contain the line:
+LOCAL_CFLAGS = -DCFG_TelnetOption
+
+2. On SCO or similar, you must add the line (or similar)
+LOCAL_LIBS = -lsocket
+LOCAL_LIBS = -lsocket -lnsl
+LOCAL_LIBS = -lsocket -ldl
+
+EXECUTION NOTES
+---------------
+
+From the command line, you may start an internet connection
+by specifying a logical "telephone number" with a period in it.
+For instance,
+
+    ecu blah.org
+    ecu 127.0.0.1
+    ecu kepler.
+	ecu localhost.:25
+
+The next to last example shows how to call a host with a simple name like
+"kepler": suffix the simple name with a period.
+The last example shows how to call a host with port number
+other than 23 (telnet).
+
+The -z switch enables display of telnet option negotiation.  The
+interactive and procedure 'telopt' commands also control the
+display, but the show is mostly over by the time you get a login
+prompt, so consider using-z or putting 'telopt yes' in an _rc.ep
+file.
+
+While connected, try using the HOME stat command: it is different.
+
+FILE TRANSFER
+-------------
+
+You may use ZMODEM for file transfer.
+
+For file transmission, no special action is required.
+ECU's sz command causes proper transmission using an
+"escape control character" feature of ZMODEM.
+
+For file reception, no special action is required in your
+remote sz command complies with the ZMODEM standard.  That is:
+
+1. ECU's rz receiver requests "escape control character" of
+the sz transmitter. A compliant sz will properly interpret
+this request.
+
+2. Some sz programs or functions do not properly escape the 0xFF
+(255 decimal, octal 377) character.  This is the telnet IAC
+character and it must be "escaped" like other control characters.
+That is, 0xFF characters in the data stream must be replaced with
+0x18 followed by 0x6D (ZDLE + ZRUB1).
+
+No other control characters actually need escaping over telnet,
+but to buy the one you must accept the others.
+
+You may wish to try the program "tsz.c" supplied in the ECU distribution.
+It is a quickly hacked version of Chuck Forsberg's sz 1.44 public
+domain effort.  Follow the compilation instructions in the file.
+
+PROCEDURE LANGUAGE SUPPORT
+--------------------------
+
+%telnet is a procedure integer function which returns zero
+if the current connection is a serial connection, 1 if an
+internet connection.
+

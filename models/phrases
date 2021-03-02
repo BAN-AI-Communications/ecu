@@ -1,0 +1,3 @@
+stty:stty intr ^C kill ^U erase ^H^r
+mail-csh:mail emory\!tridom\!n4hgf\!wht^r
+mail-sh:mail emory!tridom!n4hgf!wht^r

@@ -1,0 +1,65 @@
+Last updated Thu Nov 23 11:22:21 EST 1995 for ECU 3.37
+
+I have finally landed a Linux system and have been using it
+for several months.  I use the system via telnet, and rarely
+from the main console. 
+
+However, I can say this version has been thoroughly tested
+under Linux 1.1.58.
+
+In previous versions, when using ECU from the main console,
+the ANSI filter was automatically disabled. When using
+via the network or from another serial line, the
+ANSI filter was lock on.  Neither are any longer true.
+See the documentation for the interactive and procedure
+`ansif' command for controlling the ANSI filer, which defaults
+to on.
+
+One additional note: the Linux console sends 0x09 for both Tab
+and Shift-Tab (1.158 does anyway).  Therefore, I have
+mapped the F12 key to the screen redraw key normally
+supported by Shift-Tab. The ANSI filter must be on for this function
+to work.  See models/funckeymap and/or /usr/local/lib/ecu/funckeymap.
+See the documentation for the interactive and procedure
+`ansif' command for controlling the ANSI filer, which defaults
+to on.
+
+One additional note: the Linux console sends 0x09 for both Tab
+and Shift-Tab (1.158 does anyway).  Therefore, I have
+mapped the F12 key to the screen redraw key normally
+supported by Shift-Tab. The ANSI filter must be on for this function
+to work.  See models/funckeymap and/or /usr/local/lib/ecu/funckeymap.
+
+Bob Broughton a1040@mindlink.bc.ca (604) 451-8605 did the early
+porting work and kudos go to him.  Toomas Losin
+(a776@mindlink.bc.ca) was also very helpful with the Linux port.
+
+Most of the comments Bob put in this file in previous revisions
+are obsolete.  However, note the following which was still
+required as of Linux 1.1.58.
+
+----------- video attributes at standard console ------------------------- 
+
+Date: Thu, 7 Apr 94 09:37 PDT
+From: emory!mindlink.bc.ca!Robert_Broughton (Robert Broughton)
+To: wht@n4hgf.Mt-Park.GA.US
+Subject: ncurses 1.8.5
+
+Warren, I got this from the maintainer of ncurses:
+
+From: zmbenhal@netcom.com (Zeyd M. Ben-Halim)
+To: Robert_Broughton@mindlink.bc.ca
+Subject: Re:  ncurses 1.8.5 problem
+
+>I just installed 1.8.5 on my Linux v1.0 system, after using 1.8 for a
+>while. I have a problem with "standout" mode. With 1.8, I got inverse
+>video. With 1.8.5, I also get reverse video if I'm using an xterm. If I'm
+>using the Linux "console", however, I get the text in high-intensity, but
+>no reverse video. Any ideas?
+
+You can get reverse video by changing smso in the console terminfo entry
+to \E[7m instead of \E[1m
+
+Could you add this note to README.Linux? I haven't actually tried this
+suggestion, but you can assume it works, unless you hear otherwise from me.
+

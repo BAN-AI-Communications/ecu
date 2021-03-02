@@ -1,0 +1,1914 @@
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+NAME
+     ecu - serial asynchronous and telnet communications program
+
+DESCRIPTION
+     ECU (Extended Call	Utility) is a  research	 and  engineering
+     communications  program  for  several  flavors of UNIX.  ECU
+     provides the classic  terminal  communications  facility  of
+     passing  keyboard	data to	a serial line (or a telnet TCP/IP
+     connection	if configured) and incoming data to the	 computer
+     video  display.  In addition, a rich set of interactive com-
+     mands, a procedure	language, a dialing directory, a function
+     key mapping feature, and session logging are available.
+
+     The flexible procedure (script) language allows you to auto-
+     mate  many	 communications	tasks.	In addition to augmenting
+     interactive tasks,	by  using  shell  scripts  and	ECU  pro-
+     cedures, ECU can perform batch-style communications sessions
+     in	an entirely "unattended" fashion.
+
+     For full information, refer to the	ECU Technical Description
+     and  the  ECU  Procedure  Language	manuals	in the ECU source
+     distribution.
+
+     This man page describes what you need to get ecu started and
+     connected,	and how	to use the interactive commands.
+
+
+Simple Startup - Initial Setup Menu
+     ECU may be	started	in a number of ways through use	 of  com-
+     mand line switches, but the easiest is to enter
+
+     ecu
+
+     by	itself.	 In this case, the screen is cleared and the fol-
+     lowing screen, called the setup screen , will be presented.
+
+       .--[ ecu	4.07T ]-----------------------------------------------.
+       |							      |
+       |  Destination	________________________________________      |
+       |							      |
+       |							      |
+       |							      |
+       |  tty: /dev/ttys0					      |
+       |							      |
+       |  duplex: F  baud: 9600	  parity: N (data bits 8)	      |
+       |							      |
+       |							      |
+       |  TAB:next END:proceed ^C: cmd mode ^D:phone dir ESC:quit ecu |
+       `- logical phone	directory entry, phone number or empty -------'
+
+     Several choices may be made by navigating the setup  screen.
+     When  you	position to a field, helpful text is displayed on
+
+
+
+Version	4.07		    10/18/96				1
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     the bottom	line of	the form.
+
+     The initial (default) values for some of the fields  may  be
+     modified  by  command  line  switches or by the special pro-
+     cedure "_rc.ep".  Also, entering a	dialing	 directory  entry
+     name  in  the  override  the defaults with	the values in the
+     directory entry.  See the	sections  in  the  ECU	Technical
+     Description related to dialing and	to the section in the ECU
+     Procedure Language	manual titled "_rc.ep".
+
+     Destination
+
+     If	a dialing directory has	been configured, a literal  phone
+     number  need not be entered.  You may enter a "logical" name
+     matching the name of a directory entry.
+
+     However, on your first invocation,	 you'll	very likely  have
+     no	directory.  You	have several options:
+
+
+     1.	 Enter a literal telephone number, (e.g. 18005551212).
+	 Hyphens and open and close parentheses	may also
+	 be entered.
+
+     2.	 Press END to enter open the indicated serial port,
+	 beginning interactive mode to communicate
+	 directly with the attached DCE	(modem).
+
+     3.	 Enter a "period-containing" hostname for a telnet
+	 call (if configured for telnet; see
+     <hostname>
+     below).
+
+     4.	 Press ^D to enter the telephone directory to enter
+	 your first directory entry.
+
+     5.	 Press ^C to enter command mode	immediately (with no
+	 line attached). This has certain uses,	but probably
+	 not for early use.
+
+     6.	 Press ESCape to exit ecu.
+
+     Other Fields
+
+     If	your call is an	async serial,  not  telnet,  call,  other
+     fields in the setup form apply.
+
+     The 'tty' field may be used to select an outgoing line other
+     than  the	default.   For	important  considerations on line
+     choice, see the ECU Technical  Description	 sections  titled
+     Choosing a	Dialout	Line and DCDwatch.
+
+
+
+
+Version	4.07		    10/18/96				2
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     The 'duplex' field	may be used  to	 select	 a  duplex  value
+     other than	the default 'F'	(full).
+
+     The 'baud'	field may be used to  select  a	 bit  rate  value
+     other than	the default selected at	Configure time.
+
+     The 'parity' field	may be used  to	 select	 a  parity  value
+     other than	the default selected at	Configure time.
+
+     Keyboard Functions
+
+     Special keyboard characters while	filling	 in  the  startup
+     screen are:
+
+
+      Enter	   terminate entry in a	field (or skip to
+		   the next field if you do not	modify it)
+
+      ^B	   back	up to previous field
+
+      Cursor Up	   same	as ^B (if the key is available on
+		   your	terminal and environment).
+
+      TAB	   move	to next	field ... if nothing typed in
+		   the field, do not disturb contents
+
+      Cursor Down  same	as TAB (if the key is available	on
+		   your	terminal and environment).
+
+      END	   proceed with	session, dialing remote	if
+		   logical directory entry name	or literal
+		   telephone number enetered
+
+      ^D	   enter phone directory
+
+      ^C	   enter command mode with no line attached
+
+      ESC	   quit	ecu without starting a session
+
+
+Command	Line Switches and Arguments
+     ECU can be	started	in a number of ways:
+
+     o	with no	switches or arguments
+	    select options interactively; manual command to begin
+	    connection
+
+     o	with switches (excluding -p) and no arguments
+	    override some defaults for options but still enter
+	    interactive	option selection; manual command to begin
+	    connection
+
+
+
+
+Version	4.07		    10/18/96				3
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     o	zero or	more switches (excluding -p) and one argument
+	    fully automatic startup to connect to the remote
+	    specified by the argument (a telephone number
+	    or dialing directory entry)
+
+     o	zero or	more switches, with -p the last	switch
+	    fully automatic startup by executing procedure whose
+	    name is specified by the first argument; the initial
+	    procedure receives the remainder of	the command line
+	    arguments
+
+     Usage Summary
+
+
+     Usage: ecu	[-l <ttyname>] [-b <baud_rate>]	[-eon]
+		[-h] [-t] [-P <phonedir>]
+		[-F name] [-T <trace-level>] [-z]
+		[-p <initial_proc> [-d]	[-D] | <phone_number>
+		<logical> | <hostname> ]
+     -D	unconditionally	stop execution when -p initial
+	procedure is done
+     -F	sets an	alternate funckeymap name for the *keyboard*
+     -P	choose alternate phone directory (<phonedir> must be
+	a full pathname)
+     -T	set procedure tracing to level:	0=none,	1=standard,
+	2=ECU-debugging
+     -b	choose bit rate	(any UNIX rate 110-38400)
+     -d	stop execution if -p initial procedure fails
+     -e	even parity   -o odd parity   -n no parity
+     -h	half duplex ...	default	is full	duplex
+     -l	choose line (/dev/<ttyname>)
+     -n
+     -p	execute	an initial procedure
+     -t	append NL to incoming and outgoing CR characters
+     -z	if telnet connection, show options traffic
+     <phone_number> is either an actual	number or a dialing
+	directory entry	name
+
+     If	configured for telnet use, if a	period '.' appears in
+     phone number, contact host	by that	name using telnet; a
+     trailing period will be removed.
+
+     Switches
+
+     Many switches are used to override	defaults specified at the
+     time the Confifgure procedure was used.  Note these defaults
+     may also be overriden interactively if the	command	does  not
+     specify  automatic	 startup option	(-p or dialing argument).
+     Also, the value chosen by a dialing directory  entry  or  an
+     initial  procedure	 will  override	 the  Configured  default
+     and/or the	value specified	by this	switch.
+
+
+
+
+Version	4.07		    10/18/96				4
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     -b	<baud>
+
+     This switch overrides the default bit rate.  Any valid  UNIX
+     rate  may	be  chosen.  ECU  chooses the number of	stop bits
+     based on the bit rate.  Rates below  300  baud  get  2  stop
+     bits.  Rates 300 baud and above get one stop bit.
+
+     -d
+
+     The -d switch instructs ECU to "die" (terminate  with  error
+     status)  if  an  initial  procedure (-p) fails.  This switch
+     ensures a batch ECU execution will	hang  up  any  connection
+     and  terminate  if	 a  procedure  error  occurs. See also -D
+     below.
+
+     Absence of	the -d and -D switches causes ecu (upon	any  com-
+     pletion  of  the initial procedure) to enter the 1) interac-
+     tive mode if a line was successfully attached  by	the  pro-
+     cedure or 2) the setup screen if no line was attached.
+
+     -e, -o, -n
+
+     Normally, ECU starts up with data bits and	parity chosen  at
+     Configure	time.	The  -e	, -o and -n switches allow you to
+     override the default.
+
+     Since combinations	like eight data	bit and	 even  parity  or
+     seven  data  bits and no parity are not in	 ECU's capability
+     to	use, the parity	selection also	dictates  the  choice  of
+     data  bits.  Even or odd parity implies seven data	bits.  No
+     parity implies eight data bits.
+
+     -h
+
+     Normally, ECU starts up in	the full duplex	 mode.	 If  half
+     duplex is desired,	the -h switch is used.
+
+     -l	ttyspec
+
+     When ECU starts up, it normally chooses a line as	described
+     in	 "Choosing  a Dialout Line" in the ECU Technical Descrip-
+     tion.  Specifying the -l switch overrides	the  default  tty
+     specified	at  Configure time.  Depending upon other command
+     line options, this	switch may be nothing more than	a hint.
+
+     For important considerations on line choice,  see	the  sec-
+     tions titled "Choosing a Dialout Line" and	"DCDwatch".
+
+     Two styles	of argument to -l allow	 line  selection  by  two
+     methods.
+
+     Of	course,	no -l is meaningful for	a telnet destination.
+
+
+
+Version	4.07		    10/18/96				5
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     The ususal	argument to the	switch is the base  name  of  the
+     tty (e.g.,	"tty1a"	or "acu0").
+
+     Note to old users of ECU:	In previous SCO	versions of  ECU,
+     since  ttys  were generally all named with	the prefix "tty",
+     ECU allowed you to	omit the "tty" (e.g., "1a" or "4g"). This
+     is	no longer the case.
+
+
+     Alternatively, if your platform supports HDB UUCP,	 you  may
+     choose  a	line  by UUCP Devices type by specifying the type
+     with a leading equals sign.  You must  also  explicitly  set
+     the bit rate with -b (unless the default bit rate is accept-
+     able).
+
+	 ecu -l=VoiceDial -b2400
+
+     searches the UUCP Devices file for	an entry  whose	 type  is
+     ``VoiceDial'' that	accepts	2400 baud.
+
+     -p	<proc>
+
+     The -p switch causes ECU to  execute  the	procedure  <proc>
+     ("<proc>.ep") immediately upon startup.  Such a procedure is
+     termed the	initial	procedure. It is recommended  that,  when
+     used,  -p	be the last switch on the command line.	 All non-
+     switch arguments after <proc> are passed as arguments to the
+     initial procedure (see the	descriptions of	the integer func-
+     tion %argc	and the	string function	%argv  in  the	Procedure
+     Manual).
+
+     For example,
+
+	 ecu -p	batchjob remsys	22
+
+     automatically executes the	procedure command equivalent
+
+	 do 'batchjob' 'remsys'	'22'
+
+
+     The initial procedure may read  command  line  options  with
+     functions	like  %line , %baud and	%parity	. It is	also free
+     to	override any of	these values it	wishes.	 See the ECU Pro-
+     cedure Manual for more information.
+
+     -t
+
+     The -t switch instructs ECU to  map  incoming  and	 outgoing
+     carriage  returns	to carriage return/line	feed pairs.  This
+     is	helpful	if the remote connection will  be  to  a  display
+     terminal  rather  than a computer.	 Use of	the -h switch may
+     also be necessary.
+
+
+
+Version	4.07		    10/18/96				6
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     The interactive commands nlin and nlout  also  control  this
+     feature.
+
+     -C
+
+     The -C switch causes the compile-time configuration  of  ECU
+     to	be displayed.
+
+     -D
+
+     The -D switch instructs  ECU  to  unconditionally	terminate
+     when  an  initial	procedure finishes.  Contrast with the -d
+     switch .
+
+     -F	name
+
+     Normally, the TERM	environment variable is	used to	determine
+     the  funckeymap  entry  (keyboard configuration) to be used.
+     Sometimes,	the TERM variable is not adequate for identifying
+     your  keyboard  arrangement.  The -F switch switch, like the
+     $ECUFUNCKEY environment variable, allows you to use override
+     the  funckeymap  entry  used.  For	more information, see the
+     section titled "Function Key Mapping (Recognition)".
+
+     -P	phonedir
+
+     The -P switch causes ECU to begin execution using an  alter-
+     nate  phone  directory.   The  default is ~/.ecu/phone.  You
+     should specify a full pathname if you anticipate  using  the
+     change directory command once ecu starts.
+
+     -T	level
+
+     The -T switch  sets  the  procedure  language  trace  level.
+     <level>  is  a  decimal  digit.   0  is  for no tracing (the
+     default) and 1 is for tracing.  Values higher than	1 are for
+     debugging	ECU  and  have	varying	 effects from revision to
+     revision.
+
+     -z
+
+     If	configured for telnet use,  show  in-band  telnet  option
+     traffic  on screen.  This is useful for debugging ECU telnet
+     connections with a	host. This feature is controlled  by  the
+     telopt  interactive  command  once	 ECU is	running	(although
+     there is very little telnet traffic after a  connection  has
+     "matured").
+
+     Non-Switch	Arguments
+
+     Arguments are optional.   <phone_number>  or  <logical>  may
+     appear  when  the	-p  switch  is absent.	One or more <arg>
+
+
+
+Version	4.07		    10/18/96				7
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     arguments may appear when the  -p	switch	is  used.   These
+     arguments are handled as described	by "-p"	above.
+
+     <phone_number>
+
+     This type of argument has a digit as its  initial	character
+     and  represents an	actual telephone number	to be passed to	a
+     modem dialer program or Dialers chat script.  The string may
+     contain  non-numeric  characters if appropriate for a dialer
+     program, such as dialTBIT or  dialgT2500  (see  the  gendial
+     subdirectory).  For example:
+
+	 ecu -ltty2a -b	19200 -e 5551212C
+
+     uses tty2a	(assumed to be connected to a  Trailblazer  modem
+     because  of the dialer-specific telephone number) and estab-
+     lishes a 19200 baud, even parity PEP  Compressed  connection
+     after dialing 5551212.
+
+     <logical>
+
+     This type of argument has an  alphabetic  initial	character
+     and  contains  no period characters. such an argument causes
+     the dialing directory entry by that name to be dialed.   The
+     line  may be specified by '-l', but if the	dialing	directory
+     specifies a line (tty field contains other	than 'Any'),  the
+     dialing  directory	 entry	will override it.  The '-b', '-e'
+     and '-o' switches are ignored; the	values specified  by  the
+     dialing  directory	 entry	are  used.   The  '-t'	and  '-h'
+     switches are valid	and honored if present.
+
+     <hostname>
+
+     The following holds true only if ECU supports telnet on your
+     system.   If  a  period  ('.')  is	present	in the first non-
+     switch command line argument, the argument	is treated  as	a
+     hostname.	 An  internet  telnet  connection is attempted to
+     <hostname>.
+
+     If	you wish to specify a simple  hostname	(with  no  domain
+     part) such	as "localhost",	append a period	to the name (mak-
+     ing, for instance "localhost.").  The period will be removed
+     by	ECU.
+
+     If	a colon	followed by a number is	appended to the	hostname,
+     that  number  will	be used	as the port to contact instead of
+     the default telnet	port 23.
+
+     During a telnet session, many async-style parameters  simply
+     do	not apply.
+
+
+
+
+
+Version	4.07		    10/18/96				8
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Examples:
+	 ecu watsun.cc.columbia.edu
+	 ecu localhost		search directory for 'localhost'
+	 ecu localhost.		call my	host's telnet port
+	 ecu localhost.:25	call my	host's SMTP port
+
+
+     <arg>
+
+     This type of argument is passed to	an initial procedure when
+     the -p switch is present.
+
+
+     ecu -p unixlogin user pwd ansi43
+
+     executes unixlogin.ep with	arguments 'user' 'pwd' 'ansi43'
+
+     For more detail, refer to the description of -p , -d and  -D
+     .
+
+     Environment Variables
+
+     Prior to starting ECU, it is useful, but not  necessary,  to
+     establish two environment variables, ECUPROMPT and	ECUHELP.
+
+     ECUPROMPT
+
+     The ECUPROMPT environment	variable  determines  the  prompt
+     printed  by ECU when the interactive command key ("HOME") is
+     pressed.  When you	first run ECU, try  setting  it	 to  your
+     name, e. g.,
+
+     setenv ECUPROMPT Ralph    if you use csh
+
+     ECUPROMPT=Ralph	       if you use sh, ksh, etc.
+     export ECUPROMPT
+
+     Then, when	you see	how it used, you may wish to establish	a
+     more permanent choice in your .login or .profile.
+
+     ECUHELP
+
+     Ordinarily, ECU looks for interactive command help	 informa-
+     tion  in  "ecuhelp.data" (in the ecu library directory, nor-
+     mally /usr/local/lib/ecu).	 The ECUHELP environment  may  be
+     set  to  the  complete  pathname  of the ecu help file if an
+     alternate file is to be used.
+
+     The help file is explained	 better	 in  the  section  titled
+     "Online  Command  Dictionary"  in the ECU Technical Descrip-
+     tion..
+
+
+
+
+Version	4.07		    10/18/96				9
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     ECUFUNCKEY
+
+     See the description of the	-F command line	 switch	 and  the
+     section  titled  "Function	Key Mapping (Recognition)" in the
+     ECU Technical Description.
+
+
+INTERACTIVE COMMANDS
+     This section describes each ECU interactive command.
+
+     The next four  sections  list  commands  by  category.   The
+     remaining	sections describe each individual command in some
+     detail.
+
+     ECU  does	not  require  the  complete  expression	 of  most
+     interactive  commands.   For instance: typing attr	is suffi-
+     cient for ECU to recognize	the command attrtest.
+
+     The capitalized portion of	the command names appearing below
+     represents	 the portion of	the command you	must type for ECU
+     to	recognize the command.	(Note you don't	 captitalize  any
+     command characters	you type.)
+
+     You also may access this information using	the ECU	 interac-
+     tive  help	command	(whose information may be more up-to-date
+     than this).
+
+GENERAL	COMMANDS
+     ANSIf	ANSI filter state
+     AX		ascii char to hex/oct/dec
+     ATTRTest	console	attribute test
+     BN		all console event alarm
+     CD		change current directory
+     CONXon	console	software flow control
+     DA		decimal	to ascii char
+     ETO	ESC/fkey timeout
+     EXit	hang up, exit program
+     FI		send text file to line
+     FKEy	function key definition
+     FKMap	redefine function key map
+     HElp	invoke help
+     KBDTest	test keyboard mapping
+     LOFf	turn off session logging
+     LOG	session	logging	control
+     MKDir	mkdir <dirname>
+     OA		octal to ascii char
+     PId	display	process	ids
+     POpd	pop to previous	directory
+     PUshd	push to	new directory
+     PWd	print working directory
+     REV	ECU revision/make date
+     SDName	select screen dump name
+
+
+
+Version	4.07		    10/18/96			       10
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     STat	general	status
+     TIme	time of	day
+     TD		termcap	variable display
+     TTy	console	tty name
+     XA		hex to ascii char
+     !		execute	shell (tty)
+     $		execute	shell (comm line)
+     -		execute	program
+     ?		get help
+
+
+COMMUNICATIONS-RELATED COMMANDS
+     AYt	send telnet Are	You There?
+     BAud	set/display line bit rate
+     BReak	send break to remote
+     CLrx	clear local transmit XOFF
+     DCDwatch	control	DCD disconnect
+     Dial	dial remote destination
+     DUplex	set/display duplex
+     ERTo	expect-respond timeout
+     ERVerbose	expect-respond verbosity
+     HAngup	hang up	modem
+     NL		display	CR/LF mapping
+     NLIn	receive	CR/LF mapping
+     NLOut	transmit CR/LF mapping
+     PARity	set/display line parity
+     REDial	redial last number
+     RTScts	RTS/CTS	flow control
+     SGR	send command/get response
+     SGRTO1	set SGr	1st char timeout
+     SGRTO2	set SGr	later char timeout
+     TELopt	telnet options display state
+     TS		termio display
+     XOn	line xon/xoff flow control
+
+
+FILE TRANSFER COMMANDS
+     AUTORZ	auto ZMODEM receive state
+     RK		receive	via C-Kermit
+     RX		receive	via XMODEM/CRC
+     RY		receive	via YMODEM Batch
+     RZ		receive	via ZMODEM/CRC32
+     SK		send via C-Kermit
+     SX		send via XMODEM/CRC
+     SY		send via YMODEM	Batch
+     SZ		send via ZMODEM/CRC32
+     XLog	protocol packet	logging
+
+PROCEDURE COMMANDS
+     DO		perform	procedure
+     PCmd	execute	procedure command
+     PLog	control	procedure logging
+
+
+
+Version	4.07		    10/18/96			       11
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     PTrace	control	procedure trace
+
+
+Detailed Description of	Each Command
+     ATTRTest :	console	attribute test
+
+     Usage: attrtest
+
+     This command tests	ECU's console attributes.  You can try it
+     if	you like, but it is primarily for testing an ECU port.
+
+     AX	: ascii	char to	hex/oct/dec
+
+     Usage: ax [<param>]
+
+     <param> may be a single ASCII character,  a  standard  ASCII
+     identifier	(such as ETX), or a two-character control charac-
+     ter identifier (such as ^C, typed as a caret followed  by	a
+     C).
+
+     If	no parameter is	supplied, a table of  control  characters
+     is	printed	containing decimal, octal, hex,	ASCII identifiers
+     and two-character control character identifier.
+
+     XA	: hex to ascii char
+
+     Usage: xa [<hex-val>]
+
+     <hex-val> is a hexadecimal	value between 0	and FF;	the  par-
+     ity  (sign) bit is	stripped and the equivalent ASCII charac-
+     ter value is displayed.
+
+     If	no parameter is	supplied, a table of  control  characters
+     is	printed	containing decimal, octal, hex,	ASCII identifiers
+     and two-character control character identifier.
+
+     OA	: octal	to ascii char
+
+     Usage: oa [<octal-val>]
+
+     <octal-val> is a octal value between 0 and	0377; the  parity
+     (sign)  bit  is  stripped and the equivalent ASCII	character
+     value is displayed.
+
+     If	no parameter is	supplied, a table of  control  characters
+     is	printed	containing decimal, octal, hex,	ASCII identifiers
+     and two-character control character identifier.
+
+     DA	: decimal to ascii char
+
+     Usage: da [<decimal-val>]
+
+
+
+
+Version	4.07		    10/18/96			       12
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     <decimal-val> is a	decimal	value between  0  and  0377;  the
+     parity (sign) bit is stripped and the equivalent ASCII char-
+     acter value is displayed.
+
+     If	no parameter is	supplied, a table of  control  characters
+     is	printed	containing decimal, octal, hex,	ASCII identifiers
+     and two-character control character identifier.
+
+     ANSIf : ANSI filter state
+
+     Usage: ansif [off | on | ]
+
+     This command displays or controls the state of the	ECU  ANSI
+     filter.   If  on,	ECU interprets the incoming bytestream as
+     addressing	an  ANSI  terminal;  the  control  sequences  are
+     detected  and reissued to the local console per its terminal
+     database description.  In addition, a virtual  screen  image
+     is	kept by	ECU.
+
+     If	off, the inciming bytestream is	passed	directly  to  the
+     local console.  No	virtual	screen image is	kept.
+
+     AUTORZ : auto ZMODEM receive state
+
+     Usage: autorz [ | 1 | 0 | n | y ]
+
+     This command displays or  controls	 the  state  of	 the  ECU
+     autorz  switch.  If  on,  an  incoming  ZMODEM preamble will
+     automatically start a ZMODEM receive operation.
+
+     AYt : send	telnet Are You There?
+
+     Usage: ayt
+
+     If	your ECU is in telnet connection, this command sends  the
+     AYT  (Are	You  There?)  command to the remote host.  If the
+     remote is sane (and so disposed), it will reply  with  some-
+     thing like	"[Yes]".
+
+     BAud : set/display	line bit rate
+
+     Usage: baud [<bit-rate>]
+
+     <bit-rate>, if specified, must be taken from the values 110,
+     300,  600,	1200, 2400, 4800, 9600,	19200 and 38400.  On some
+     systems, 19200 and	38400 may not be  supported.   If  a  bit
+     rate  less	 than  300 is selected,	2 stop bits are	automati-
+     cally specified; other bit	rates set 1 stop bit.	If  <bit-
+     rate> is not supplied, the	current	bit rate is displayed.
+
+     The setting may be	automatically changed as the result of	a
+     'dial'  command.	See  also the 'dial' and 'parity' command
+
+
+
+Version	4.07		    10/18/96			       13
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     descriptions.
+
+     BN	: all console event alarm
+
+     Usage: bn [ off | on | alert ]
+	    bn [ 0 | 1 | 2 ]
+
+     "bell notify": If no parameter is supplied, the current set-
+     ting  is displayed.  Specifying 0 or off disables the facil-
+     ity; 1 or on causes an audible  alarm  to	be  sounded  upon
+     receipt of	a bell (0x07) character	from the remote	system;	2
+     or	alert causes an	audible	alarm upon receipt of ANY charac-
+     ters.  This command may not be functional in the version for
+     your system.
+
+     BReak : send break	to remote
+
+     Usage: break
+
+     This command sends	a "break" signal to  the  remote  system.
+     On	 asynchronous  ports  this  is	done  with  a "long space
+     disconnect."  On telnet, an  Interrupt  Process  command  is
+     sent.
+
+     CD	: change current directory
+
+     Usage: cd [<dir-path>]
+
+     This command allows you to	change the working  directory  of
+     the  ECU  process.	  If <dir-path>	is supplied, the previous
+     working directory is displayed, and <dir-path> is	made  the
+     new  working  directory.	A  history  of previous	directory
+     changes is	maintained.  Entering the 'cd' command shows  the
+     numbered  history list and	allows you to select a new direc-
+     tory by entering the number.  Other commands allow	 deletion
+     of	 directories  from  the	 list  or saving the list to file
+     ~/.ecu/dir.  This file is automatically read at ECU startup,
+     providing	a  convenient  list  of	directories available for
+     quick selection.
+
+     CLrx : clear local	transmit XOFF
+
+     Usage: clrx
+
+     The 'clrx'	command	simulates receipt of an	XON by	ECU.   It
+     is	useful in the rare circumstances that an XOFF is received
+     by	ECU from a remote system and no	later XON is received.
+
+     CONXon : console software flow control
+
+     Usage: conxon [<arg>]
+     where  <arg>  is  on     honor  ^S/^Q  local  flow	  control
+
+
+
+Version	4.07		    10/18/96			       14
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     (DEFAULT)
+		    off	  pass ^S/^Q to	remote
+
+     This command enables or disables console xon/xoff flow  con-
+     trol.   If	the argument is	omitted, the current flow control
+     state is displayed.  If on, typing	^S/^Q stops  or	 restarts
+     the  local	 console  driver  output.   If off, ^S and ^Q are
+     passed to the remote (for EMACS, of course	-- who else?).
+
+     DCDwatch :	control	DCD disconnect
+
+     Usage: dcdwatch [<dcdwatch-param>]
+
+     This command controls the DCD watcher.  The optional parame-
+     ter may be:
+	y  yes - enable	DCD watcher
+	n  no -	disable	DCD watcher
+	t  terminate - terminate ECU on	loss of	DCD
+     Entering the command without an argument shows  the  current
+     status.
+
+     The DCD watcher when enabled causes ECU to	monitor	 the  DCD
+     line  (within the limits imposed by the OS	with its CLOCAL=0
+     functionality).  When the watcher is on and DCD  drops,  ECU
+     automatically performs the	action of the interactive or pro-
+     cedure hangup command.  If	the 't'erminate	option is chosen,
+     then  after  hangup  processing is	complete, the ECU program
+     will terminate.
+
+     The state of the watcher may be changed by	the  use  of  the
+     dial  command  which uses a directory entry that changes the
+     DCD watcher status.  See the manual sections on the interac-
+     tive commands 'dcdwatch' and 'dial'.
+
+     Dial : dial remote	destination
+
+     Usage: dial [<dial-param>]
+
+     <dial-param> may take one of two forms, a	telephone  number
+     to	 dial  or  a  logical name which can be	found in the user
+     phone directory (in file ~/.ecu/phone).
+
+     If	a telephone number  is	supplied,  the	phone  number  is
+     dialed;  you  must	 first	have set the desired bit rate and
+     parity using the 'baud' and 'parity' commands.  If	a logical
+     name  is  entered,	 the  phone directory is searched; if the
+     entry is found, the bit rate and parity is	automatically set
+     and the number dialed.
+
+     If	<dial-param> is	 not  supplied,	 then  a  screen-oriented
+     self-documenting directory	manager	is executed; you may scan
+     the directory to select a number to dial, as  well	 as  add,
+
+
+
+Version	4.07		    10/18/96			       15
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     remove and	edit entries.  See also	'baud' and 'parity'.
+
+     DO	: perform procedure
+
+     Usage: do <procname> [<arg> ... ]
+
+     Perform ECU procedure.  Ecu searches  for	<procname>.ep  in
+     the  current  directory.  If the file is not found, the pro-
+     gram looks	for the	file in	the  ~/.ecu  directory.	  One  or
+     more arguments may	be passed to the procedure.
+
+     DUplex : set/display duplex
+
+     Usage: duplex [ Full | Half ]
+
+     This command specifies whether or not ECU is to locally echo
+     characters	 typed	by you at the keyboard.	 The overwhelming
+     majority of remote	systems	provide	 the  echo  function,  in
+     which case	full duplex must be used.  For the rare	occasions
+     when the remote system does not echo  your	 keyboard  input,
+     setting  half duplex will allow you to see	what you are typ-
+     ing.
+
+     When communicating	with  another  terminal	 in  a	"teletype
+     conver-  sation", setting half duplex is generally	required.
+     In	such cases, use	of the 'nl', 'nlin' and	'nlout'	 commands
+     may also be required.
+
+     The default setting for duplex is full.
+
+     ERTo : expect-respond timeout
+
+     Usage: erto [<msec>]
+
+     This command specifies the	default	timeout	period	(in  mil-
+     liseconds)	 of  the next "expect" in an ECU-executed expect-
+     respond script.  Remember that  ECU  expect-respond  scripts
+     can  change  timeouts  on	their own, so this number may not
+     "stick." Entering the command with	no arguments displays the
+     current  value  (which,  again,  may  not	be  the	value ECU
+     started with or the value you last	selected).
+
+     ERVerbose : expect-respond	verbosity
+
+     Usage: erverbose [<true-false>]
+
+     This command  specifies  the  verbosity  level  of	 an  ECU-
+     executed  expect-respond  script.	Entering the command with
+     no	argument displays the current  status  of  verbosity.  To
+     change  the  value,  enter	 an  argument  beginning  with an
+     lower-case	'y' or 'n'.
+
+
+
+
+Version	4.07		    10/18/96			       16
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Examples:
+	 erv
+	 erv y
+
+     ETO : ESC/fkey timeout
+
+     Usage: eto	[msec]
+
+     This experimental	command	 sets  or  displays  the  "escape
+     timeout"  for  non-multiscreen  function key detection.  Use
+     caution: although the command has a lower limit, you may set
+     the value low enough not to be able to use	the HOME key!
+
+     EXit : hang up, exit program
+
+     Usage: exit
+
+     This command terminates ECU promptly.  If	your  modem  does
+     not drop carrier upon loss	of Data	Terminal Ready (DTR), you
+     must use the 'hangup' command prior to  issuing  the  'exit'
+     command.  It is strongly recommended that you configure your
+     modem to hang up the phone	line when DTR drops.  A	shorthand
+     version of	this command exists: '.' is equivalent to 'exit'.
+
+     FI	: send text file to line
+
+     Usage: fi [<filename>]
+
+     "file insert": This command causes	 file  characters  to  be
+     inserted  into  the  transmit data	stream as though they had
+     been entered at the keyboard.  If <filename> is not  entered
+     on	 the  command  line,  a	 prompt	for the	filename is made.
+     Once the filename has been	entered	and file has been opened,
+     you are asked whether the file should be transmitted at full
+     speed, by "echo pacing" or	by a single line at a time.   You
+     may  also	append an 'f', 'e' or 's' argument to the command
+     line.  If your remote can tolerate	it, full speed	transmis-
+     sion is the fastest.  Pressing the	interrupt key (DEL) stops
+     a full speed transmission.	 By specifying echo pacing, it is
+     possible  to  increase  the  likelihood  of  proper receipt.
+     Pressing  the  interrupt  key  (DEL)  stops  an  echo  paced
+     transmission.  As a last resort, if echo pacing is	not work-
+     ing for you, (i.e., you are using the command in an environ-
+     ment  where  the  remote does not echo your characters), use
+     single line at a time  transmission.   You	 must  press  the
+     space  key	to initiate sending each line.	Pressing 'ESC' or
+     's' stops the transfer.
+
+     FKEy : function key definition
+
+     Usage: fkey [<keyset_name>]
+
+
+
+
+Version	4.07		    10/18/96			       17
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     This command allows the mapping  of  function  keys  F1-F12,
+     PgUp,  PgDn,  End	and Ins	and the	cursor up, down, left and
+     right keys	to emit	a desired sequence of characters  when	a
+     function  key is pressed.	<keyset_name> specifies	which key
+     set in ~/.ecu/keys	 is  to	 be  selected:	Sample	entry  in
+     ~/.ecu/keys:
+
+     hayes
+	 F1:escape:+ + +
+	 F2:autoans:A T	S 0 = 1	cr
+	 F3:dial:A T D T
+     bbs
+	 F1:cancel:^K
+	 F2:yes:y cr
+
+     If	a keyset_name matches a	logical	dial directory	name,  it
+     is	loaded when the	number is dialed.
+
+     FKMap : redefine function key map
+
+     Usage: fkmap		      display current mapping
+	    fkmap <keyname>	      display single key mapping
+	    fkmap <keyname> <keylist> modify a key's mapping
+	    fkmap -l <name>
+	    fkmap -r		      reset to original	mapping
+	    fkmap -s <file>	      append current to	file
+
+     This command manages the mechanism	 ECU  uses  to	recognize
+     function keys when	they are entered at the	console.  If sup-
+     plied, the	first argument to the command must be the  recog-
+     nized name	of a function key from the list:
+
+     F1	F2 F3 F4 F5 F6 F7 F8 F9	F10 F11	F12 Home  End  PgUp  PgDn
+     CUP CUL CU5 CUR CUD
+
+     If	only one argument is supplied, the mapping for the speci-
+     fied  key	is  displayed.	If more	than one argument is sup-
+     plied, the	keyboard mapping is changed.  Arguments	 2-n  are
+     character	code  specifiers  in  the format used to define	a
+     funckeymap	entry.
+
+     WARNING: If found to be  syntactically  correct,  a  mapping
+     change  is	 installed  immediately.  If incorrect mapping of
+     the HOME key is requested,	you may	lose control of	ECU.
+
+     For a description of the other options, see the manual.
+
+     HAngup : hang up modem
+
+     Usage: hangup
+
+     This causes DTR to	be momentarily	interrupted,  terminating
+
+
+
+Version	4.07		    10/18/96			       18
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     any  outstanding  connection.  Your DCE (modem) must be able
+     to	drop carrier upon loss of DTR.
+
+     HElp : invoke help
+
+     Usage: help [<cmd-name>]
+
+     Issuing this command with no argument  displays  a	 list  of
+     commands  followed	 by  a	request	for a command for further
+     information.
+
+     KBDTest : test keyboard mapping
+
+     Usage: kbdtest
+
+     This command runs a keyboard test which asks  you	to  press
+     function  keys  (e.g., F1).  For each key pressed,	ECU gives
+     you the actual character sequence generated by the	key.   It
+     also  tells  you  which function key it recognizes	(if any).
+     mapping of	keyboard generated  character  sequences  to  ECU
+     internal key codes.  The command is useful	for verifying and
+     debugging a "funckeymap" entry.  To exit  the  test  at  any
+     time, press the escape key.
+
+     LOFf : turn off session logging
+
+     Usage: loff
+
+     This command is shorthand for 'log	off'.  If session logging
+     is	active,	it is turned off.
+
+     LOG : session logging control
+
+     Usage: log	[-s] [-r] [ | off | filename ]
+	    -s "scratch" previous file contents; otherwise append
+	    -r "raw" logging; otherwise	non-printable characters
+	       other than tab and NL are omitted from the log
+
+     This command controls session logging; issuing  the  command
+     with  no argument causes the status of session logging to be
+     displayed.	 The special argument 'off' causes active logging
+     to	 be  terminated.   Other argument values cause logging to
+     start using the argument as  a  filename.	 Issuing  a  'log
+     filename'	command	when logging is	already	active causes the
+     previous file to be closed	and the	new file  to  be  opened.
+     Switches are meaningful only when used in conjunction with	a
+     filename to start logging.
+
+     MEMstat
+
+     Usage: memstat
+
+
+
+
+Version	4.07		    10/18/96			       19
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Experimental  malloc  display.   -lmalloc	bug  may   report
+     erroneous data.
+
+     MKDir : mkdir <dirname>
+
+     Usage: mkdir <dirpath>
+
+     Create a new directory named <dirpath>.
+
+     NIce : change process nice	(0-39)
+
+     Usage: nice [niceval]
+
+     This command sets or displays the process nice  value.   The
+     usual rules apply (hint: you might	accidently nice4 yourself
+     into not getting enough CPU!)
+
+     NL	: display CR/LF	mapping
+
+     Usage: nl
+
+     Display the current setting  of  CR/LF  mapping.	For  more
+     information,   refer  to  the  'nlin'  and	 'nlout'  command
+     descriptions.
+
+     NLIn : receive CR/LF mapping
+
+     Usage: nlin [<y-n>]
+
+     This command controls whether or not a newline (NL/LF) char-
+     acter  is	sent  to  the  screen  upon receipt of a carriage
+     return (CR) from the remote system.  Most	remote	computers
+     supply  a NL after	CR.  When communicating	with another ter-
+     minal in a	"teletype conversation", this  is  generally  not
+     the case (see also	the 'duplex' command).
+
+     Issuing the command without <y-n> causes the current setting
+     to	 be  displayed.	  The format of	<y-n> is flexible: 'y' or
+     '1' enables appending NL  to  CR,	'n'  or	 '0'  causes  the
+     feature to	be disabled.
+
+     NLOut : transmit CR/LF mapping
+
+     Usage: nlout [<y-n>]
+
+     This command controls whether or not a newline (NL/LF) char-
+     acter  is	sent  to the remote system upon	transmission of	a
+     carriage return (CR) entered by the keyboard.   Most  remote
+     computers	do  not	require	(indeed	"dislike") a NL	after CR.
+     When communicating	with  another  terminal	 in  a	"teletype
+     conversation",  this is generally not the case (see also the
+     'duplex' command).
+
+
+
+Version	4.07		    10/18/96			       20
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Issuing the command without <y-n> causes the current setting
+     to	 be  displayed.	  The format of	<y-n> is flexible: 'y' or
+     '1' enables appending NL  to  CR,	'n'  or	 '0'  causes  the
+     feature to	be disabled.
+
+     PARity : set/display line parity
+
+     Usage: parity [ None | Even | Odd ]
+
+     This command controls the parity of  characters  transmitted
+     by	 the  keyboard.	  Issuing  the	command	with no	parameter
+     displays the current setting.  When the  parameter	 is  sup-
+     plied,  only  the	first character	is required.  Even or odd
+     parity implies seven data bits; no	parity implies eight data
+     bits.  Parity of incoming characters is not checked.
+
+     The setting may be	automatically changed as the result of	a
+     'dial'  command.	See  also  the	'baud' and 'dial' command
+     descriptions.
+
+     PCmd : execute procedure command
+
+     Usage: pcmd <procedure command>
+
+     The 'pcmd'	command	allows a procedure command to  be  issued
+     from  the	interactive  command  prompt.	It  is	primarily
+     intended for debugging procedure commands,	but it is  avail-
+     able  for	any use.  Certain commands are illogical from the
+     interactive mode.	Attempting, for	 instance  to  execute	a
+     `whilei'  will  result  in	 the  error `not executing a pro-
+     cedure.'
+
+     PId : display process ids
+
+     Usage: pid
+
+     This command displays the process id of the ECU  transmitter
+     process,  the  ECU	 receiver  process and the process ids of
+     ECU's parent and group.
+
+     PLog : control procedure logging
+
+     Usage: plog [<filename> | off | ]
+
+     The 'plog'	command	turns on or off	 procedure  logging.   If
+     the argument to the command is 'off', logging is turned off,
+     otherwise logging is started on the specified file.   If  no
+     argument  is  specified,  the status of procedure logging is
+     displayed.
+
+     PUshd : push to new directory
+
+
+
+
+Version	4.07		    10/18/96			       21
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Usage: pushd [ | <dir> ]
+
+     This command either 1) pushes the current directory pathname
+     onto a stack and establishes a new	directory or 2)	shows the
+     current  stack.   Issuing	the  command  with  no	 argument
+     displays the stack.
+
+     PTrace : control procedure	trace
+
+     Usage: ptrace [ 0 | 1 | on	| off]
+
+     This command controls whether or not procedure execution  is
+     to	be traced.
+
+     POpd : pop	to previous directory
+
+     Usage: pushd [ | <#> | all	]
+
+     This command pops one, many or all	of the entries off direc-
+     tory  stack,  restoring  a	 previous directory.  No argument
+     results in	one directory being popped.  A	numeric	 argument
+     pops  the stack to	a specified level.  'all' is equal to the
+     numeric value 0 (and may be abbreviasted 'a').
+
+     PWd : print working directory
+
+     Usage: pwd
+
+     This command prints the current working directory of the ECU
+     process.
+
+     RK	: receive via C-Kermit
+
+     Usage: rk
+
+     This command searches the PATH list for 'ckermit'	(Columbia
+     University	 C-Kermit)  and	invokes	it to receive files.  See
+     the ECU documentation for modifications necessary to ckermit
+     for  ECU  operation.   The	 file ~/.kermrc	must be	set up to
+     have  any	desired	 initialization	 parameters  you  desire.
+     Refer to C-Kermit documentation for more information.
+
+     REDial : redial last number
+
+     Usage: redial [<retry-count> [<pause-interval>]]
+
+     This command redials a number  previously	dialed	with  the
+     'dial' command.  Modem status is tested and multiple retries
+     may be made.  <retry-count> specifies how many  retries  are
+     to	be made.  <pause-interval> specifies how many seconds the
+     program pauses after a failure to connect.	 You must specify
+     <retry-count>  in	order  to  specify <pause-interval>.  The
+
+
+
+Version	4.07		    10/18/96			       22
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     default value for <retry-count> is	10. The	 default  <pause-
+     interval> is 60.
+
+     You should	know that in some jurisdictions, it is ILLEGAL to
+     dial  the same telephone number more than a specified number
+     of	times during some interval of time.  In	any case,  speci-
+     fying  <pause-interval>  less  than  15  seconds is silently
+     changed to	15 seconds.
+
+     REV : ECU revision/make date
+
+     Usage: rev
+
+     This command displays ECU's revision, the date and	time  ECU
+     was  made	and the	status of CFG configuration switches used
+     to	make ECU.
+
+     RTScts : RTS/CTS flow control
+
+     Usage: rtscts [ off | on |	no | yes | 0..7	]
+
+     This command turns	on or off the driver  RTS  and	CTS  flow
+     control  if support is provided by	the OS.	This is	a complex
+     subject and you should refer to  the  manual  and	the  UNIX
+     oral/net tradition	if you are confused.
+
+     For SCO:
+     argument |	RTSFLOW	| CTSFLOW   argument | RTSFLOW |  CTSFLOW
+     | CRTSFL
+     ---------+---------+---------			---------
+     +---------+---------+--------
+       off    |	  0	|   0	       0       |    0	   |	0
+     |
+       on     |	  0	|   1	       1       |    0	   |	1
+     |
+       no     |	  0	|   0	       2       |    1	   |	0
+     |
+       yes    |	  0	|   1	       3       |    1	   |	1
+     |
+				      4	      |	   0	  |	0
+     |	  1 Choice 4 only works	on SCO 3.2v4 and ODT 2.0.  As you
+     can see, numeric values are masks.	 If the	4 bit is  present
+     in	 the  numeric  value,  it overrides the	lower-order bits:
+     Specifying	7 as an	argument specifies CRTSFL is to	 be  used
+     if	it is supported, otherwise RTSFLOW and CTSFLOW.
+
+     A similar feature is provided under SVR4 and SunOS.  See the
+     ECU  manual  and  your system's termio man	page (termios for
+     SunOS) for	details.
+
+     RX	: receive via XMODEM/CRC
+
+
+
+
+Version	4.07		    10/18/96			       23
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Usage: rx
+
+     This command invokes a modified version of	Chuck  Forsberg's
+     rz	 program  (version 1.31) to receive files from the remote
+     system using XMODEM/CRC.
+
+     After entering the	command, you are prompted as  to  whether
+     or	 not  file  CR/LF  characters are to be	converted to new-
+     lines.  If	you are	transferring text  files  from	a  system
+     which contain CR/LF line terminators, you must answer yes to
+     this question.   You  should  answer  no  when  transferring
+     binary  files, such as executables, .arc files and	the like.
+     File transfer progress is presented on a visual display.  To
+     abort  the	 transfer,  press your interrupt key (usually DEL
+     unless reset with stty(C)).
+
+     RY	: receive via YMODEM Batch
+
+     Usage: ry
+
+     This command invokes a modified version of	Chuck  Forsberg's
+     rz	 program  (version 1.31) to receive files from the remote
+     system using YMODEM batch with CRC-16 error correction.  The
+     YMODEM  is	"true YMODEM", not XMODEM-1k.  File transfer pro-
+     gress is presented	 on  a	visual	display.   To  abort  the
+     transfer, press your interrupt key	(usually DEL unless reset
+     with stty(C)).
+
+     RZ	: receive via ZMODEM/CRC32
+
+     Usage: rz
+
+     This command invokes a modified version of	Chuck  Forsberg's
+     rz	 program  (version 1.44) to receive files from the remote
+     system  using  ZMODEM/CRC32.   File  transfer  progress   is
+     presented on a visual display.  To	abort the transfer, press
+     your interrupt key	(usually DEL unless reset with stty(C)).
+
+     SDName : select screen dump name
+
+     Usage: sdname [<filename> | ]
+
+     This command  sets	 or  displays  the  current  screen  dump
+     filename.	 Until the command is issued, screen dump data is
+     placed in ~/.ecu/screen.dump.
+
+     SGR : send	command/get response
+
+     Usage: sgr	mode cmd
+
+     This experimental command is used to  test	 the  timed  read
+     primitive	used  by  ECU.	 The command <cmd> is sent to the
+
+
+
+Version	4.07		    10/18/96			       24
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     line and a	timed read is performed.  The  data  returned  is
+     displayed	 in  hexadecimal  format  on  the  console.   The
+     stimulus (cmd) and	 response  is  logged  in  source  module
+     ecugrabbag.c  function send_get_response()	for details.  See
+     SGRTO1 and	SGRTO2 for additional flexibility
+
+     SGRTO1 : set SGr 1st char timeout
+
+     Usage: sgrto1 <msec>
+
+     Set time to wait for first	character in response to  an  sgr
+     stimulus.
+
+     SGRTO2 : set SGr later char timeout
+
+     Usage: sgrto2 <msec>
+
+     Set time to wait for later	characters in response to an  sgr
+     stimulus.
+
+     SK	: send via C-Kermit
+
+     Usage: sk [<file-list>]
+
+     This command searches the PATH list for 'ckermit'	(Columbia
+     University	C-Kermit) and invokes it to send files.	 The file
+     ~/.kermrc must be set up to have any desired  initialization
+     parameters	 you  desire.	Refer to the ECU manual	and to C-
+     Kermit documentation for more information.
+
+     After entering the	command, you are prompted as  to  whether
+     or	not file newline characters are	to be converted	to CR/LF.
+     If	you  are  transferring	text  files  to	 a  system  which
+     requires CR/LF line terminators, you must answer yes to this
+     question.	You should answer  no  when  transferring  binary
+     files,  such  as  executables, .arc files and the like.  You
+     are prompted to enter a list of files  to	send,  which  may
+     contain one or more wildcard specifications.
+
+     STat : general status
+
+     Usage: stat
+
+     This command displays various status  and	statistics  about
+     ECU  usage.  Its display varies from system to system and is
+     generally self-explanatory.
+
+
+     SX	: send via XMODEM/CRC
+
+     Usage: sx [<file-name>]
+
+
+
+
+Version	4.07		    10/18/96			       25
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     This command invokes a modified version of	Chuck  Forsberg's
+     sz	 program (version 1.44)	to send	a file to the remote sys-
+     tem using XMODEM/CRC.
+
+     After entering the	command, you are prompted as  to  whether
+     or	 not  file  CR/LF  characters are to be	converted to new-
+     lines.  If	you are	transferring text  files  from	a  system
+     which  contain CR/LF line termi- nators, you must answer yes
+     to	this question.	You should answer  no  when  transferring
+     binary files, such	as executables,	.arc files and the like.
+
+     You are prompted to enter a filename to send.  File transfer
+     progress  is  presented  on  a visual display.  To	abort the
+     transfer, press your interrupt key	(usually DEL unless reset
+     with stty(C)).
+
+     SY	: send via YMODEM Batch
+
+     Usage: sy [<file-list>]
+
+     This command invokes a modified version of	Chuck  Forsberg's
+     sz	program	(version 1.44) to send file(s) to the remote sys-
+     tem using YMODEM/CRC.
+
+     You are prompted to enter filename(s)  to	send,  which  may
+     consist  of  one  or  more	 wildcard  specifications.   File
+     transfer progress is presented  on	 a  visual  display.   To
+     abort  the	 transfer,  press your interrupt key (usually DEL
+     unless reset with stty(C)).
+
+     SZ	: send via ZMODEM/CRC32
+
+     Usage: sz [<file-list>]
+
+     This command invokes a modified version of	Chuck  Forsberg's
+     sz	program	(version 1.44) to send file(s) to the remote sys-
+     tem using ZMODEM/CRC32.
+
+     You are prompted to enter filename(s)  to	send,  which  may
+     consist  of  one  or  more	 wildcard  specifications.   File
+     transfer progress is presented  on	 a  visual  display.   To
+     abort  the	 transfer,  press your interrupt key (usually DEL
+     unless reset with stty(C)).
+
+     Note: if you specify sending only newer files and the remote
+     receiver  does not	support	the feature, it	may skip (reject)
+     all your  files.	Retry  the  transfer  specifying  'N'  to
+     'Transfer only newer files'.
+
+     TD	: termcap variable display
+
+     Usage: td
+
+
+
+Version	4.07		    10/18/96			       26
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     Display the termcap strings that ECU received  from  termcap
+     initialization.  Useful  for  debugging screen display prob-
+     lems.
+
+     TELopt : telnet options display state
+
+     Usage: telopt [ y | n | ]
+
+     If	configured for it, ECU can make	internet (telnet) connec-
+     tions.   When  in	one, telnet options are	exchanged between
+     ECU and  the  remote  telnetd.   This  command  controls  or
+     displays  whether	or  not	 ECU displays visible evidence of
+     such traffic.  By default,	this feature is	turned off.
+
+     There is little traffic once the session begins.	You  most
+     likely  wish  to use the -z switch	or use the procedure ver-
+     sion of this command in an	_rc.ep file.
+
+     TIme : time of day
+
+     Usage: time
+
+     This command displays the local date and time as well as the
+     current UTC.
+
+     TS	: termio display
+
+     Usage: ts
+
+     This experimental	command	 displays  raw	termio	structure
+     information  for  the  console and	the tty.  It is	primarily
+     used in debugging ECU.
+
+     TTy : console tty name
+
+     Usage: tty
+
+     This command displays the current console tty name.
+
+     XLog : protocol packet logging
+
+     Usage: xlog [y | n]
+
+     This experimental command controls	exhaustive logging by the
+     X,	 Y,  and  ZMODEM  file	transfer protocols to files named
+     /tmp/szNNNNN.log or /tmp/rzNNNNN.log where	NNNNN is the pro-
+     cess id of	the transfer process.
+
+     XOn : line	xon/xoff flow control
+
+     Usage: xon	[<arg>]
+     where <arg> is on	  input	and output flow	control
+
+
+
+Version	4.07		    10/18/96			       27
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+		    off	  no flow control
+		    in	  input	flow control
+		    out	  output flow control
+
+     This command enables or disables xon/xoff flow control.   If
+     the  argument  is omitted,	the current flow control state is
+     displayed.
+
+     ! : execute shell (tty)
+
+     Usage: !
+	    !<command>
+
+     The '!' command is	a shell	escape.	 The environment variable
+     SHELL  is	read  to  determine what shell program to execute
+     (e.g., /bin/sh, etc).  If	'!'  is	 entered  by  itself,  an
+     interactive  shell	is started; press ^D to	exit back to ECU.
+     If	<command> is supplied, it is executed by the  shell  with
+     an	immediate return to ECU.
+
+     Similarly,
+       '$' causes the communications line to be	stdin and stdout
+	   for the spawned shell
+       '-' is similar to '>',  except  the  command  is	 executed
+     directly
+	   without going through a shell.
+
+     $ : execute shell (comm line)
+
+     Usage: $
+	    $<command>
+
+     The '$' command is	a shell	escape causing the communications
+     line  to  be the standard input and output.  The environment
+     variable SHELL is read to determine what  shell  program  to
+     execute  (e.g., /bin/sh, etc).  If	'$' is entered by itself,
+     an	interactive shell is started; a	^D received from the com-
+     munications  line	causes the shell to terminate and control
+     to	be passed back to ECU.	If <command> is	supplied,  it  is
+     executed by the shell with	an immediate return to ECU.
+
+     - : execute program
+
+     Usage: -<command>
+
+     The '-' command causes <command>  to  be  executed	 directly
+     without  passing  through	a shell	(no wildcard expansion or
+     other shell processing occurs).  Standard input, output  and
+     error all are opened to the console.  In addition,	all other
+     files (including the  communications  line)  opened  by  ECU
+     remain open.
+
+
+
+
+Version	4.07		    10/18/96			       28
+
+
+
+
+
+
+ECU(1)			 USER COMMANDS			   ECU(1)
+
+
+
+     ? : get help
+
+     Usage: ?
+
+     This is an	alias for the help command.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Version	4.07		    10/18/96			       29
+
+
+

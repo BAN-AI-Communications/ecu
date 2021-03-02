@@ -1,0 +1,11 @@
+:
+#+---------------------------------------------------------------
+# idefas - ECU FASI/FAS Installation
+# Alas, SCO idinstall has no -z (Define) option like ISC does
+#----------------------------------------------------------------
+/etc/conf/bin/idcheck -p fas
+if [ $? -lt 16 ] ; then
+	/etc/conf/bin/idinstall -a -e -k fas
+else
+	/etc/conf/bin/idinstall -u -e -k fas
+fi

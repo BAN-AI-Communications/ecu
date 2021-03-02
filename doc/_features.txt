@@ -1,0 +1,1189 @@
+.*s 1 "Features"
+.*s 2 "Supported Terminals"
+
+ECU supports many terminals with geometries of at least
+24 lines and 80 columns. (The largest screen supported
+is set at Configure time.)
+The local terminfo (or termcap) database must have a valid entry
+entry for a console (local user tty rather than the line).
+
+ECU does not attempt to support terminal emulation in the classic
+sense of the word.  It presents to the remote host an "ANSI-like"
+terminal type as described earlier in the introduction and in 
+the section titled "ANSI Filter."
+However, it does support, with limitations, any LOCAL terminal
+(console) for which a valid termcap description exists. You MAY
+be able to use ECU with a remote terminal (calling into UNIX/XENIX
+over a network or modem), but you may get unfavorable results with
+function key usage if your modem is a "packetizing" type, such as
+a Telebit or if ethernet or other networking chops up your keystroke
+sequences.  ECU allows approximately 100 milliseconds after receiving
+an ASCII ESC character for later characters of a function key sequence
+to arrive.  If at least one character of the sequence has not been
+received in that time, ECU treats the key as an ESCape, not a function key.
+This typical problem of detecting ESC vs. function key is unfortunate, but
+we must live with it until paradigms change (say, in about 2010?).
+
+The local terminfo (or termcap) database MUST have a valid entry
+for the following database entries:
+
+.DS L
+clear screen
+cursor left
+cursor right
+delete character
+delete line
+clear to end of display
+clear to end of line
+insert character
+insert line
+cursor motion
+stand out
+stand end
+.DE
+
+The above sequences MUST be present, valid and reasonably
+efficient.  ECU does not use curses during it's primary mode of
+operation (keyboard send-receive). Unlike curses, ECU makes no
+attempt to emulate missing terminal functionality.  Failure to
+provide valid entries will be trapped at the beginning
+of each interactive execution with the following:
+
+.DS L
+Warning: Terminal type 'inferior' has
+  No insert line (`al' or `il1')
+  No delete line (`dl' or `dl1')
+The first `code' is the TERMCAP identifier for the feature
+while the second `code' is the TERMINFO identifier.
+We will continue, though your screen may be badly painted.
+Press RETURN to continue, ESCape to exit:
+.DE
+
+Electing to continue may result in strange behavior with no
+further warning.
+
+Additionally, the following, optional, sequences will be used if
+they are detected.
+
+.DS L
+mb      bold on ("XENIX" extension)
+me      bold off ("XENIX" extension)
+us      underscrore on
+ue      underscrore off
+vb      visual bell
+.DE
+
+On SCO, termcap terminal contrtol is used.  Other
+versions use terminfo.
+A future SCO version of ECU may use terminfo instead of termcap.
+
+On SCO multiscreens, SCO "extensions" to "ANSI" are supported
+as described below in "Multiscreen Local Terminals."
+
+.*s 2 "Host Video Control Sequences"
+
+.*s 3 "All Local Consoles (Terminals)"
+
+The following sequences are 
+properly interpreted by ECU for all local terminal types
+(multiscreen, rlogin/xterm pseudotty, serial).
+
+.DS L
+Sequence  | Description
+----------+-------------------------------
+ESC 7     | VT-100 save cursor position
+ESC 8     | VT-100 restore cursor position
+ESC [ @   | ICH
+ESC [ A   | CUU
+ESC [ B   | CUD
+ESC [ C   | CUF
+ESC [ D   | CUB
+ESC [ E   | CNL       See ANSI X3.64,
+ESC [ F   | CPL       screen(HW) and/or
+ESC [ H   | CUP       MS-DOS Technical
+ESC [ J   | ED        Reference Manual
+ESC [ K   | EL
+ESC [ L   | IL
+ESC [ M   | DL
+ESC [ P   | DCH
+ESC [ S   | SU
+ESC [ T   | SD
+ESC [ X   | ECH
+ESC [ `   | HPA
+ESC [ a   | HPR
+ESC [ d   | VPA
+ESC [ e   | VPR
+ESC [ f   | HVP
+ESC [ ? m | SGR
+ESC [ n   | DSR
+ESC [ s   | save cursor MS-DOSism
+ESC [ u   | restore cursor MS-DOSism
+.DE
+.DS L
+SGR Sequences for ALL TERMINALS
+Sequence  | Description   |  Maps to termcap
+----------+---------------+-------------------------------
+ESC [ 0 m | normal        |  "se"+"me"+"ue"
+ESC [ 1 m | bold          |  "so"
+ESC [ 4 m | underscore    |  "us"
+ESC [ 5 m | blink         |  "mb" (XENIX extension)
+ESC [ 7 m | reverse video |  "so"
+.DE
+
+.DS L
+DSR Sequences for ALL TERMINALS
+Sequence  | Description   |  responds with
+----------+---------------+-------------------------------
+ESC [ 0 n | ignored       | 
+ESC [ n   | see ESC[5n    |  ESC [ 0 n
+ESC [ 5 n | sanity test   |  ESC [ 0 n
+ESC [ 6 n | report cusror |  ESC [ r ; c R 
+          | (CPR)         |      r is row 1-n
+          |               |      c is column 1-n
+.DE
+The latter two DSR sequences are compatible with X11's xterm.
+The latter makes ECU compatible with the xterm companion program ``resize''.
+For example, if ECU "sees" ESC [ 6 n, and the screen cursor is at the
+home position, ECU responds with:
+
+ESC [ 1 ; 1 R     ( hex 1B 5B 31 3B 31 52 )
+
+.*s 3 "Multiscreen Local Terminals"
+
+In addition to the above, if you are operating from an SCO color
+multiscreen, additional (SCO and MS-DOS/ANSI.SYS) sequences
+are supported (see screen(HW)):
+
+.DS L
+Additional Multiscreen SGR Sequences
+Sequence    | Description  (no termcap mapping)
+------------+-----------------------------------------------
+ESC [ 8 m   | non-display
+ESC [ 1 0 m | select primary font
+ESC [ 1 1 m | select first alternate font (0x00-0x1F)
+ESC [ 1 2 m | select second alternate font (0x80-0xFF)
+ESC [ 3 0 m | black foreground
+ESC [ 3 1 m | red foreground
+ESC [ 3 2 m | green foreground
+ESC [ 3 3 m | brown foreground
+ESC [ 3 4 m | blue foreground
+ESC [ 3 5 m | magenta foreground
+ESC [ 3 6 m | cyan foreground
+ESC [ 3 7 m | white foreground
+ESC [ 3 8 m | enables underline option
+ESC [ 3 9 m | disables underline option
+ESC [ 4 0 m | black background
+ESC [ 4 1 m | red background
+ESC [ 4 2 m | green background
+ESC [ 4 3 m | brown background
+ESC [ 4 4 m | blue background
+ESC [ 4 5 m | magenta background
+ESC [ 4 6 m | cyan background
+ESC [ 4 7 m | white background
+.DE
+
+.s 3 "MS-DOS 'SGR Gaggles'"
+
+ECU also does it's best to interpret MS-DOS "SGR gaggles" such as
+.DS I
+ESC [ 5 ; 3 4 ; 4 7 m
+.DE
+which means "set the terminal to white background with
+blue blinking foreground."
+
+.*s 2 "Function Key Mapping (Recognition)"
+
+(This section reflects the changes in keyboard management made
+in version 3.20.)
+
+ECU recognizes 23 function keys as having special significance
+to its operation.
+They are:
+.DS I
+Name      Description 
+--------  ------------
+F1        F1         
+F2        F2        
+F3        F3          
+F4        F4          
+F5        F5          
+F6        F6          
+F7        F7          
+F8        F8          
+F9        F9          
+F10       F10         
+F11       F11         
+F12       F12         
+Home      Home        
+End       End         
+PgUp      Page up     
+PgDn      Page down   
+CUU       Up arrow    
+CUD       Down arrow  
+CUL       Left arrow  
+CUR       Right arrow 
+CU5       "Cursor 5"  
+Ins       Insert      
+BkTab     Back Tab    
+.DE
+
+ECU matches a function key sequence to an internal function key
+representation by testing all keystroke sequences against an
+internal table loaded at the beginning of execution from the file
+~/.ecu/funckeymap.  A default funckeymap file placed in the ECU
+library directory (normally /usr/local/lib/ecu) by the software
+installation process.  If there is no funckeys in the user's home
+directory, the default file is used.
+
+NOTE that supported terminals MUST employ function keys which generate
+sequences less than 32 characters in length.
+
+X11 xterms and X terminals usually require special attention
+with VT100.Translations overrides.  Sometimes an xmodmap must also be
+employed.  Experimentation is the best teacher, but the supplied
+funckeymap file and various READMEs offer some hints.  In particular,
+README.KEYBRD contains information that is kept current.
+
+Several predefined entries are supplied with the program
+distribution in models/funckeymap.  If you have a terminal or
+console with a keyboard not already in this file, you must
+construct one using the terminal's reference manual or by direct
+discovery (typing the key and empricially noting its generated
+sequence).  The program kbdtest3 (the source is provided in the
+distribution) can assist you in building funckeymap entries.
+certain keys are pressed.  kbdtest.c is a more primitive version
+of the same program.
+
+Normally, the TERM environment variable is used to determine
+the funckeymap entry to be used.  Sometimes, the TERM variable
+is not adequate for identifying your keyboard arrangement.  For
+instance, suppose you use an xterm on the console at times and
+an X terminal at other times.  The choice of function keys
+and the character sequences they emit are not likely to match.
+Rather than make herculean efforts with xmodmap and translations,
+you can define two different funckeymap entries, say "xterm-sco"
+and "xterm-ncd".
+The environment variable ECUFUNCKEY, if found, overrides the
+TERM variable for funckeymap keyboard management only.  
+TERM is always used for identifying the display.
+Thus, you can set TERM to "xterm" and ECUFUNCKEY to "xterm-sco"
+OR "xterm-ncd".
+Also, the -F command line switch may be used (which overrides $ECUFUNCKEY).
+
+The format of an file entry is shown below.
+Lines beginning with '#' are comments.
+
+.DS I
+#+------------------------------
+# SCO
+#-------------------------------
+ansi
+ansi43
+sco
+    F1:F1:          esc [ M 
+    F2:F2:          esc [ N 
+    F3:F3:          esc [ O 
+    F4:F4:          esc [ P 
+    F5:F5:          esc [ Q 
+    F6:F6:          esc [ R 
+    F7:F7:          esc [ S 
+    F8:F8:          esc [ T 
+    F9:F9:          esc [ U 
+    F10:F10:        esc [ V 
+    F11:F11:        esc [ W 
+    F12:F12:        esc [ X 
+    Home:Home:      esc [ H 
+    End:End:        esc [ F 
+    PgUp:PgUp:      esc [ I 
+    PgDn:PgDn:      esc [ G 
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+    CU5:CU5:        esc [ E 
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ L
+    BkTab:BackTab:  esc [ Z
+.DE
+
+The first line(s) in a terminal keyboard description begin in
+column 1 and contain the terminal types (a la $TERM) for which
+the keyboard description are valid.  The example entry contains
+several references to terminal types containing the substring
+'ansi'.  These are included only as an example of one keyboard
+description servicing multiple terminal types.
+
+Following the "first lines" are key definition entries, each
+preceded by at least one tab or space.  Each entry is composed of
+three fields delimited by commas.  The first field of an entry is
+the internal ECU function key name and must be chosen from the
+following strings (with no regard to case): "F1", "F2", "F3",
+"F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Home",
+"End", "PgUp", "PgDn", "CUU" (cursor up), "CUL" (cursor left),
+"CU5" (unshifted cursor pad 5), "CUR" (cursor right) and "CUD"
+(cursor down). The
+second field contains the name of the key as it appears on the
+keyboard (such as "F16" for End on the Wyse 60).  The
+third field is a description of the character sequence generated
+by the keyboard when the chosen key is pressed; it is a
+string of one or more tokens separated by spaces or tabs.
+
+In addition, function key sequences may not 
+exceed 31 characters in length.
+
+PLEASE NOTE: ECU does not have a reasonable way for you to terminate it
+if there are no Home and End keys defined, so it refuses to proceed
+if no definitions are found.  Even so, if you have incorrect definitions,
+you may not be able to get out of ECU without a kill -1 <pid> from
+another terminal or hanging up your connection with UNIX/XENIX
+if using ECU from remote.
+
+.*s 2 "Function Key Actions"
+
+This section deals with how ECU behaves
+once a function key has been recognized as having been entered
+at the keyboard. 
+
+.*s 3 "Standard Function Keys"
+
+All function keys with the exception of the 
+.B Home ,
+.B BkTab
+(shift TAB),
+and keypad unshifted 5 key can be programmed to 
+either
+.DS L
+    transmit preselected character sequences or
+    execute a procedure with arguments.
+.DE
+
+The default values for these sequences is shown below.
+
+.DS L
+Identifier Description    Default Sequence
+--------   ------------   ----------------
+F1         F1                ESC [ M
+F2         F2                ESC [ N
+F3         F3                ESC [ O
+F4         F4                ESC [ P
+F5         F5                ESC [ Q
+F6         F6                ESC [ R
+F7         F7                ESC [ S
+F8         F8                ESC [ T
+F9         F9                ESC [ U
+F10        F10               ESC [ V
+F11        F11               ESC [ W
+F12        F12               ESC [ X
+Home       Home          <-- intercepted (not an input key)
+End        End               ESC [ F
+PgUp       Page up           ESC [ I
+PgDn       Page down         ESC [ G
+CUU        Up arrow          ESC [ A
+CUD        Down arrow        ESC [ B
+CUL        Left arrow        ESC [ D
+CUR        Right arrow       ESC [ C
+CU5        "Cursor 5"    <-- intercepted (not an input key)
+Ins        Insert            ESC [ L
+.DE
+ 
+This results in the following interactive "fkey" command display:
+.DS L
+ F1   SCO F1    F2   SCO F2    Home  ecu cmd       PgUp  SCO PgUp
+ F3   SCO F3    F4   SCO F4    End   SCO End       PgDn  SCO PgDn
+ F5   SCO F5    F6   SCO F6    Ins   local shell   CUR5  screen dump
+ F7   SCO F7    F8   SCO F8    BkTab redisplay  
+ F9   SCO F9    F10  SCO F10   CUR^  SCO CUU       CUR>  SCO CUR
+ F11  SCO F11   F12  SCO F12   CUR<  SCO CUL       CURv  SCO CUD
+.DE
+
+You may override the default setting by using the interactive or
+procedure command "fkey" to specify a new keyset definition
+from ~/.ecu/keys.
+
+Function keyset definitions are appended one after another
+to ~/.ecu/keys.  The keyset name appears on a line by itself
+and the choices making up a set appear on subsequent lines
+of a special format.  
+
+A keyset is loaded explicitly using "fkey" and implicitly when
+connecting to a remote system and a keyset name matches
+the dialing directory entry name.
+
+Consider the example:
+
+.DS L
+stratus
+    F1:F1:esc O q
+    F2:F2:esc O r
+    F3:F3:esc O s
+    F4:F4:esc O t
+    F5:F5:esc O u
+    F6:F6:esc O v
+    F7:F7:esc O w
+    F8:procex:proc dowork /tmp
+    F9:no status:nl
+    F10:redisp:esc O y
+    F11:redisp:syn
+    PGDN:cancel:esc O Q
+    END:enter:esc O M
+    PGUP:dispform:esc O R
+    CUU:^:dle
+    CUD:v:so
+    CUL:<:stx
+    CUR:>:ack
+.DE
+
+The key definition lines are made up of three fields.  In addition,
+there must be a blank or a space in the first column of the line.
+The first field is the ECU key identifier from the table above.
+The second field is a 12-character max string to display when
+the display option of the fkey command is used.
+The last field is a either a character sequence to be transmitted 
+or a procedure to be invoked when the key is pressed.
+
+The resulting fkey display for the stratus example looks similar to:
+
+.DS L
+ F1  F1     F2  F2         Home ecu cmd     PgUp  dispform
+ F3  F3     F4  F4         End  enter       PgDn  cancel
+ F5  F5     F6  F6         Ins  local shell CUR5  Screen dump
+ F7  status F8  procex     BkTab restore receiver display
+ F9         F10 redisp     CUR^ ^           CUR>  >
+ F11        F12            CUR< <           CURv  v
+.DE
+
+Pressing F1, causes the three characters ESC, 'O' and 'q' to be
+transmitted.
+
+Pressing F8 causes the procedure ``procex'' to be executed with the
+argument ``/tmp''.  The maximum length of the procedure name,
+arguments and whitespace must be less than 64 characters; any
+excess is silently discarded.
+
+.*s 3 "SCO ALT-[a-z] Function Keys"
+
+The following feature may no longer work in 4.00 or later.
+The documentation is retained since some optimistic hacker
+may need the feature badly enough to go spelunking for it.
+In any case, it only applies to users of SCO multiscreens
+(at the PC console).
+
+If you are on an SCO machine and you have installed the custom
+ECU mapkey file (as described in the release directory
+in mapkeys/README), then ALT-a through ALT-z causes the "silent"
+execution of procedures 'alt_a.ep' for ALT-a, 'alt_b.ep' for ALT-b, etc.
+The models subdirectory contains an example alt_h.ep which will home
+the cursor when ALT-h is pressed.  This facility allows the execution
+of 26 procedures without ECU itself changing the video display at all.
+Any changes to the display (short of procedure errors) will result
+solely from the action of the invoked procedure.
+If the procedure matching the ALT-[a-z] key pressed cannot be found,
+a short error message is printed and the terminal bell is rung.
+(Using back tab may be used to refresh the display in this event.)
+
+The strings used to represent "non-printable" characters are identical
+to the formal ASCII names given them (without regard to case), viz:
+.DS I
+      NUL may not appear in a function key definition
+
+0x00 nul    0x10 dle 
+0x01 soh    0x11 dc1 
+0x02 stx    0x12 dc2 
+0x03 etx    0x13 dc3 
+0x04 eot    0x14 dc4 
+0x05 enq    0x15 nak 
+0x06 ack    0x16 syn 
+0x07 bel    0x17 etb 
+0x08 bs     0x18 can 
+0x09 ht     0x19 em  
+0x0A nl     0x1A sub 
+0x0B vt     0x1B esc 
+0x0C np     0x1C fs  
+0x0D cr     0x1D gs  
+0x0E so     0x1E rs  
+0x0F si     0x1F us  
+            0x20 sp  
+            0x7F del 
+.DE
+
+.*s 2 "Line Editing"
+
+When you are entering a line of text for an ecu command or in
+a field on a screen, you may edit it in a number of ways at any
+time prior to pressing Enter.  Cursor Left moves the cursor left
+by one character position, nondestructively.  Cursor Right moves
+to the right.  Insert toggles insert mode. 
+
+Backspace (your erase key as specified to stty in commands, the
+actual backspace key in screens) deletes the character to the
+left of the cursor.
+
+Your line kill key (as specified to stty) in command mode or
+the ^U character in screen mode erases the entire line.  Esc
+in command mode cancels the command.  Esc in screen mode usually
+cancels the screen or subfunction in a screen.
+
+The DEL character erases the character beneath the cursor.  In
+the common, but degenerate case of using DEL as the backspace
+key (stty erase '^?') or the interrupt key (stty intr '^?'),
+the function ordinarily served by the DEL key is unavailable.
+
+.*s 3 "Screen Mode Extras"
+
+When editing a field in screen mode which already contains data,
+the field is first shown in "standout" mode (usually reverse
+video).
+
+When you see a highlighted field,
+you may do one of two things: 1)
+.B discard
+the current contents and enter an
+entirely new value or 2)
+.B edit
+the current contents
+to produce a modified new value.
+
+.B
+To edit
+.R
+the existing contents, the first key you press must be an
+.I editing
+.I key.
+For instance, press Cursor Right (or backspace or Cursor Left).
+The highlighting disappears from the field; you may edit the field
+to your liking.
+
+.B
+To begin a fresh value,
+.R
+just type your value. That is, the first key you type is a
+.I
+data character,
+.R
+not an editing character.
+
+
+Pressing Esc while editing always leaved the original field
+unchanged.
+
+.*s 3 "Command Line Mode Extras"
+
+Typing ^L or ^R in
+interactive command mode shows the current state of Insert mode and
+redisplays the edited string.
+
+.*s 2 "Screen Dump"
+If you are running ECU with the ANSI filter enabled,
+ECU is able to keep a virtual screen image with
+near-perfect accuracy.
+
+When the "cursor 5" key is pressed (as defined by
+.BR funckeymap ),
+the screen contents are
+dumped to a file.  By default, this file is named
+'~/.ecu/screen.dump'.  The
+.B sdname
+interactive command either displays or changes the current screen
+dump file name, depending upon whether or not an argument
+is supplied.
+The
+.B scrdump
+procedure command can initiate a dump.
+
+.*s 2 "Interactive Command History"
+
+After pressing the Home key, pressing it again invokes the
+interactive command history function.  After the second
+Home key is pressed, the last interactive command is
+redisplayed. Line editing may be performed on the command as described
+in the previous section.
+
+Additionally, using the Cursor Up key accesses less recent commands.
+The Cursor Down key accesses more recent commands.  Pressing Enter causes
+the command to be executed.  Pressing Esc aborts command entry.
+
+.*s 2 "Dialing Directory"
+
+ECU provides an on-line editable dialing directory.  Remote
+systems are defined as records using alphanumeric identifiers
+as keys.  Other record fields include telephone number, baud
+rate, parity and textual description.
+
+Other features include changing to alternate dialing directory
+and a multi-number redial cycle function. Refer below to the description
+of the interactive
+.B dial
+command.
+
+While a long entry in a field may be truncated on the display,
+when the entry is edited, it's full contents will be dispalyed on the
+edit subform.
+
+Entering or editing a dialing directory entry is for the most part
+straightforward.  A note on the use of the "tty" field is useful, however.
+When prompted for a tty, you may choose
+.BL
+.LI
+"Any" line  (deprecated, for compatibility only)
+.LI
+a tty line matching a Devices type
+.LI
+a specific tty line
+.LI
+"telnet" for an internet connection
+.LE
+
+The first two choices apply for platforms supporting
+HDB-style UUCP (employing a
+-B Devices
+file).
+The last choice is available if ECU is configured for telnet
+support.
+
+A specific line is chosen by using the base name of the tty
+(e.g., "tty1a" or "acu0").  
+
+For platforms employing HDB-style UUCP,
+-B "Any"
+may be specified.
+"Any" matches any tty line in the /usr/lib/uucp/Devices file
+supporting the specified bit rate and whose Devices type begins
+with the characters (case independent) "ACU".  This choice is
+provided to be compatible with earlier versions of ECU (prior to
+3.10).  Use of this argument is discouraged.  It's equivalent in
+current practice is "/ACU", as you can see next.
+
+A more general choice for choosing a tty line based on 
+the contents of an HDB
+-B Devices file.
+is the "Devices type matching" choice, invoked by prefixing the tty
+field with a slash or equals sign.
+
+.BL
+.LI
+/ prefix searches for a Devices type matching a regular expression (a
+la sed or ed)
+.LI
+= prefix searches for an exact match on a Devices type
+.LE
+
+.DS L
+Examples:
+
+   =ACU        matches "ACU", fails on "acu" and "ACUx"
+   /.*tbit.*   matches "ACUtbit1", "tbit"
+.DE
+
+A specific tty line may also be specified.  This is the only means
+of attaching a line not mentioned in the Devices file.
+
+NOTE:  If the bell rings and you are not allowed to leave a field,
+it is because you MUST enter acceptible data before you can leave
+a field using other than the ESCape key.
+
+The "debug level" parameter allows you to specify a number between 0 and
+9 for passing to a UUCP dialer program with the -x switch.
+
+The 
+.B
+DCD watch
+.R
+parameter allows you to modify the DCD watcher
+upon successful connection to a remote.  The values allowed are:
+.DS L
+   1    enable DCD watcher
+   0    disable DCD watcher
+   t    terminate ECU on loss of DCD
+   n    no change of dcdwatch state
+.DE
+Specifying 'n' leaves the dcdwatch state unaffected.  See the description
+of the
+.B dcdwatch
+interactive command for more information.
+DCD watch is only valid for asynchronous connections.
+Also, ECU support for DCD watch depends upon support
+in the unerlying kernel. Some platforms offer no, flaky or partial
+support for the feature.
+
+The following sample dialing directory screen shows an edit in
+progress.
+
+.DS L
+ .--[ dialing directory ]-- /u1/wht/.ecu/phone --------- modified ------.
+ | entry name | telephone number | tty | baud P | description           |
+ | ......     | ........         |Any  | 2400 N | ...............       |
+ | ...--[ entry: new ]--------------------------------------------.     |
+ | ..|                                                            |     |
+ | ..| telephone number  1(800)555-1212                           |     |
+ | ..| device            =ACUtbit                                 |..   |
+ | ..| bit rate          19200                                    |..   |
+ | ..| parity            N                                        |     |
+ | ..| description       don't call this_________________________ |..   |
+ | ..| debug level       0  (dialer -x value 0-9)                 |     |
+ | ..| DCD watch         n                                        |     |
+ | ..| RTS/CTS flow ctl  n  (0=off,7=best,n=no change)            |...  |
+ | ..|                                                            |     |
+ | ..| Enter description                                          |..   |
+ | ..| ESC: abort  End: finish  ^U: erase ^B: back  TAB: fwd      |     |
+ | ..`------------------------------------------------------------'     |
+ | .....      | ..........       |2b   | 9600 N | ...................   |
+ | sco19      | 1(408)426-9525p  |2b   | 9600 N | SCO Tech Services     |
+ | sco24      | 1(408)426-9495   |2b   | 2400 N | SCO Tech Services     |
+ +----------------------------------------------------------------------+
+ | down up PgDn PgUp edit add remove save find change dial dir          |
+ | redial: mark unMark Unmark all wait between dial ENTER:dial ESC,quit |
+ `----------------------------------------------------------------------'
+.DE
+
+In the directory editor main window,
+You may use the vi conventions of 'j' for down and 'k' for up.
+You may also use the up and down arrow keys if you are on an SCO
+multiscreen or if the function keys have been properly defined
+with funckeymap.  Also, '/' performs the same function as 'f'ind.
+PgUp and PgDn scrolls the directory list several items at a time.
+The alternative keys, ^U and ^D, may be used.
+
+Most dialing parameters are self-explanatory.
+The RTS/CTS flow parameter, however is system- and hardware-
+dependent.  The values  'n', '0', '7' work on all systems
+for which flow control is supported.
+.DS L
+
+   n - do not change setting
+   0 - set hw flow control off
+   1 - set "best" hw flow control on
+
+.DE
+Other values may be used depending upon the system in use.
+Refer to the interactive or procedure 
+.B rtscts
+command for more information.  
+.B NUMERIC
+parameters shown in the tables for these 
+.B rtscts
+commands are valid in the dialer argument.
+The 'yes' and 'no' values are not valid.
+
+.*s 2 "Online Interactive Command Help"
+
+The ECU help command presents a display of interactive commands.  The user
+is then prompted to enter a command name for further, Unix-style
+"usage" information.
+
+.*s 2 "Multiscreen Event Alarm"
+
+On an SCO machine running on a main console multiscreen, by using the 
+.B BN
+(bell notify) interactive command, an audible alert is sent to all
+multiscreens when an ASCII BEL (bell) is received or when a file
+transfer completes.  An additional option causes an alert when ANY
+data is received from the line.  This makes it simple to do work on
+other multiscreen consoles and be alerted when attention to the
+communications session is required.
+
+For instance, the Unix utility "talk" rings the bell when another
+user wishes an interactive chat mode.  The utility "biff" rings
+the bell when incoming mail is received.  Scripts or commands at
+remote sites can be configured to ring the bell as in:
+.DS I
+make foo bar; bell; make more_stuff; bell;
+.DE
+to call attention to the ECU user when work is being done
+on other multiscreen consoles.
+
+This feature is only available when you are running ECU from a
+main console multiscreen on an SCO machine.
+
+.*s 2 "Built-in Modem Dialer"
+
+The built-in ECU dialer supports modems which use the 
+.B
+Hayes-style AT command set or most variants
+.R
+.B thereof .
+It is used when HoneyDanBer UUCP is not installed or when there is no
+entry in the /usr/lib/uucp/Devices file for the selected outgoing line.
+(For more information, see the later section titled "HoneyDanBer UUCP
+Interface".)
+
+The built-in dialer uses files in the ecu library directory which
+contains modem initialization information.  Modem initialization
+filenames are made from concatenating the tty name with ".mi".  For
+instance, tty1a's initialization file is named "tty1a.mi".
+
+Commands for initializing the modem and for dialing may be specified in
+a very flexible manner.  Separate init and dial strings for each legal
+bit rate, a single pair of strings for all bit rates or a combination
+may be specified.
+
+The ok_string is provided in the event your modem does not use
+"OK" to indicate good command status.  If your modem
+issues a connect indication other than "CONNECT, specify it
+with connect_string.  The specified string should be the consistent
+part of the connect result (e.g., "CONNECT", not "CONNECT 9600").
+The dialer will examine the string remainder for a bit rate.
+For example, if your brain-misdirected vendor sends "CARRIER"
+instead of "CONNECT" (after borrowing the remainder of Hayes
+history), then ECU will scan the remainder of a "CARRIER 9600"
+result to find the line rate.  A warning is issued if the
+modem reports a different rate than the line rate established
+by ECU.
+
+.DF L
+.hl
+.ce 1
+Sample Modem Initialization Files
+
+#+-----------------------------------------------------------
+#  tty1a.mi - Microcom AX/9624c
+#------------------------------------------------------------
+init_>2400:ATS11=47X4S0=0S7=30\eQ1\eX1\eN3   # bit rates > 2400
+init_default:ATS11=47X4S0=0S7=30\eQ0\eX0\eN0 # other bit rates
+dial_default:ATDT
+ok_string:OK
+connect_string:CONNECT
+
+#+-----------------------------------------------------------
+#  tty2d.mi - USR Courier 2400
+#------------------------------------------------------------
+init_default:ATS11=47 X4 S0=0 S7=32
+dial_default:ATDT
+ok_string:OK
+connect_string:CONNECT
+
+.hl
+.DE
+
+.*s 2 "Modem Dialer Procedures"
+
+You may use a procedure to do the modem dialing
+function.  Just create a subdirectory called "dialproc"
+in your personal .ecu directory or in
+/usr/local/lib/ecu.  In that directory, place a
+procedure whose name matches the port's base name.
+That is for "/dev/ttys0", create
+dialproc/ttys0.ep".  For "/dev/port/m332_c0d3",
+create "dialproc/m332_c0d3.ep".
+
+The procedure is passed one argument, the telephone number to
+be dialed.  It is the responsibility of the dialproc merely
+to establish a connection.  Procedure status is returned in $i0 and $s0.
+
+.DS L
+values of $i0 to return
+0    connected
+1    did not connect
+2    interrupt attempts (unrecoverable)
+3    modem error (unrecoverable)
+4    try ecu dialer
+.DE
+
+$s0 is returned set to the modem result string, such as "CONNECT 9600"
+or "BUSY".
+
+.*s 2 "File Transfer"
+
+If you are connected to a remote via telnet, why not use
+ftp to transfer files? However, you may transfer files
+over telnet with ECU with some limitations (and some failures).
+Telnet prohibits user data from containing its IAC (interpret as command)
+character (255, 0xFF).
+C-Kermit has a number of ways to get around this limitation.
+An experimental ZMODEM sender tsz.c is supplied
+for hackers (see README.telnet).
+
+ECU supports numerous file transfer protocols: as of this writing,
+XMODEM, XMODEM/CRC, XMODEM-1K, YMODEM/CRC Batch, ZMODEM/CRC-16,
+ZMODEM/CRC-32, C-Kermit and SEAlink are supported.  `
+Although a seamless interface
+(there's some yuppie marketing newspeak) is provided to the user,
+transfer is facilitated by executing external programs.
+
+Kermit support requires you to obtain C-Kermit version 5A or later.
+You may also patch C-Kermit 4E to work with ECU (The
+patch information is available in the ckermit subdirectory of the
+ECU release).  C-Kermit 5 is in beta release as of this writing
+and supports ECU without modification.
+
+XMODEM, YMODEM and ZMODEM transfers (thanks to modified public domain
+programs by Chuck Forsberg) present dynamic status displays similar to
+the following:
+.DS L
+ .-[ ecusz 3.20 ]-- /tmp -------------------------------.
+ |  ZMODEM/CRC32   data rate ~= 900 ch/sec (94%)     T  |
+ |  File 1   of 1  : /t/ecu320cpio.Z                    |
+ |  File position:  617472 length: 915263  -rw-r--r--   |
+ |  Total transaction 915263 bytes (xfer time ~= 17:29) |
+ |  tx: D32 ZCRCG 1024          rx: HEX ZACK  605184    |
+ |  Comm I/O: rx 917       tx 650041   bytes            |
+ |  Baud rate: 9600 BINARY blklen: 1024 comm mode: RAW  |
+ |  Time: started: 13:39:34 this file: 13:39:35 window: |
+ |  13:51:34 elapsed: 00:12:00         00:11:59 +12288  |
+ |  Errors: this file: 2   total: 2  files skipped: 0   |
+ |                                                      |
+ |  This file 67%, transaction 67% complete             |
+ |  Remote: CRC32 y  duplex y  continuous stream y      |
+ `- Connected to tridom --------------------------------'
+.DE
+
+During file transfer, data rates are displayed from time to time.
+While the figures may vary significantly during the transfer, bear in mind
+the calculations are for actual data throughput, measured as total DATA
+characters transferred from the time the file is opened until it is closed.
+So, if the data rate appears to be low at the start of the transfer
+and increase over time, perhaps it took a significant amount of time for
+the receiver to open it's file or to respond to protocol startup stimuli.
+If the data rate appears to be higher at the beginning and become
+lower over time, perhaps flow control is being invoked.  A sudden
+reduction in the "last file" or "transaction" data rate over the
+in progress rate reflects the time required to close files, operate
+the protocol or to skip files (in the case of ZMODEM).  If any files
+are skipped in a session, you may be sure the transaction
+rate will be (perhaps much) lower than the per-file rate.
+
+On some systems and driver options, sundry driver statistics are
+displayed during X/Y/ZMODEM transfers.  For instance, in the above
+display from a Sun session.  the driver's current output and input
+queue depths and input queue space available are displayed along with
+the current status of RTS and CTS.  While such gay banter is rightly
+relegated to the "bell and whistle" category, it does provide a rare
+insight into driver operation.  The ECU FAS/i driver for 386 systems
+(after Uwe Doering's FAS driver) provides other information.
+
+.DS L
+        |  Output queue depth       0  RTS T  CTS T                |
+        |  Input queue depth       10  Input queue avail    490    |
+.DE
+
+
+.*s 2 "Automatic ZMODEM Receive"
+ECU in the interactive mode (no procedure executing) can interpret a
+SUB, 'B', '0', '0' receive data sequence as a ZMODEM ZRQINIT frame and
+automatically begin a ZMODEM receive operation.  The
+.B autorz
+interactive and procedure commands control
+this feature.  By default, this feature is turned on.
+
+.*s 2 "Procedures (Scripts)"
+A powerful, language-style procedure language is incorporated
+into ECU.  The language is described in the companion "Procedure
+Language" manual.
+
+Procedures are files of programmatic instructions written in
+the ECU procedure language invoked explicitly by the
+.B do 
+interactive command or automatically by ECU functions described below.
+Procedures are invoked by
+.I name ,
+and result in execution of the file
+.I name .ep.
+
+The file is searched for in the current directory.  If not found there,
+ECU checks your personal .ecu subdirectory.  If not there, the ECU library "ep" subdirectory is searched (e.g.,
+.I /usr/local/lib/ecu/ep ).
+
+.*s 3 "Initial (Startup) Procedure"
+An
+.B
+initial procedure
+.R
+may be be specified to ECU either to initialize an interactive
+session or to execute an entirely unattended or "batch"
+communication session.  Refer to the section on command switches ("-p").
+
+.*s 3 "Dialing Procedure"
+When a named dialing entry is selected for calling, if a procedure
+can be located using the above mentioned search sequence whose name matches
+the name of the directory, then all of the usual ECU built-in dialing
+procedure is bypassed and the procedure is used.  For details, refer to
+other sections related to dialing.
+
+
+.*s 3 "Other Special Procedures"
+Other special procedures may be invoked when
+.BL
+.LI
+ecu starts up (_rc.ep)
+.LI
+a connection is established (_connect.ep)
+.LI
+an attempted connection fails (_connfail.ep)
+.LI
+a connection is terminated with the hangup command (_hangup.ep)
+.LE
+See the ECU procedure manual for details.
+
+.*s 2 "DCD (Carrier) Watcher"
+ECU can be instructed to monitor DCD (carrier) status on any
+tty line whose driver supports modem signals and
+honors dynamic manipulation of the CLOCAL
+control bit.  
+ECU may be instructed to ignore DCD (the default state).
+In such a state, if carrier is lost after a connection has been
+made, ECU is unaware the connection has been lost.  An interactive
+.B stat
+command will show the connection still active.
+.B
+"DCD watch:
+.R
+does not apply to telnet connections.
+
+When the DCD watcher is enabled, loss of carrier will cause
+the hangup command processing to automatically be executed
+(including execution of the special procedure
+_hangup.ep if any can be found).
+
+An additional mode is available which, in addition to the hangup
+processing,  causes ecu to terminate execution.
+
+The
+.B dcdwatch
+interactive and procedure commands control this feature.
+In addition, each dialing directory entry has a field
+specifying whether or not the DCD watcher status is to be
+changed upon connecting to the remote system and if so,
+to what state.  Refer to the description of the
+.B dcdwatch
+and
+.B dial
+commands for details.
+
+.*s 2 "Home Directory Files"
+ECU control files reside in the .ecu subdirectory of
+each user's home directory.  For example, in home directory /usr/wht:
+.DS I
+   /usr/wht/.ecu/dir          CD interactive command history file
+*  /usr/wht/.ecu/keys         function key mapping
+*  /usr/wht/.ecu/funckeymap  function key mapping
+   /usr/wht/.ecu/log          connect, file transfer history
+   /usr/wht/.ecu/phone        default dialing directory
+*% /usr/wht/.ecu/colors       colors used by ECU
+.DE
+
+* The ecu library directory (normally /usr/local/lib/ecu) is searched for
+the "keys", "colors" and "funckeymap" file if a personal version
+cannot be found.
+
+% The "colors" file does not apply to systems on which color is not yet
+supported.
+
+The .ecu directory is searched for an ECU procedure file
+(having the '.ep' extension) if the procedure file cannot be found in
+the current working directory.
+
+.*s 2 "Lock Files"
+
+ECU maintains lock files in the standard directory in accordance with the
+HoneyDanBer UUCP conventions (ASCII pids as 10-character strings
+followed by a newline).  If porting to a machine with old-style
+integer pids, grep for HONEYDANBER in the sources for hints on
+where changes are needed.
+
+Standard lock directories for versions supported as of this writing:
+.DS I
+   FreeBSD           /var/spool/lock
+   HP-UX             /usr/spool/uucp
+   ISC               /usr/spool/locks
+   Linux             /usr/spool/uucp
+   Motorola SVR3     /usr/spool/locks
+   NetBSD            /var/spool/lock
+   SCO               /usr/spool/uucp
+   SunOS, all SVR4   /var/spool/locks
+.DE
+
+.ul 10
+Unless ECU has been configured
+with UUCP setuid, world write access to this
+directory must be in effect. 
+.ul 0
+
+See the later section titled "HoneyDanBer UUCP Interface".
+
+.*s 2 "Dial-In/Dial-Out Line Support"
+
+On SCO XENIX and UNIX 3.2 systems,
+ECU works with the SCO getty to support dialing out on a line
+enabled for login.  After use of the line is complete,
+ECU signals the system to restore incoming call status to
+the line.
+See the later section titled "HoneyDanBer UUCP Interface".
+
+This facility is not supported in other environments as of this writing.
+Scan the distribution README.* files for any updates.
+
+.*s 2 "Tools"
+
+Commands are provided for conversion of hexadecimal or decimal numbers
+to and from ASCII equivalents.  For example, 26(10) == 0x1a == ^Z == SUB.
+For details, refer to the description of the
+.B XA
+and
+.B AX
+interactive commands.
+
+.*s 2 "Shared Memory 'Friend' Interface"
+
+ECU maintains a copy of the received screen image (80 x 43
+maximum) and other
+information in its shared memory segment.  Normally, this
+information is used only by the transmitter and receiver
+process.  However,  ECU supports the concept of a
+.B friend
+process which may access the shared memory segment, perform
+arbitrary auxiliary operations, read from and write to the
+attached communications line and communicate resulting information
+or status to an ECU procedure via a 1024-byte "friend"
+data area in the shared memory segment.
+
+The procedure language supports the friend
+process concept through commands and functions which allow
+.BL
+.LI
+passing the ECU shared memory segment id (%shmid) to a called
+program,
+.LI
+reading a single character or string of characters from
+screen memory,
+.LI
+reading cursor position information and
+.LI
+reading and writing of characters, short or long integers and
+strings in the 1024-byte "friend" shared memory data area.
+.LE
+
+The algorithm for obtaining the shared memory segment key is
+.DS L
+0xEC000000L + transmitter process id
+.DE
+Thus a "friend" process may either use a %shmid 
+.B
+shared memory key
+.R
+passed as an argument or obtain the 
+.B
+shared memory key
+.R
+by using:
+.DS L
+key_t shmkey = 0xEC000000L | getppid();
+.DE
+
+This facility allows batch and interactive applications
+to be developed with C programs which would be
+tedious or impractical to implement with procedure language alone.
+
+For more information, refer to the shared memory header file
+.B ecushm.h ,
+the
+.B ecufriend
+subdirectory of the software release
+and to the description of the
+.B %shmid ,
+.B %cury
+and
+.B %curx
+procedure functions
+and the
+.B getf
+and
+.B putf
+procedure commands.

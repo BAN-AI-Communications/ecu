@@ -1,0 +1,8 @@
+The output format of the MAC is
+
+000000000011111111112222
+012345678901234567890123
+
+09:12:52.3-AM-06/23/87^M
+          ^^^^
+          spaces if 24hr mode

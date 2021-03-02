@@ -1,0 +1,218 @@
+.----------------------------------------------------------.
+| ECU INSTALL - last revised Sun Sep  8 15:04:34 EDT 1996  |
+`----------------------------------------------------------'
+
+MAKING AND INSTALLING
+
+1.   Unshar all of the shars, or untar/uncpio the release media.
+
+     SHARS:
+
+     I do not intentionally put anything in shell archives that is
+     dangerous, but it is very, very unwise to unshar as root.
+     Unpack shell archives as an unprivileged user.
+
+     Make a directory and cd into it.  Use an unshar program
+     to extract all of the forty-odd parts of ECU and the three
+     or so parts of the manual.  If you do not have unshar, it
+     may be quicker to find one than to extract ecu without it.
+     However, if you must, edit each shar and remove all lines
+     prior to #!/bin/sh and then feed each file to /bin/sh, like
+
+        /bin/sh < part
+
+     TAR/CPIO:
+
+     Unpack the archive in a ???/src directory.  A directory
+     named ???/src/ecu-?.?? will be created with the unpacked
+     distribution in it.
+
+     cd ecvu-?.??
+
+2.   Type ./Configure
+
+     This procedure builds Makefiles for ECU specific to your
+     system.  You must have your native compiler available for this.
+
+3.   Configure will compile and run config.
+
+     Answer the questions.  If you are using a supported system,
+     answering the few simple questions is all that is necessary
+     to produce a usable configuration.  (If you are trying to
+     port it, make your best guess, hack the Makefiles and sources
+     and send them to me with your patches.)
+
+     After answering these questions, the config program will thank
+     you (;->) and then build Makefiles from the Make.src files in
+     each appropriate subdirectory.
+
+     If you are porting to a new system, you will want
+     to examine and modify the Makefiles before proceeding.
+
+4.   The configure script suggests you "make depend".  This is
+     unnecessary if you are building ECU for the first time.  Also,
+     most patches will require you to rerun Configure.  Each time you
+     reconfigure the software, it is automatically completely remade
+     when you next run make.  Only if you anticipate making changes to
+     the software is "make depend" necessary to ensure the code is
+     properly made.
+
+5.   Type 'make'.  Wait and watch a while.  This is a good time to
+     be reading over doc/ecu.man and various READMEs.  The
+     CHANGES and *HISTORY* files have some note on every change
+     made since 3.16.  Unfortunately, they also contain
+     technical/historical information of no interest.
+
+     You may ignore the warnings GCC emits (but not alas any errors :>).
+
+6.   Su to root, if not already there, and type 'make install'.
+
+7.   The default models/funckeymap is copied to the ECU library
+     as part of installing the program.  You will probably need
+     to study and modify this file if you plan to use a console
+     (user tty) other than the native console of your system
+     or if you are attempting to use ECU on a unsupported system.
+
+8.   You may have to, as root, chmod +rwx your uucp locks directory. 
+     In addition, if you are on a machine which does not enjoy
+     ecuungetty support, you may have to, as root, chmod +rw all
+     tty lines used by ecu.  If choose to run ecu setuid to uucp,
+     then lines owned by uucp will be available to ecu wherther
+     or not the machine has ecuungetty support and regardless of
+     how you configured ecuungetty.
+
+9.   Dialer programs provide rigorous no-compromise modem control.  
+     The gendial subdirectory contains some rigorous, yet
+     experimental, SCO dialer programs for use with ecu, cu and uucico.
+     They are currently undocumented and "as-is."  I have used each
+     of them successfully at one time or another, but some have been
+     modified since they were last proven to work.
+     I use the T2500 and USR 2400 programs all the time.
+
+     Make sure you like the modem options before using one of these
+     dialers.  In particular, I enable remote access to Telebits.
+
+10.  Make neat removes many temporary files that tend
+     to accumulate over time. No make targets are removed.
+     Make clean runs make neat and also removes all .o files.
+     Make clobber runs make clean and also removes executables.
+
+11.  models/ecu-ansi.tinfo and models/ecu-ansi.tcap are the terminfo
+     and termcap source, respectively, for the ecu presentation
+     (when it performs terminal emulation).  Both have the name 'ansi'
+     and 'ecu'.
+
+Notes:
+
+1. DISPLAY CONFIGURATION
+
+ECU must be executed from a "smart" terminal, one whose termcap
+or terminfo description is accurate and fairly complete.
+I have found many descriptions lacking. File models/vt100.tinfo
+is a robust vt100 entry.
+
+2.  KEYBOARD CONFIGURATION
+
+If you are trying ECU on a previously unsupported machine, you
+have the `simple' task of defining your keyboard.
+This is accomplished by defining `funckeymap' entries for
+your personal ~/.ecu/funckeymap or the system /usr/local/lib/ecu
+version. Refer to README.KEYBRD.
+
+3.  KERMIT
+
+C-Kermit 5 (as of version 5A(179)) directly supports ECU's needs.
+You will need a ~/.kermrc to set up the desired characteristics.
+
+I use:
+
+set block 3
+set win 3
+set send packet-l 2048
+set receive packet-l 2048
+set file name literal
+set file type bin
+show
+
+But that's me.  (Buy the book!!)
+
+4.  XTERMS
+
+If you are using an xterm to run ecu,
+
+1. the maximum geometry is 80x50
+2. 4014 emulation is untested
+3. you should use the following resources:
+
+XTerm*titeInhibit:     true # enable screen clear functions normally
+XTerm*curses:          true # curses bug fix
+
+If titeInhibit fails to work (some versions which use terminfo as
+their basis do fail), then remove the ti and te entries from
+/etc/termcap.
+
+The file models/funckeymap has keyboard definitions for a number
+of xterm implementations.  Use kbdtest3 to determine what key
+sequences are generated by each function key.  If a key produces
+no output or ambiguous output (Home and End both produce the same
+sequence), use xev to determine the keysym associated with the
+keys in question.  Use xmodmap to map the keys to unique
+sequences.  For instance, on the SunOS MIT server, IPX key
+presses of Home and End produce:
+
+Home:
+KeyPress event, serial 13, synthetic NO, window 0xd00001,
+    root 0x8006d, subw 0x0, time 2225786294, (124,70), root:(385,331),
+    state 0x0, keycode 75 (keysym 0xffd8, F27), same_screen YES,
+                                          ^^^
+                                           |
+                                           `--- name to use with xmodmap
+    XLookupString gives 0 characters:  ""
+
+End:
+KeyPress event, serial 15, synthetic NO, window 0xd00001,
+    root 0x8006d, subw 0x0, time 2225787104, (124,70), root:(385,331),
+    state 0x0, keycode 119 (keysym 0xffde, R13), same_screen YES,
+                                           ^^^
+                                            |
+                                            `-- name to use with xmodmap
+    XLookupString gives 0 characters:  ""
+
+Then, choose unique strings to map the keys to.  I generally use
+the SCO function key sequences (described in the very first entry
+in the distribution model/funckeymap).  Construct XTerm translations
+for the chosen sequences.  An example for Home (F27) and End (R13)
+is shown below.
+
+XTerm*VT100*Translations: #override\
+     <Key>F27:        string(0x1b) string("[H") \n \
+     <Key>R13:        string(0x1b) string("[F") \n \
+     Shift<Key>Tab:   string(0x1b) string("[Z")
+
+Included in the above is a mapping for "backwards Tab," Shift Tab.
+Most servers map Shift Tab to generate the same as unshifted Tab
+(or not mapped at all).
+
+Run kbdtest3 and see if all keys now produce a unique sequence.
+If not, repeat the above process until you have each key producing
+a unique sequence.
+
+Sometimes, you just won't be able to get a particular key to work.
+For instance, one X server I used refused to generate an event for
+Shift Keypad 5 (Shift<Key>KP_5).  In these cases, you will have to
+choose another key, perhaps a higher numbered function key.  Likewise,
+if you are using a keyboard unaffected by the True Blue Path,
+you may not have a key marked "Home" or "End" (I pity you :-> heh):
+choose a replacement you are unlikely to need otherwise.
+
+5. FAS/i
+
+For the brave, an instrumented version of FAS 2.08 (for i386
+SVR3) is included with this release for those who need driver
+instrumentation at the cost of performance and portability.  It
+is not supported (DO NOT CONTACT UWE DOERING ABOUT FAS/i).  I am
+not at all interested in starting a new tty faction.  Uwe has
+done a brilliant job of striking a balance between compatibility
+and performance.  I only name this thing FAS/i to show the
+derivation from FAS while marking it as different.
+

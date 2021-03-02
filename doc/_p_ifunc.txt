@@ -1,0 +1,509 @@
+.*s 1 "Integer Functions"
+
+.*s 2 "%argc"
+
+This function returns the number of arguments passes to the current
+procedure.
+
+.*s 2 "%baud"
+
+This function returns the bit rate of the communications line.
+If no line is currently attached, the bit rate returned
+is the value of the last line attached.  If no line has been attached
+during the current session, the default bit rate is returned.
+
+.*s 2 "%colors"
+
+This function returns the state of the normal and reverse video
+foreground and background colors in the 32-bit value:
+.DS I
+00000000001111111111222222222233
+01234567890123456789012345678901
+0000|--|0000|--|0000|--|0000|--|
+     fg      bk      fg      bk
+      reverse          normal
+.DE
+
+The color values are obtained from the following lists:
+.DS L
+.B
+    Alphabetic Order
+.R
+    black        0
+    blue         1
+    brown        6
+    cyan         3
+    gray         8
+    green        2
+    hi_white    15
+    lt_blue      9
+    lt_cyan     11
+    lt_green    10
+    lt_magenta  13
+    lt_red      12
+    magenta      5
+    red          4
+    white        7
+    yellow      14
+.DE
+
+.DS L
+.B
+    Numeric Order
+.R
+    black        0
+    blue         1
+    green        2
+    cyan         3
+    red          4
+    magenta      5
+    brown        6
+    white        7
+    gray         8
+    lt_blue      9
+    lt_green    10
+    lt_cyan     11
+    lt_red      12
+    lt_magenta  13
+    yellow      14
+    hi_white    15
+.DE
+
+.*s 2 "%cols"
+
+This function returns the screen width in columns.
+If running non-interactively, the value will always be 80.
+
+.*s 2 "%conn"
+
+This function returns the (positive) communications
+line file descriptor if a connection is in effect.
+If there is no connection, but there is a line opened,
+0 is returned.  If no line is open (as may be the case in
+an _rc.ep procedure), -1 is returned.
+NOTE:  if carrier is lost abnormally, %conn will return a
+positive number
+incorrectly if the DCD watcher is disabled or if a procedure
+was being executed at the time of carrier loss. (See the sections
+on the 
+.B dcdwatch
+interactive and procedure commands).
+
+.*s 2 "%curx"
+
+This function returns the display cursor column position last set by the
+remote system.  This value does not reflect the actual hardware cursor.
+
+.*s 2 "%cury"
+
+This function returns the display cursor row position last set by the
+remote system.  This value does not reflect the actual hardware cursor.
+
+.*s 2 "%csec"
+
+This function returns the number of seconds ECU has been
+connected to a remote system.  If ECU is not connected,
+zero is returned.
+
+.*s 2 "%ctoi"
+
+usage: %ctoi(str0)
+
+This function returns the integer value of the first
+character in string str0.  If str0 is non-empty, the return value
+will be between 0 and 255, inclusive.  if str0 is empty,
+then -1 is returned.
+
+.*s 2 "%esecs"
+
+usage: %esecs
+
+This function, "Epoch SECondS,"
+returns the number of seconds since January 1, 1970 00:00 UTC
+(GMT).
+
+.*s 2 "%fatime"
+.DS L
+usage: %fatime(int0)
+       %fatime(str0)
+.DE
+
+This function returns the time of last access of the file referenced
+by the argument.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+The return value is the number of seconds since January 1, 1970
+at 0000 UTC.
+The
+.B %edate
+string function may be used to convert the integer
+value to a string representation of the date and time
+expressed relative to the current time zone.
+
+.*s 2 "%fmode"
+.DS L
+usage: %fmode(int0)
+       %fmode(str0)
+.DE
+
+This function returns the file mode value ("rwxrwx---" == 0770)
+of the file referenced by the argument.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+.*s 2 "%fmtime"
+.DS L
+usage: %fmtime(int0)
+       %fmtime(str0)
+.DE
+
+This function returns the last modified time of the file referenced
+by the argument.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+The return value is the number of seconds since January 1, 1970
+at 0000 UTC.
+The
+.B %edate
+string function may be used to convert the integer
+value to a string representation of the date and time
+expressed relative to the current time zone.
+
+.*s 2 "%fsize"
+.DS L
+usage: %fsize(int0)
+       %fsize(str0)
+.DE
+
+This function returns the size
+of the file referenced
+by the argument.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+.*s 2 "%ftell"
+
+usage: ftell(int0)
+
+This function returns the current file position
+of the the file
+opened by int0 with the
+.B fopen
+command.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+
+.*s 2 "%instr"
+
+usage: %instr(str0,str1)
+
+This function returns the leftmost column position within str0
+that str1 is found (zero relative).  If str1 cannot be found in
+string str0, -1 is returned.  However, if str1 is null and str0 is not,
+zero will be returned (i.e., the null string matches at the left).
+
+The comparison is made without regard to case. See also
+.B %instr .
+
+.DS I
+Examples:
+
+            00000000001111111
+            01234567890123456
+Assume $s0='abcdefghijklmnabc'
+       $s1='abc'
+       $s2='gHi'
+       $s3='cat'
+
+       %instr($s0,$s1)        returns 0
+       %instr($s0,$s2)        returns 6
+       %instr($s0,$s3)        returns -1
+       %instr($s0,'bcd')      returns 2
+       %instr($s0,'bad')      returns -1
+.DE
+
+.*s 2 "%ischr"
+.DS L
+usage: %ischr(int0)
+       %ischr(str0)
+.DE
+
+This function returns 1 if the file referenced by the argument is a
+character special file,
+else 0.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+Examples:
+
+.DS I
+%ischr('/dev/tty')    returns 1
+%ischr('/usr/bin')    returns 0
+%ischr('/xenix')      returns 0
+.DE
+
+.*s 2 "%isdir"
+.DS L
+usage: %isdir(int0)
+       %isdir(str0)
+.DE
+
+This function returns 1 if the file referenced by the argument is a
+directory file,
+else 0.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+Examples:
+
+.DS I
+%isdir('/dev/tty')    returns 0
+%isdir('/usr/bin')    returns 1
+%isdir('/xenix')      returns 0
+.DE
+
+.*s 2 "%isreg"
+.DS L
+usage: %isreg(int0)
+       %isreg(str0)
+.DE
+
+This function returns 1 if the file referenced by the argument is a
+regular file,
+else 0.
+If the argument is an integer, the file referenced is the file
+opened by that number with the
+.B fopen
+command.
+If the argument is a string, it is the literal filename.
+
+If int0 does not refer to an open file, the procedure
+terminates with an error.
+If the file specified by str0 does not exist, -1 is returned.
+
+Examples:
+
+.DS I
+%isreg('/dev/tty')    returns 0
+%isreg('/usr/bin')    returns 0
+%isreg('/xenix')      returns 1
+.DE
+
+.*s 2 "%len"
+
+usage: %len(str0)
+
+This function returns the length of str0.
+.DS I
+Example:
+
+set str0='abcdef',i0=%len(str0),i1=%len('1234')
+str00 = 'abcdef'
+int00 = 6
+int01 = 4
+.DE
+
+.*s 2 "%lgetc"
+
+usage: %lgetc(int0)
+
+Reads a character from the line and returns it.
+Argument int0 is the number of milliseconds to wait
+for a character.  Use a large positive number if you want
+to wait "forever."  The function returns the character
+value between 0 and 255 or -1 if the timeout period is exceeded.
+
+.*s 2 "%lines"
+
+This function returns the screen height in lines.
+If running non-interactively, the value will always be 25.
+
+.*s 2 "%nice"
+
+usage: %nice
+
+This function returns the nice value of the ECU process.
+
+.*s 2 "%pid"
+
+This function returns the process id (pid) of ECU.
+
+.*s 2 "%match"
+
+usage: %match(str0,str1)
+
+This function searches string str0 for a match with the regular
+expression in str1 (for information on regular expressions,
+refer to the ed(C) manual pages).
+The function returns the index into str0 where the
+match is found or -1 if no match can be found.
+The matching process is case sensitive.
+
+The variable $i0 receives the length of the matching
+string in str0 if a  match is found.  For this reason,
+it is not advisable that $i0 otherwise be involved
+in the operation.  Specifically to be avoided is:
+.DS I
+set $i0=%instr(...)
+.DE
+.DS L
+Examples:
+
+            00000000001111111
+            01234567890123456
+Assume $s0='abcdefghijklmnabc'
+       $s1='abc'
+       $s2='n.*'
+
+       %match($s0,$s1)        returns 0   $i0=3
+       %match($s0,$s2)        returns 16  $i0=4
+       %match($s0,$s3)        returns -1  $i0 unchanged
+       %match($s0,'de..h')    returns 3   $i0=5
+       %match($s0,'de..H')    returns -1  $i0 unchanged
+.DE
+
+.*s 2 "%mhack"
+
+usage: %mhack
+
+This function ("Millisecond time HACK") returns the number of
+milliseconds since ecu was started.  It isn't a very useful
+value by itself, but differences between the values
+returned by two calls to the function may be used to determine
+the time between two events with the maximum accuracy the
+operating system can deliver (1/HZ resolution with a bit of
+latency).
+
+.DS L
+Examples:
+    $i10 = %mhack
+    send 'test'
+    lookfor -e %chr(0x0A) 100
+    ifi $i0 == 0 echo 'no response in 10 seconds'
+    else echo 'response time '+%itos(%mhack - $i10)+' msec'
+.DE
+
+.*s 2 "%rchr"
+
+This function returns the number of characters
+received by ECU since the program started.
+
+.*s 2 "%rchrc"
+
+This function returns the number of characters
+received by ECU during the current connection.
+
+.*s 2 "%rinstr"
+
+usage: %rinstr(str0,str1)
+
+This function returns the rightmost column position withing str0
+that str1 is found (zero relative).  If str1 cannot be found in
+string str0, -1 is returned.  However, if str1 is null and str0 is not,
+zero will be returned (i.e., the null string matches at the left).
+
+The comparison is made without regard to case. See also
+.B %instr .
+
+.DS I
+Examples:
+
+            00000000001111111
+            01234567890123456
+Assume $s0='abcdefghijklmnabc'
+       $s1='abc'
+       $s2='gHi'
+       $s3='cat'
+
+       %instr($s0,$s1)        returns 14
+       %instr($s0,$s2)        returns 6
+       %instr($s0,$s3)        returns -1
+.DE
+
+.*s 2 "%shmid"
+
+This function returns the integer segment id for
+the System V shared memory segment owned by
+the current ECU process.  It may be used to pass the id to a
+"friend" process so that it may access the shared memory segment
+(described in header file ecushm.h).  For more details, refer to
+an earlier section entitled "Shared Memory 'Friend' Interface."
+
+On platforms without shared memory (i.e., BSD), this function returns
+-1.
+
+.DS L
+Example:
+
+     system 'ecufriend '+%itos(%shmid)
+.DE
+
+.*s 2 "%stoi"
+
+usage: %stoi(str0)
+
+This function converts the contents of str0 to an
+integer and returns  the value.
+
+.*s 2 "%uid"
+
+usage: %uid
+
+This function returns the uid of the user.
+
+.*s 2 "%xchr"
+
+This function returns the number of characters
+transmitted by ECU since the program started.
+
+.*s 2 "%xchrc"
+
+This function returns the number of characters
+transmitted by ECU during the current connection.
+
+

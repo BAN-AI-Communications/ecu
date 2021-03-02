@@ -1,0 +1,74 @@
+#+---------------------------------------------------------------
+# Makefile for bperr
+# wht@wht.net
+#----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:36-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-19:59-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:38-wht@n4hgf-ECU release 3.30
+#:01-25-1994-11:25-wht@n4hgf-stole ecuungetty Make.src for model
+
+SHELL = /bin/sh
+PROGRAM = bperr
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h
+
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+
+SRC = \
+	bperr.c
+
+OBJ = \
+	bperr.o
+
+all: $(PROGRAM)
+
+$(PROGRAM): $(OBJ)
+	$(BINTIME) $(CC) -o $@ $(LDFLAGS) $(OBJ) $(LIBS)
+
+$(OBJ): Makefile
+
+install:
+	@echo nothing to install in bperr
+
+neat:
+	rm -f .make.* depend.tmp eddep.tmp Makefile.new *.bak *.BAK
+	rm -f core tags cscope.out
+	-rm -f *~ *# *.orig *.rej make.log a.out
+
+clean: neat
+	rm -f $(PROGRAM).o
+
+clobber: clean
+	rm -f $(PROGRAM)
+
+#regenerate .o:.h dependencies automatically
+depend:
+	rm -f depend.tmp
+	grep '^#include' $(SRC) \
+	| sed \
+		-e '/</d'\
+		-e 's?:[^"]*"\([^"]*\)".*?: \1?'\
+		-e 's?\(.*\)\.c?\1.o?'\
+	 >> depend.tmp
+
+	echo '/^# DO NOT DELETE THIS LINE' >eddep.tmp
+	echo '.+1,$$d' >>eddep.tmp
+	echo 'r depend.tmp' >> eddep.tmp
+	echo 'w' >> eddep.tmp
+	cp Makefile Makefile.new
+	ed Makefile.new < eddep.tmp
+	rm eddep.tmp depend.tmp
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >>Makefile.new
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY'>>Makefile.new
+	echo '# see make depend above'>>Makefile.new
+	mv Makefile Makefile.bak
+	mv Makefile.new Makefile
+
+# DO NOT DELETE THIS LINE
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

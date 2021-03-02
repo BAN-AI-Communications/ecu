@@ -1,0 +1,5 @@
+#!/bin/sh
+    LAST=/etc/.lastutc
+    [ -z "`find $LAST -mtime -1 -print`" ] &&
+    ecu -D -p nbssetclk >$LAST
+

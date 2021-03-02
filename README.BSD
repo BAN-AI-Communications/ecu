@@ -1,0 +1,45 @@
+From emory!reubio.apana.org.au!daniel Fri Apr  8 09:49:40 1994
+Return-Path: <emory!reubio.apana.org.au!daniel>
+Received: from emory by n4hgf.Mt-Park.GA.US with uucp
+	(Smail3.1.27.1-WHT #6) id m0ppGwC-0002RvC; Fri, 8 Apr 94 09:49 EDT
+Received: from [202.12.87.14] by
+	emory.mathcs.emory.edu (5.65/Emory_mathcs.3.4.19) via SMTP
+	id AA23712 ; Fri, 8 Apr 94 09:18:58 -0400
+Received: (from daniel@localhost) by reubio.apana.org.au (8.6.7/8.6.6) id XAA15805 for wht@wht.net; Fri, 8 Apr 1994 23:14:52 +1000
+From: Daniel Harris <emory!reubio.apana.org.au!daniel>
+Message-Id: <199404081314.XAA15805@reubio.apana.org.au>
+Subject: ECU - README.BSD
+To: wht@wht.net
+Date: Fri, 8 Apr 1994 23:14:27 +1000 (EST)
+X-Mailer: ELM [version 2.4 PL23]
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Length: 910       
+Status: O
+
+As 3.30 is imminent, I thought I should at least create a token README.NetBSD
+file.  I haven't had time to test ECU for a number of months, and I doubt
+I'll have any time until July.  I *hope* it will compile successfully.
+
+
+Daniel.
+
+--------------------------------------------------------------------------------
+------------------------------------------------
+ | ECU for BSD README -- last revised 8/4/93  |
+------------------------------------------------
+
+I have completed a limited port of ECU to NetBSD-0.9.  However, due
+to time constraints it has not been tested for some time.  I will
+try to help with any problems, but I do not have time to complete
+any new work until at least July.
+
+Please note that ECU will not run under XFree86 as VMIN/VTIME kernel
+support is missing.
+
+
+Daniel Harris
+daniel@reubio.apana.org.au
+--------------------------------------------------------------------------------
+

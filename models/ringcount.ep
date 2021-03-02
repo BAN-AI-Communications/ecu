@@ -1,0 +1,17 @@
+#+----------------------------------------------------------------
+# ringcount.ep - ESIO Ring Indicator Test
+# only useful for versions compiled for and using ESIO tty driver
+#-----------------------------------------------------------------
+
+	$i_initial_RI = %ridet	# initial number of rings
+
+	send 'aaaaaaaats0=0'
+	lookfor -e %chr(0x01) 30
+
+	whilei 1==1
+	{
+		echo -n 'RI= '+%itos(%ridet,5d)+'  MSR='+%msrtext
+		eeol
+		echo -n '\r'
+		nap -m 100
+	}

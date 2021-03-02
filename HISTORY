@@ -1,0 +1,877 @@
+============= Changes for ECU 3.20 =======================================
+last revised Sat Aug 22 15:29:11 EDT 1992
+
+"But in our enthusiasm, we could not resist a radical overhaul of
+the system, in which all of its major weaknesses have been
+exposed, analyzed, and replaced with new weaknesses."  -- Bruce
+Leverett 'Register Allocation in Optimizing Compilers'
+
+1. new commands (procedure and interactive)
+   a.  autorz
+   b.  dcdwatch
+
+2. dial command reworked
+   a. new sub menu for entry add/edit
+   b. phone number size increased from 25 to 40 characters
+      (some modems limit input string size to 40 characters total
+      excluding AT and trailing CR)
+   c. Trailing dollar sign '$' appends ~/.ecu/.credit to dialled number:
+      .credit has:
+          ,,,167167002
+      Home dial 1234 sends to modem
+          1234,,,167167002
+
+3. help cmd improved: you can stay in a category and ask
+   for help with multiple commands and use F1 to return to
+   category menu.
+
+4. Major rework inside to reduce but not eliminate the likelihood
+the chances ecu will abnormally terminate when the dial command
+needs to change to a new line and the new line is not available.
+If the new line is busy (in use by another dialout or login),
+the request to change is rejected and the old line is retained,
+the program survives.  If the new line is unavailable because
+of other reasons (read/write denied [chmod] for instance), ecu still
+dies. hopefuly this will all be handled by the time of release.
+
+5. jhpb@sarto.budd-lake.nj.us added preliminary support for ESIX SVR4
+and I added the necessary switches to config.c.  Now, -DISCSVR4
+is used for ISCSVR4, -DESIXSVR4 for ESIX and -DSVR4 for "any" SVR4.
+
+6. The "kbdtest" interactive command has been cleaned up enough
+for general use.  I hacked it in for debugging early on.
+Now it is documented well enough for general use in funckeymap debugging.
+
+7. -P command line switch added for selecting a phone directory other
+than the default ~/.ecu/phone.  Use -P fullpath.
+
+8. Any usage error (bad command args) resulted in the death of ecu's
+process group.  This provided great incentive to invoke the program
+properly, but in this modern day, you are not allowed to discipline
+the students :-).
+
+9. An experimental feature has been added to ecuungetty.
+If it is compiled with -DECUUNGETTY_CHOWN, it will perform
+chown and chmod operations on the line.
+
+When the line is acquired, its ownership is set to the real uid
+of the ecu user, its group id to the group id of the process, and
+its mode to 622.  This is what happens to xterm ptys.
+
+When the line is released, its ownership is set to uucp
+of the ecu user, its group id to uucp, and its mode to 640.
+This is what SCO uugetty does when it starts on a line.
+
+You can experiment with this feature by 
+    a. placing the line
+       LOCAL_CFLAGS = -DECUUNGETTY_CHOWN
+       in the file `config.local' in the distribution base directory.
+    b. Configure or ./config
+    c. remake and reinstall
+
+*You* must decide if this is appropriate for you.  The tradeoff
+is between having 666 ttys and having a program which a diligent
+hacker could use to change any file in the system to his
+ownership. You really should look at bamboozle.c and judge
+what level of protection you want to use.  If you are on
+a sensitive installation (like you .gov or .mil guys),
+you might not want to do it.  Any suggestions for improvement
+or additional security.  I thought about pathname checking,
+st_dev and st_rdev checking and the like, but nothing simple
+and portable has come to mind.
+
+10. From 31840 patch 5,
+By the time ECU actually attempts an line open, enough previous
+context has been lost that the program cannot recover if the open
+fails.  I have always made several checks to try and eliminate
+such occurrences.  Now, at least for SCO lines in utmp, the
+chances of failure are virtually eliminated.
+
+This patch goes with patch 4 to extend the benefits of ecuungetty
+chown.  If ecuungetty chown is enabled and this patch is
+installed, we get reduced likelihood of ecu terminating
+abnormally when switching comm lines or when selecting the first
+line of the session.
+
+   Line access is checked if it is not found in utmp to see if
+   an open would fail.
+
+   SCO uugetty does not always put anything in the ut_line field
+   of its utmp entry.  However, a de facto convention exists for
+   making an inittab id field with the last two characters
+   matching the last two characters (the only unique characters)
+   of SCO-style comm line names.  This patch causes such a check
+   to be made, increasing the likelihood of getting a utmp match
+
+Two new files have been added to this distribution:
+   dutmp.c   cc -o dutmp dutmp.c    dumps the utmp; a cheap who -a
+   README.3.2v4         a brief blurb related to EAFS file names
+
+ecu 3.19.00 patch 1 - notes 11-15
+
+11. The maximum screen geometry is now 85x80 instead of 43x80.
+Columns must be 80.  Lines must be > 20.  Lines
+in excess of 85 will be accepted, but ECU will be unable to
+maintain a correct screen display if any scrolling occurs.
+
+12. A Nap() bug (used by the procedure nap command as well as
+internal functions) could cause the program to hang if napping
+was to occur when a receiver or child process terminated.  This
+only occurred on systems with -DWORKING_SELECT: SunOS, the SVR4s,
+ISC 2.2, for instance.
+
+13.  Remaining program identifiers containing the string "nonansi.*key"
+were renamed to use "funckeymap".
+
+14.  On systems with reliable predefines in their native compiler,
+(SCO -DM_SYSV, SunOS -Dsun),  Configure guesses at a default answer
+for the first question.
+
+15. The End key may now be used to finish adding or editing
+a dialing directory entry.
+
+ecu 3.19.00 patch 2 - notes 16 - 18
+
+16. Yet more work on the ecuungetty scheme.  ungetty acquisition
+not attempted early enough for "enabled but idle" lines
+
+17. A few patches back, I forgot to note %conn will now return
+-1 if no line is open.  Previously it returned 0 in this case.
+Now -1 means no line open, 0 means line open but no connection,
+>0 is the line file descriptor for the line in an active
+connection.
+
+18. The Nap() fixes of the last patch prevented ecurz/ecusz/ecusea
+from compiling.  Sorry.
+
+From full release 3.19.05
+
+19.  A preliminary T3000 dialer has been added to the gendial
+package.  This modem's future is plastic and the dialer, like
+all gendial programs, is just a starting point.  Gendial is
+provided and I don't have a lot of time to support the zillions
+of conflicting idiosyncratic options folks want.  With that
+spew spewed, most of them work fairly well.  Documentation :-) ?
+
+20.  A side effect of getting the T3000 was that *I* got to play
+with ECU on a Sun.  This is quite fortunate, since ECU was purportedly
+ported many CPU cycles ago.  The Nap() problem has finally been
+put to bed... (he said).
+
+From 3.19.05 patch 1 (making 3.19.06) notes 21-24
+
+21. The lCLOCAL() code and its users form the chassis upon
+which the DCD watcher is based.  It appeared to work on the
+SCO box, but caused problems on SunOS that were difficult to
+find.  Thanks to Mark Ashton, n4hgf!ifsbd!cma, this problem
+is history.  Many mysterious "hangs" came from a trap
+you could fall into on *any* implimentation other than SCO UNIX.
+CLOCAL doesn't appear to work the same on SCO 3.2.? as XENIX
+and SunOS.  I think tbetz@upaya.panix.com will be happy
+with this news.
+
+22. cma also discovered that if you have multiple Devices entries
+for a line to pick up specific Dialers scripts or dialer programs,
+say:
+
+ACU ttya - 2400 t3000-2400
+ACU ttya - 9600 t3000-v32
+
+ECU would always pick the first one (disregarding baud rate).
+This is fixed now.
+
+Now, if you dial with a directory entry using a /Devices-type or
+=devices-type specification for tty, then *that specific* Devices
+entry is used to choose the dialer program or Dialers script.  If
+no directory entry is involved or the directory entry specifies
+"Any" or a specific line, then Devices is searched for the first
+entry matching both the current line and the current baud rate.
+
+A note aside: SCO Devices entries appear to me to have a syntax
+extension not found in all HDB systems.  The baud rate
+field allows a range of baud rates, like:
+
+ACU tty1A - 110-2400 /usr/lib/uucp/dialgHA24
+
+ECU supports this syntax, but your uucico may not.
+
+23. models/funckeymap updated with my dual-purpose Sun/SCO
+funckeymap/.Xdefaults configuration.
+
+24. cmostime4 has been included for SCO users (and many hackers)
+
+From 3.19.05 patch 2 (making 3.19.07) notes 25
+25.  Dialing directory subform data entry formerly had two
+input schemes: on input, you were cajoled into going through
+fields one at a time until you reached the end of the form, whereupon
+ECU would take away the input form.  On the other hand, when editing
+an entry, you were free to cycle through the fields "a la modulo"
+in either direction.
+
+Now, both input modes allow liberal cycling.  Pressing the END key
+signals your acceptance of the entry.  Pressing ESCape in input
+mode aborts the new entry process.  Pressing ESCape in edit mode
+behaves exactly like the END key except that any edits made since
+the cursor entered the current field are discarded..
+
+From 3.19.10 - notes 26-27
+
+26. more internal cleanup
+
+27. robertle@sco.com (Robert Lewis) noted that putting the phone number
+on log files and screen dumps is a security risk.  Why protect
+~/.ecu when the phone numbers are plastered everywhere.  No
+more banners.
+
+From 3.19.11 - whoops didn't keep track
+
+28. ecuungetty chown fixes and miscellaneous cleanup
+
+From 3.19.12 - notes 29
+
+29. Added use of ECUFUNCKEY environment variable to override TERM
+when loading funckeymap.
+
+3.19.13 internal rev (just superstitious :->)
+
+3.19.14 - notes 30
+
+30. Made changes for SCO 3.2v4/ODT 2.0:
+    a. pids are now shorts
+    b. getty sets "DIALOUT" on its own
+
+3.19.15 - notes 31
+
+31. ECUUNGETTY_CHOWN now a semi-permanent feature.  It can
+still be turned off by editing config.c or Makefiles.  It
+is just too good not to have it in.
+
+3.19.16 - notes 32-37
+
+32. cmostime4 backed out of distribution; if you want it, ask me
+
+33. Direct phone numbers longer than 10 characters got doubled in
+one instance. Thanks to felton!rll for pointing this out.
+
+34.  Good news!  -DWORKING_SELECT can be and is now used for
+3.2v4; as a side effect, the Nap() wrapper/surrogate is now in
+nap.c and all the several Nap() functions in ecusea.c, zcommon.c
+and gendial.c have been removed.
+
+Also, if -DWORKING_SELECT is used, Nap() uses ftime() instead of
+gettimeofday().  Adding -DUSE_GETTIMEOFDAY will return to the
+old usage.  This latter note is for porters, since all currently
+supported systems have ftime() and several lack gettimeofday().
+
+35. More work has been done on SCO utmp/Devices automatic tty selection
+has been done.  I apologize for the long chain of half-fixes.  Once
+again, I think it is fixed.  This time I REALLY believe it :-).
+For sure, you should no longer find your /dev/tty chown()'d to uucp.
+
+36.  SCO multiscreen color escape sequences from the remote were
+being filtered as if ECU were running on a non-multiscreen.  Now,
+if you use ECU on an SCO multiscreen, the full set of ECU escape
+sequences, including color, again work as specified in the
+manual.  Thanks to tps@jptcs.com for pointing this out.  This bug
+crept in when I reorganized keyboard management
+(nonansikeys->funckeymap).
+
+37. The ecuungetty chown feature is on permanently.  I added
+quite a few security/safety checks to make sure some bug or
+another will not make the privileged ecuungetty go wild.
+
+3.19.17 - notes 38
+
+38.  The hz/hzmsec needed by nap.c was not being provided,
+calculated by ecusea.c, ecu[rs]z.c and gendial.c.
+
+3.19.18 - notes 39
+
+39.  I had started using <sys/time.h> if 3.2v4.  3.2v4 only has
+<sys/time.h> if the TCPRT package is installed .  Basic 3.2v4 does
+not have it at all.  So, we'll use <time.h> and <sys/select.h> just
+like before.  Thanks for the report go to robertle@sco.com.
+
+3.19.19 - notes 40-44
+
+40.  Added support for 3.2v4 CRTSFL.
+Now for SCO, rtscts command arguments:
+
+usage: rtscts [ off | on | no | yes | 0..7 ]
+
+argument | RTSFLOW | CTSFLOW   argument | RTSFLOW | CTSFLOW | CRTSFL
+---------+---------+---------  ---------+---------+---------+--------
+  off    |   0     |   0         0      |   0     |   0     |
+  on     |   0     |   1         1      |   0     |   1     |
+  no     |   0     |   0         2      |   1     |   0     |
+  yes    |   0     |   1         3      |   1     |   1     |
+                                 4      |   0     |   0     |   1
+
+Choice 4 only works on SCO 3.2v4 and ODT 2.0.
+As you can see, numeric values are masks.
+If the 4 bit is present in the numeric value, it
+overrides the lower-order bits:  Specifying 7 as an argument
+specifies CRTSFL is to be used if it is supported, otherwise
+RTSFLOW and CTSFLOW.
+
+The interactive help and iteractive and procedure command
+documentation has been updated.  I added to README.RTSCTS 
+some illuminating comments by chip@tct.com (Chip Salzenberg).
+It was seeing this article that brought CRTSFL off the todo
+list and into the code.
+
+41.  Warnings about not using ^\Z in Kermit transfers (^Z suspend)
+were added to the 'sk' and 'rk' interactive and procedure commands.
+
+42.  This fix went into 3.19.16 but I forgot to note it: color
+sequences sent to ECU on a multiscreen console were not being
+passed to the driver.  Now they are..  I only know of color
+working on SCO.
+
+43.  Changes to make_dirs() was needed to handle making
+directories with pathname components which are symbolic links
+(possibly on a read-only file system).
+
+44.  The DCD watcher did not work if you use SCO sio.  I have
+been using FAS and forgot a a fact about SCO sio: to toggle
+CLOCAL meaningfully, you must open the modem (e.g.  tty2B) rather
+than the direct (tty2b) file.  On SCO systems, if the tty filename
+has a digit+letter as the last two characters,  ECU will
+force the lower case (direct) version to be used.  3.19.19 opens
+the upper case (modem) device, but continues to store
+and display tty names in their lower case version.
+
+3.19.20 - notes 45-46
+
+45. Somewhere in the lifetime of .19, I sent a copy to a guy.
+This revision bump is just to keep from having different
+versions called .19 out the door.
+
+46.  On 3.19.17/18, there were various reports of hangs on line 
+close, hang up, or HOME prompt when using 3.2v2.  I cannot
+reproduce any of these errors.  Please get and send me this 
+information for me the next time it happens to you:
+
+Install ecu, but execute the ecu built in the distribution directory.
+
+  a. Is the receiver process active (two ecu processes active)?
+
+  b. The ecu transmitter process will either be the only ecu
+     process or the oldest.  Kill -4 the transmitter process and move
+     the core file to the distribution directory if you 'cd'ed in ecu.
+
+     You may have to type ^Jstty sane^J on the console it failed on
+     (expect no echo) to restore the console to something usable.  This
+     may not reinstate your choice of character delete, line kill, etc.
+
+  c. do  'sdb ecu |& tee sdb.log'
+
+  d. do  't', then 'q'
+
+  e. repeat the failing scenario if you found the receiver process
+     alive in step a.  If so, repeat a-d above, but this time kill
+     the receiver process and do  'sdb ecu |& tee -a sdb.log'
+
+  f. Guess.  (mail me the sdb.log) with a description of
+     1) the OS
+     2) any non-vendor serial driver
+     3) what was going on when it failed (in 100 words or more :-> )
+
+3.19.21 - notes 47-49
+
+47.  The UNIX sio driver may generate a SIGTTOU upon execution of
+certain ioctl() functions, namely, XCSETA, XCSETAF, XCSETAW,
+TIOCSPGRP, TCSBRK, TCFLSH, and TCXONC.  My ignorance caused the
+last few revisions to hang for many upon closing a line or upon
+performing miscellaneous operations like sending a break.  All
+ecu executables now set job control signals to SIG_IGN.  I hope
+this fixes the problem.  (Job control is not supported at this
+time.)  
+
+48. config.c has been returned to normal compilation (no -g).
+I shipped an alternate config.c "out of turn" after 3.19.20.
+Some may have installed it, some not. Therefore, unsharing
+this patch replaces any config.c you may have in place.
+
+49. The -F switch was added to the command line arguments:
+
+The new manual section titled "-F path":
+
+    Normally, the $TERM environment variable is used to
+    determine the funckeymap entry (keyboard configuration)
+    to be used.  Sometimes, the $TERM variable is not
+    adequate for identifying your keyboard arrangement.
+    The -F switch, like the $ECUFUNCKEY environment
+    variable, allows you to use override the funckeymap
+    entry used.  For more information, see the section
+    titled "Function Key Mapping (Recognition)".
+
+3.19.22 - notes 50-52
+
+50.  This note is only of interest to SCO users.
+Previous revisions of SCO were lenient on the user in the choice
+of the direct or modem tty device.  You could specify either
+type and ecu would force the one it thought appropriate.
+Users of ecu under other operating systems have always had to
+specify the correct name.
+
+If you have time, I'd love feedback on what part of the manuals
+I have missed updating with the new paradigm.
+
+Since there are several types of async drivers and we want
+to support them, ecu can no longer make a choice for you.
+I did radical surgery on the "SCO tty naming" logic.  As it
+stands nowu, on SCO, the tty you specify in a dialing entry is the exact
+tty name opened.  The convention of using a lower-case lock name
+is still observed.  Also, both senses are searched for in utmp
+for conflict determination.  ecuungetty chown()/chmod() both
+device file names.
+
+However, your choice of which line type (line placed in tty field
+of a directory entry or the tty field of the setup form) depends
+upon the driver you are using:
+
+sio  modem   /dev/tty1A
+fas  direct  /dev/tty1a
+
+I don't know about others.  Tell me.
+
+Notes:
+a. An sio direct line ignores setting of CLOCAL (no DCD watcher)
+   and lacks support for hardware flow control.
+b. Opening the fas modem line causes various forms of conflict
+   resulting in EBUSY being returned by fas for an ecu open or
+   a dialer program open.
+
+For now, this is meaningful only on SCO.  In the future, perhaps,
+we'll manage an installation-dependent table of what line names
+refer to the same device and which are modem, direct, etc.
+
+e.g.,
+#line_to_use:modem:direct:others:comment
+tty1A:tty1A:tty1a::sio
+tty1a:tty1A:tty1a::fas
+acu0:acu0:ttya,ttyd0:SunOs
+
+This would re-automate SCO tty line type choices and add it anew
+for others.  Then, ecu could for the first time on non-SCO (and
+SCO naming to boot) search for all possible lock files and utmp
+entries.  What do you think?  Yes, one more damn configuration file
+to hack on.
+
+51.  ecusz, ecurz and ecusea are now placed in the ecu library directory
+(usually /usr/locsal/lib/ecu).  This is a more appropriate place
+since it is meaningful only for ecu to execute them.  Kermit or ckermit
+is still searched for through $PATH.  Remove any old ecurz, ecusz
+and ecusea executables from your locsl bin directory.
+
+52.  I'm sorry the preformatted manuals you have been getting
+were malformed.  The new Makefile in doc failed to supply -mm !
+
+BETA 3.20.01 notes 53-58
+
+53. There is still one installation where /dev/tty is getting
+incorrectly chown/chmoded.  There are now three brute-force
+tests for an attempt at this (up from two).  The bug
+hasn't been fixed, but we ought to know how it happens
+this time around.
+
+54. The procedure and interactive command fkmap has been added:
+
+Usage: fkmap                           display current mapping
+       fkmap <keyname>                 display single key mapping
+       fkmap <keyname> <keylist>       modify a key's mapping
+       fkmap -r                        reset to original mapping
+       fkmap -s <file>                 append current to file
+
+This command manages the mechanism ECU uses to recognize function
+keys when they are entered at the console.  If supplied, the
+first argument to the command must be the recognized name of a
+function key from the list:
+
+F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 
+Home End PgUp PgDn CUP CUL CU5 CUR CUD
+
+If only one argument is supplied, the mapping for the specified
+key is displayed.  If more than one argument is supplied, the
+keyboard mapping is changed.  Arguments 2-n are character code
+specifiers in the format used to define a funckeymap entry.
+
+WARNING: If found to be syntactically correct, a mapping change
+is installed immediately.  If incorrect mapping of the HOME key
+is requested, you may lose control of ECU.
+
+Examples:
+
+    fkmap f10       display F10 mapping
+    fkmap Home ^Z   map Home to ^Z
+                    after this command, type ^Z for Home
+
+55.  Non-SCO color appears broken and it is beyond me to fix it.
+If you want to diddle with it, look at the top of ecutty.c at the
+list of conditionals regarding USE_COLOR.  I'd appreciate
+patches.  BTW, in the past, I have attempted fixes for ISC
+character attributes like underlining and standout, but I've
+never heard back.  Are there attribute problems on ISC (3.2 or
+other)?
+
+56.  The procedure command exec was added:
+
+usage: exec <string>
+
+This function executes a string as a procedure statement.
+Argument <string> must contain an ecu statement exactly as
+might appear on a procedure line, with a few exceptions.
+
+1. There may be no label: the first command may 
+   start in column one.
+2. You should not execute a goto, gosub or return.
+3. You should not code if, while or compound statement
+   brackets.
+
+You are on your honor with regard to items 2 and 3 above.
+If you stretch it, it will break.
+
+Example:
+
+    $s20 = 'Home';   $s30 = '^H' 
+    $s21 = 'End';    $s31 = '^E'
+    $s22 = 'F1';     $s32 = '^A'
+    $s23 = 'F2';     $s33 = '^B'
+    $i10 = 0
+    whilei $i0 < 4
+    {
+        $s0 = 'fkmap '+$s[20+$i10]+' '+$s[30+$i10]
+        exec $s0
+        $i10 = $i10 + 1
+    }
+
+57.  ECU has been made successfully with gcc 2.2.2.  There is a
+bug in the configure procedure in the 2.2.2 I received.  In
+attempting to configure for 3.2v4, the tm.h header file got
+linked to the wrong file.  Make sure tm.h is linked to
+config/i386_sco4.h and not config/i386_sco.h.  Starting with
+2.2.2, those nice M_ identifiers are predefined by gcc.  I wish
+everybody's compiler had a predefine that would identify the
+environment.
+
+The Configure procedure is unchanged.  Answer yes to the question
+about version 1.40 or later.
+
+58.  John Dashner, wa4cyb!jmd, proofread the main manual (THANKS).  His
+changes are in the manual.
+
+FINAL 3.20 notes 59-65
+
+59. Expect/respond \M and \m implimented for SVR4.  The old \m
+millisecond delay is now ~n[##].  See the procedure manual in the
+description of the expresp command.
+
+60. Further bugs with managing line chown/chmod fixed.
+A directly specified line not managed by getty was not getting
+chowned back to uucp when the line was closed.
+
+61. Better syntax checking is done when reading Devices lines.
+
+62.  A bug in ecusz caused data transfer rate calculations to be
+wrong after any receiver ZRPOS ("nak") after the first one at
+transfer startup.
+
+63.  A "Resume interrupted transfer" choice has been added
+to the interactive sz menu.  An equivalent -r switch was added
+to the sz procedure command.  Previously, you had to "just know"
+you can sneak switches to the file transfer protocols by
+prefixing them to the file list.
+
+There is still no clean way for the sz procedure command to set
+the ZMODEM window size on sends other than the aforementioned
+trick.  The thing to do here is
+
+    sz '-w 65536 file1 file2'
+
+There is no foreseeable reason this hack will cease to work.
+However, if I get 1.0001 requests, and I'll come up with something
+better.
+
+64.  The receiver process was being started too soon after a
+connect resulting for a directory entry dial.  As a result,
+if ther remote began transmitting very soon after connect
+or if there was remaining modem dialog remaining bufferred
+in the tty driver, the CONNECT or [interactive mode] messsages
+could have been intermixed with data from the line.
+This longstanding nuisance bug has finally been fixed.
+
+65.  The rtscts procedure command would take only on/off/yes/no
+alphabetic arguments.  Now it will accept numeric arguments
+like its interactive equivalent.
+
+==========================================================================
+prior to x3.19
+1992-04-19-thanks to jhpb@sarto.budd-lake.nj.us, 3.18.37 has ESIX SVR4 
+1992-04-19-if TERM=ansi with WINDOWID, assume scoterm 
+1992-04-17-default tty, baud and parity moved to config.c 
+1992-04-17-fkey command has -r reset switch 
+1992-04-17-ecu.c-"default" keyset read if present 
+1992-04-17-ecufkey.c-initialize keyset to SCO "ANSI" send strings 
+1992-04-12-eculine.c-was not canceling alarm on lopen error 
+1992-04-09-ecugrabbag.c-cleanup new "bn" argument parsing 
+1992-04-05-ecuutil.c-no more use of memmove in any environment 
+1992-03-30-gendial/tbit.sync.h-add lbreak before wakeup 
+1992-03-30-gendial/gendial.c-add lbreak 
+1992-03-29-proc_error.c-build_err-creation from ecuerror.h 
+1992-03-29-eculine.c-put three second timer on lopen 
+1992-03-27-*.h-include protection for all .h files 
+1992-03-20-esd.h-max size of esd now 16384 
+1992-03-20-esdutil.c-esdstrcat will grow an esd 
+1992-03-20-config.c-correct XENIX tcap/tlib test thanks to tbetz 
+1992-03-17-eculine.c-optimize parameter 1 to select() 
+1992-03-10-ecutcap.c-quick sanity check on ttype features 
+1992-03-01-config.c-add -Wswitch to gcc compiles 
+1992-03-01-feval.c-come up to modern times ... enum for FI/FS  
+1992-03-01-ecucmd.h-come up to modern times ... enum for CT 
+1992-02-24-ecutcap.c-getenv COLUMNS not COLS 
+1992-02-22-ecuutil.c-build arg/str array now handles zero tokens 
+1992-02-22-kbdtest3.c-thank markd@phoenix.pub.uu.oz.au for typo fix 
+1992-02-16-ecu.c-add -P phonedir switch for rll@sco 
+1992-02-16-ecusighdl.c-turn off xterm_title + add _terminate.ep 
+1992-02-16-ecugrabbag.c-turn off xterm_title 
+1992-02-16-ecuDCE.c-turn off xterm_title 
+1992-02-16-ecu.c-turn off xterm_title 
+1992-02-14-feval.c-add uname 
+1992-02-13-ecu.h-when port to many time() can be int/long/time_t 
+1992-02-10-gendial/dceT2500.c-made it 1.5 years not setting S131 - then drat 
+1992-02-10-gendial/dceTBPlus.c-improved sync_Telebit 
+1992-02-10-gendial/dceT2500.c-improved sync_Telebit 
+1992-02-09-z/zcurses.c-ruling characters only on  SCO (tcap curses) 
+1992-02-07-ecuicmaux.c-fix incorrect log append/write notification 
+1992-02-06-config.c-depressing ... SCO keeps chging their minds 
+1992-02-04-ecuDCE.c-fix bug in kill_rcvr_process logic 
+1992-02-02-gendial/template.c-proper ordering of DCE_result entries 
+1992-01-29-ecu_types.h-creation 
+1992-01-29-ecu_stat.h-creation 
+1992-01-29-ecu_pwd.h-creation 
+1992-01-27-z/ecurz.c-more efficient fopen processing 
+1992-01-26-gendial-gendial 1.2 for ecu 3.20- better hangup 
+1992-01-21-afterlint.c-better handling of commented items with UNNAMED 
+1992-01-20-z/ecurz.c-ZMAPND works now 
+1992-01-18-hdbintf.c-use proctrace value for expresp_verbosity 
+1992-01-17-ecuDCE.c-.credit open to public 
+1992-01-12-pcmd.c-add autorz command 
+1992-01-11-ecuicmhelp.c-bug in help + F1 reverts to cat menu 
+1992-01-06-kbdtest3.c-much more error checking 
+1992-01-06-kbdtest3.c-eliminate sun stty - causes problems 
+1992-01-05-z/zcurses.c-properly display progress for resumed transfers 
+1991-12-24-fasi/digi-pc8.h-creation 
+1991-12-16-expresp.c-allow for backslash in expect and respond 
+1991-12-16-z/ecurz.c-support ZCRESUM 
+1991-12-15-ecushm.h-autorz and zmodem_asterisk_count added 
+1991-12-15-ecushm.c-autorz initialized 
+1991-12-13-ecuicmd.c-formalize bell notify 
+1991-12-13-ecugrabbag.c-add parse_bell_notify_argument 
+1991-12-13-ecugrabbag.c-add bell_notify_text 
+1991-12-13-ecushm.c-move bell_notify_state to shm 
+1991-12-12-pcmd.c-proctrace of intvar shows char value if 0-255 
+1991-12-12-eculine.c-lgetc_timeout can now return a null character 
+1991-12-02-ecupde.c-breakout into separate module 
+1991-12-01-dvent.h-new typedef for striuct dvent 
+1991-11-30-smap.c-smap conditional compilation reorg 
+1991-11-30-ecuicmd.c-smap conditional compilation reorg 
+1991-11-30-ecu.h-smap conditional compilation reorg 
+1991-11-28-ecupde.h-add dcdwatch 
+1991-11-28-ecuphdir.c-add dcdwatch option 
+1991-11-26-ecu.h-add shm->Ldcdwatch values 
+1991-11-26-eculine.c-add ldcdwatch_str 
+1991-11-26-ecu.h-add STR_CLASSIFY 
+1991-11-26-ecuutil.c-add str_classify and yes_or_no uses it 
+1991-11-20-ecuphdir.c-improve "Any" line handling on add or edit 
+1991-11-16-ecunumrev.c-better development "x" rev numbering 
+1991-11-16-proc.c-add pcmd_upon stub 
+1991-11-16-proc.c-add proc_dcdloss_handler 
+1991-11-16-ecucmd.h-add upon + rearrance pcmd_... decls 
+1991-11-16-proc.c-calloc pcb instead of malloc 
+1991-11-16-proc.h-add upon_dcdloss 
+1991-11-15-hdbintf.c-SCO tty naming now observed in getdvline 
+1991-11-13-ecu.h-use if __STDC__ instead of defined(__STDC__) 
+1991-11-12-ecushm.c-remove obsolete shmx_rc_report 
+1991-11-11-ecu.h-redefinition of Ltermio's place in life 
+1991-11-11-eculine.c-ldcdwatch and lCLOCAL code 
+1991-11-11-ecushm.h-add Ldcdwatch and Ltiobuf 
+1991-11-11-ecushm.c-shmr_notify_xmtr_of_DCD_loss 
+1991-11-11-pcmd.c-add pcmd_dcdwatch code 
+1991-11-11-eculine.c-lzero_length_read code 
+1991-11-11-ecucmd.h-add dcdwatch 
+1991-11-11-ecurcvr.c-lzero_length_read code 
+1991-11-11-ecurcvr.c-add LIMIT_BELL code 
+1991-11-08-utmpstat.c-bug in strcmpi made for erratic return value 
+1991-11-07-ecuDCE.c-tmcsys!lothar-alternate OK string for built-in dialer 
+1991-10-24-ecumon/xecumon.c-SEND_KEYS separated from AITEST 
+1991-10-17-config.c-add can_pipe code 
+1991-10-09-pcmd.c-add -p and -v switch to send 
+1991-10-09-pcmd.c-proctrace code for send 
+1991-10-09-expresp.c-bad llookfor echo argument 
+1991-10-04-ecuicmd.c-reset proc_interrupt before interactive pcmd 
+1991-09-25-ecuchdir.c-fix seg viol in popd w/o argument on Sun 
+1991-09-25-ecufork.c-find_executable flunks directories now 
+1991-09-25-ecuxfer.c-flexible C-Kermit filename 
+1991-09-17-ecuxfer.c-restore console termio after xfer prog runs 
+1991-09-06-ecufork.c-expand_wildcard_list minor bug 
+1991-09-03-ecuxkey.h-alt-[a-z] starts w/0xE1: crisp compatibility 
+1991-09-03-timetest/naptest2.c-make part of suite 
+1991-09-03-timetest/naptest3.c-creation 
+1991-09-03-timetest/seltest.c-creation 
+1991-09-03-ecugrabbag.c-sigint rearrangement in send_get_response 
+1991-09-03-config.c-iron out sun gcc options 
+1991-09-02-z/zcurses.c-show sun driver information 
+1991-09-01-pcmd.c-baud cmd can set rate even if no line open 
+1991-09-01-ecucmd.h-add setline 
+1991-09-01-ecucmd.h-add setline 
+1991-09-01-pcmd.c-add setline 
+1991-09-01-config.c-show package and config versions 
+1991-09-01-hdbintf.c-generalize HDB configuration files location 
+1991-09-01-config.c-generalize HDB Devices, etc. files location 
+Changes since 3.20 release
+
+==> Patch 1
+
+1992-09-14-04:05-hdbintf.c-wht@n4hgf-rcvr process was not going away reliably 
+1992-09-13-12:52-ecutty.c-wht@n4hgf-add tty_is_scoterm 
+1992-09-13-12:52-ecuicmd.c-wht@n4hgf-show tty_is_scoterm during stat 
+1992-09-13-12:52-ecu.h-wht@n4hgf-add tty_is_scoterm 
+1992-09-13-02:05-ecuicmhist.c-wht@n4hgf-redisplay escape prompt on error exit 
+
+ALERT: Something is happening to make ODT 2.0 scoterms go CPU
+open-loop and unresponsive to anything but a kill -9.  I will be
+looking into this, but if anyone beats me to it, please let me
+know what you find ASAP.  Thanks.
+
+1.  The receiver process was not being killed during dialing when
+ECU was invoked with "ecu directoryentry".  Dialing was not
+possible until you interrupted the program and tried again.  This
+has been fixed.  This boo-boo crept as part of some cleanup work
+(smile) just before posting.
+
+2.  An <scoterm> indication has been added to the stat command
+output.  This is a start on the debugging effort of the scoterm
+problem that had to be put off for the critical nature of item 1.
+
+3.  After the history function displays "no interactive commands
+saved", you are still in command mode.  There was no visual hint
+to let you know that.  Then you could type, thinking you were
+sending to a remote, when in fact you were feeding the text to
+the command line.  Now, ECU redisplays the escape prompt to show
+you are still in command mode.
+
+4.  Typos in the README and README 3.20 were fixed.
+
+5.  This file was added.
+
+==> Patch 2
+
+1992-09-15-18:52-ecutty.c-wht@n4hgf-left some debug code in patch01 dammit 
+
+6. Remove debug code from _setcolor().
+
+==> Patch 3
+
+1992-09-17-06:27-ecuicmd.c-wht@n4hgf-add <7-bit kbd> to stat 
+1992-09-17-05:33-mapkey/README-wht@n4hgf-0xE0 should read 0xE1
+1992-09-17-05:16-ecuxkey.h-wht@n4hgf-finally, 0xE1-0xFA as promised in 3.10  
+1992-09-16-14:13-ecunumrev.c-wht@n4hgf-add M and F version qualifiers 
+1992-09-16-13:54-ecuusage.c-wht@n4hgf-add fkmap usage 
+1992-09-16-13:33-funckeymap.c-wht@n4hgf-add fkmap -l name 
+1992-09-16-13:29-termecu.h-wht@n4hgf-add TERMECU_UNRECOVERABLE 
+1992-09-16-13:29-ecusighdl.c-wht@n4hgf-add TERMECU_UNRECOVERABLE text 
+1992-09-15-18:52-ecutty.c-wht@n4hgf-left some debug code in patch01 dammit 
+
+7.  Information on tty "Device busy" errors and color support
+have been added to README.Q-and-A.  Obsolete information was
+removed.
+
+8. The -l switch was added to the fkmap commands:
+       fkmap -l <name>
+The -l form reads an entire funckeymap definition matching <name>
+from ~/.ecu/funckeymap (if not found there, in a file by the same
+name in the library directory).  This form behaves exactly
+in the same manner as the command line switch -F.
+Due to the drastic nature of this command, if it fails to
+execute properly, ECU terminates itself.  Note that
+improper use of this form of the command can still render
+ECU an albatross (with Home unrecognizable).
+
+9.  The original high-bit character space assignments for Alt-A
+through Alt-Z that I chose for ECU made good sense ...  to a
+parochial American.  Michael Traub <emory!btcs.bt.co.uk!traub>
+sets me straight, but mapkey/README was incorrect.  Each hex
+value was off by one.
+
+10.  If the console has parity enabled, the interactive stat
+command now reports <7-bit kbd>.  Knowing this can be important if
+you are using Alt-[A-Z].  Or if you are trying for some kind
+of unlikely tandem 8-bit transparent path (telnet to a box, run
+ecu to call home, login, use ECU there to talk to your amateur
+radio PK-232/MBX TNC over 14 MHz AMTOR to the UK to a Kantronics
+TNC hooked to an SCO box, login, make an ECU call to a certain
+Universal Import-Export ...  uh, hi -- I seem to have dozed off).
+
+11.  At least one ISC SVR3 user had a Devices entry with the
+modem control ",M" suffix I thought was only used in SVR4 UUCP.
+The suffix presence is now detected on all platforms.
+
+12. ecusea.c had two fcntl.h inclusions.  XENIX could not
+handle this.
+
+==> Patch 4
+
+13. jeff@samantha.chi.il.us (Jeff Johnson) suggested a change
+in the SVR4 LCK.. logic, stating that the use of <sys/sysmacros.h>
+is deprecated.
+
+> Here is an excerpt from my <sys/sysmacros.h>:
+> 
+>    WARNING: The device number macros defined here should not be
+>    used by device drivers or user software.  Device drivers
+>    should use the device functions defined in the DDI/DKI
+>    interface (see also ddi.h).  Application software should make
+>    use of the library routines available in makedev(3).  A set of
+>    new device macros are provided to operate on the expanded
+>    device number format supported in SVR4.  Macro versions of the
+>    DDI device functions are provided for use by kernel proper
+>    routines only.  Macro routines bmajor(), major(), minor(),
+>    emajor(), eminor(), and makedev() will be removed or their
+>    definitions changed at the next major release following SVR4.
+
+14. On some systems, the video attributes were not reverted to
+"normal" after some reverse video or underlined strings (e.g,
+"[interactive mode]").
+
+15. I removed the Metro Link pts support.  This was quite obsolete
+since only very early Metro Link software used pts'.
+
+16.  FAS 2.10 users are getting SIGUSR1 sent to the transmitter.
+I suspect this is a bug in FAS evoked by the kill(getty,SIGUSR1)
+performed by ecuungetty, but I am have no real clue.  This needs
+resolving, but I have little time right now.  This patch adds
+signal(SIGUSR1,SIG_IGN) to eliminate the problem.
+
+17. Console xon/xoff support has been added.  EMACS users
+lament the loss of ^S/^Q.  (I personally consider it evolution
+in action :->).  A new inetractive and a new procedure
+command have been added  Also, the status is reported by
+the interactive stat command.
+
+   conxon on  - honor xon/xoff locally
+   conxon off - pass ^S/^U to remote
+
+If you turn conxon off, there will be no local software flow control
+so you probably need hardware flow control for proper operation.
+Refer to the rtscts command descriptions for more information
+(I pray you are using a tty driver that supports the kind
+of hardware flow control your modem requires).
+
+18.  The procedure file transfer commands did not get
+rearranged to look for the file transfer programs in the
+ecu library directory.
+
+19. Chains of else statements may fail to operate properly
+in certain arrangements.  The known failure was fixed.
+

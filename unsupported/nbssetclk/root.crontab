@@ -1,0 +1,1 @@
+30 11,2,5, * * * /etc/nbs_refresh > /dev/null

@@ -1,0 +1,17 @@
+-rw-r--r--   1 wht      wht         1159 Oct 04 19:10 CMOSstime.c
+-rw-r--r--   1 wht      wht        23435 May 14  1992 MACsetclk.c
+-rw-r--r--   1 wht      wht         2655 Dec 29 15:43 Makefile
+-rw-r--r--   1 wht      wht        25503 Dec 16 19:43 NBSsetclk.c
+-rw-r--r--   1 wht      wht         8335 Mar 31 23:50 README
+-rw-r--r--   1 wht      wht          992 Jan 28  1990 bcdcvt.c
+-rw-r--r--   1 wht      wht         4076 Jan 28  1990 cmos_disp.c
+-rw-r--r--   1 wht      wht         2556 Jan 28  1990 date2epsec.c
+-rw-r--r--   1 wht      wht         4430 May 14  1992 dev_cmos.c
+-rw-r--r--   1 wht      wht         3815 Jan 28  1990 dev_cmos.h
+-rw-r--r--   1 wht      wht         2577 May 14  1992 dev_rtc.c
+-rw-r--r--   1 wht      wht          454 Jan 28  1990 dev_rtc.h
+-rw-r--r--   1 root     other        111 Dec 29 15:38 nbs_refresh
+-rw-r--r--   1 wht      wht          639 Dec 04 01:09 nbssetclk.ep
+-rw-r--r--   1 root     other         46 Dec 29 15:39 root.crontab
+-rw-r--r--   1 wht      wht         1256 Jan 28  1990 set_24hr.c
+-rw-r--r--   1 wht      wht         3886 Jan 09 13:55 utc.c

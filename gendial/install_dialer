@@ -1,0 +1,32 @@
+:
+#+----------------------------------------------------------
+# install_dialer -  ECU gendial modem dial installation
+# usage: install_dialer directory executeable 
+#+----------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:38-wht@n4hgf-ECU release 3.20 BETA
+#:04-30-1991-16:07-root@n4hgf-add header and ls -l
+
+lib="$1"
+
+echo ''
+while [ x$2 != x ]
+do
+	echo Installing dialer $2 in $lib
+	rm -f $lib/$2 $lib/$2~
+	if [ -f $lib/$2 ]; then mv $lib/$2 $lib/$2~; fi
+	cp $2 $lib/$2
+	strip $lib/$2
+	if [ -x /usr/bin/mcs ]; then /usr/bin/mcs -d $lib/$2; fi
+	chown uucp $lib/$2; chgrp uucp $lib/$2; chmod 711 $lib/$2
+	ls -l $lib/$2
+	shift
+	echo ''
+done
+

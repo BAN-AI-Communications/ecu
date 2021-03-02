@@ -1,0 +1,61 @@
+:
+#!/bin/sh
+#+---------------------------------------------------------------------
+# ECU Configure - prepare and execute ECU configuration program
+#----------------------------------------------------------------------
+#+:EDITS:
+#:04-26-2000-11:15-wht@bob-RELEASE 4.42
+#:04-26-2000-11:04-wht@bob-version 4.42 ready
+#:04-22-2000-12:15-wht@bob-revisit Unixware 7.1.1
+#:01-24-1997-02:36-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-19:59-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:08-30-1996-20:16-wht@yuriatin-add MOTSVR4 quad-processor "yuriatin" to WHT list
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:38-wht@n4hgf-ECU release 3.30
+#:03-13-1994-19:26-wht@fep-facelift + fep WHT detect
+#:09-10-1992-13:58-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:37-wht@n4hgf-ECU release 3.20 BETA
+#:07-09-1992-18:09-wht@n4hgf-ecunumrev a bad idea
+#:07-07-1992-16:30-wht@gyro-add ecunumrev to config
+#:08-25-1991-05:11-wht@n4hgf2-added Sun n4hgf2 WHT automation
+#:08-06-1991-05:05-wht@n4hgf-change FASI_IN_USE to FASI
+#:07-12-1991-14:05-wht@n4hgf-ensure config.c compiles properly
+#:04-29-1991-02:39-wht@n4hgf-document/clean
+
+# no changes are recommended
+CFLAGS=
+
+# a bit of self indulgence for me (ignore it or be inspired)
+SYSTEM=
+
+[ -f /sbin/uname ] && SYSTEM=`/sbin/uname -n`      # P III/450 Unixware 7.1.1
+[ "$SYSTEM" = "bob" ] && CFLAGS='-DWHT'
+
+[ -f /bin/uname ] && SYSTEM=`/bin/uname -n`        # P III/450 Redhat
+[ "$SYSTEM" = "blue" ] && CFLAGS='-DWHT'
+
+[ -f /bin/uname ] && SYSTEM=`/bin/uname -n`        # P II/233 Redhat
+[ "$SYSTEM" = "menlo" ] && CFLAGS='-DWHT'
+
+[ -f /etc/hostname.le0 ] && SYSTEM=`cat /etc/hostname.le0` # sparc 5 4.1.3_U1
+[ "$SYSTEM" = "gyro" ] && CFLAGS='-DWHT'
+
+[ -f /sbin/uname ] && SYSTEM=`/sbin/uname -n`      # VME-187 88100/33 SVR4
+[ "$SYSTEM" = "fep" ] && CFLAGS='-DWHT'
+
+[ -f /sbin/uname ] && SYSTEM=`/sbin/uname -n`      # VME-188 4x88100/25 SVR4
+[ "$SYSTEM" = "yuriatin" ] && CFLAGS='-DWHT'
+
+[ -f /usr/bin/uname ] && SYSTEM=`/usr/bin/uname -n`  # Motorola power pc AIX
+[ "$SYSTEM" = "cydonia" ] && CFLAGS='-DWHT'
+
+echo Please wait while I compile the config program.
+rm -f ./config
+cc $CFLAGS config.c -o config > /tmp/config.cc.log 2>&1
+
+[ -x ./config ] && rm -f /tmp/config.cc.log
+[ -x ./config ] || echo '/tmp/config.cc.log has compile errors'
+./config
+
+#end of Configure

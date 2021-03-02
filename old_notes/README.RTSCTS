@@ -1,0 +1,96 @@
+Full duplex hardware flow control is correctly handled by only
+one UNIX entity I know of: the FAS public domain async driver for
+various 386 unixes.
+
+I have not seen what SVR4 has to offer.
+
+SunOs has partial support.
+
+SCO UNIX and XENIX has a completely useless method based on the
+classical synchronous modem model: the DTE raises RTS when it
+wishes to send and waits for CTS from the modem.  Modems at slave
+locations on master-slave multidrop lines leave their carrier off
+except when the DTE is transmitting.  The DTE says "RTS", the
+modem turns on its carrier and raises its CTS line after the
+modem carrier is stable enough to support data transmission.
+
+Perhaps, some modems are smart enough to detect another modem
+"using" the path.  In such cases, the modem remains quiet and
+deny RTS to the DTE until the path is quiet.
+
+This is great for synchronous applications, but asynchronous
+communications requires (greatly benefits from) bidirectional
+flow control where the RTS line becomes, in fact, a "DTE CTS".
+RTS is true when the DCE may transmit to the DCE and false
+when it may not.
+
+This de facto reassignment has never become a standard and
+few UNIX vendors support it.  The Telebits and other
+fast modems do support this mechanism.
+
+Sigh, one day, maybe UNIX will generally embrace such use.
+
+Update!  Thanks Ronald:
+
+From n4hgf!kd4nc!emory!wupost!usc!sdd.hp.com!nigel.msen.com!hela.iti.org!widener!eff!ibmpcug!pipex!demon!gate.demon.co.uk!ronald Wed Jul 22 21:09:23 1992
+Path: n4hgf!kd4nc!emory!wupost!usc!sdd.hp.com!nigel.msen.com!hela.iti.org!widener!eff!ibmpcug!pipex!demon!gate.demon.co.uk!ronald
+From: ronald@gate.demon.co.uk (Ronald Khoo)
+Newsgroups: comp.unix.sysv386
+Subject: Re: SCO Unix 3.2v4, RTSFLOW, CTSFLOW and CRTSFL
+Message-ID: <9207192054.aa26742@gate.demon.co.uk>
+Date: 19 Jul 92 19:55:04 GMT
+References: <JOCHEN.92Jul12064058@busybit.mrz.lm.sub.org> <2A6326A2.6C61@tct.com>
+Sender: usenet@gate.demon.co.uk
+Organization: Demon Internet Services.
+Lines: 48
+X-Mailer: Mail User's Shell (7.2.4 2/2/92)
+
+chip@tct.com (Chip Salzenberg) wrote:
+
+> Does anyone out there understand:
+> 
+>    1.  What RTSFLOW and CTSFLOW do, singly and in combination,
+>          under (A) 3.2v2 and (B) 3.2v4?
+
+Supposedly no change.  They are intended for true half-duplex modem-style
+line-control, i.e. the REAL meaning of RTS/CTS.  I think it's possible
+to use CTSFLOW only for printer flow control, but don't hold me to that :-)
+
+Some vendors, e.g. Specialix, specifically interpret the flags as being
+for full duplex flow control, not line control, since that's essentially
+useless for the kind of applications which their markets want, and
+CRTSFL was not available prior to 3.2v4
+
+>    2.  What CRTSFL does, compared to 1(A) and 1(B)?
+
+CRTSFL is new with 3.2v4 and does mean full duplex flow control,
+what EIA-232 calls RFR/CTS flow control.  RFR "Ready for receive" is
+actually a different circuit number according to the spec, but is
+the same pin on a V.24 25-way D connector.
+
+Confused ?  You will be.
+
+The problem is that if you use a current Specialix card on a 3.2v4 system,
+and want RFR/CTS flow control, you still have to use the wrong flags,
+ie CTSFLOW|RTSFLOW  rather than CRTSFL because the drivers were written
+for 3.2v2.  Hence I had to ask Morning Star Technologies who supply
+PPP for this site to give me two different option flags so that
+if the line is the standard /dev/tty1A I use CRTSFL to get the flow control
+I want, but if I'm in via the Specialix multiport then I use CTSFLOW|RTSFLOW.
+
+If you want full duplex flow control on /dev/tty1A, you have to either
+upgrade to 3.2v4 or else install FAS (which uses minor numbers rather
+than termio flags to indicate flow control).
+
+Unravelling this has taken a lot of effort, but at the end of the day
+we have a service running with flow control working correctly on a rackfull
+of modems on different ports.   case "`tty`" in foo) ;; bar) ;; esac
+rules OK :-(
+
+Ugh.  You are in a twisty maze of termio flags, all different.
+
+
+-- 
+Ronald Khoo <ronald@demon.co.uk> <ronald@ibmpcug.co.uk> <ronald@robobar.co.uk>
+BTNet: +44 71 229 7741                    | Brambles are the order of the day.
+

@@ -1,0 +1,90 @@
+#--------------------------------------------------------------------
+# sf_test.ep - test various string functions
+#
+#Sample execution:
+#% ecu -p sf_test
+#
+# ecu x3.00.05.00-386u by wht@n4hgf (pid 5890)
+# 
+# procedure is sf_test run on Mon 08-13-1990 at 15:39:17 (19:39 UTC)
+# username is "wht"
+# current directory is "/u1/src/ecu/models"
+# 
+# %instr('abcdefabcdefghi','def') = 3
+# %rinstr('abcdefabcdefghi','def') = 9
+# 
+# %basename('/u1/src/src/foo.c','.c') = "/u1/src/src/foo"
+# %basename('foo.c','.c') = "foo"
+# %basename('foo.c','.x') = "foo.c"
+# 
+# %dirpart('/u1/src/src/foo.c') = "/u1/src/src"
+# %dirpart('foo.c') = "foo.c"
+# %dirpart('/usr') = ""
+# 
+# %filepart('/u1/src/src/foo.c') = "foo.c"
+# %filepart('foo.c') = "foo.c"
+# 
+# %envvar('HZ') = "100"
+# %envvar('HOME') = "/u9/wht"
+# %envvar('FOOBARTZHUMMER') = ""
+# 
+# errno 1 = "Not owner"
+# 5678 seconds is "01:34:38"
+# mode 105755 is "-rwsr-xr-t"
+# [procedure finished]
+# 
+# 
+# [no line attached by initial procedure]
+# [press ESC to exit or SPACE for setup menu]
+# 
+#--------------------------------------------------------------------
+
+	echo ''
+	echo -n 'procedure is '+%argv(0)+' run on '+%day+' '+%date
+	echo ' at '+%times+' ('+%timez+' UTC)'
+	echo 'username is "'+%logname+'"'
+	echo 'current directory is "'+%dir+'"'
+
+	echo ''
+	echo -n '%instr(\'abcdefabcdefghi\',\'def\') = '
+	echo %itos(%instr('abcdefabcdefghi','def'))
+
+	echo -n '%rinstr(\'abcdefabcdefghi\',\'def\') = '
+	echo %itos(%rinstr('abcdefabcdefghi','def'))
+
+	echo ''
+	echo -n '%basename(\'/u1/src/src/foo.c\',\'.c\') = '
+	echo '"'+%basename('/u1/src/src/foo.c','.c')+'"'
+
+	echo -n '%basename(\'foo.c\',\'.c\') = '
+	echo '"'+%basename('foo.c','.c')+'"'
+
+	echo -n '%basename(\'foo.c\',\'.x\') = '
+	echo '"'+%basename('foo.c','.x')+'"'
+
+	echo ''
+	echo -n '%dirpart(\'/u1/src/src/foo.c\') = '
+	echo '"'+%dirpart('/u1/src/src/foo.c')+'"'
+
+	echo -n '%dirpart(\'foo.c\') = '
+	echo '"'+%dirpart('foo.c')+'"'
+
+	echo -n '%dirpart(\'/usr\') = '
+	echo '"'+%dirpart('/usr')+'"'
+
+	echo ''
+	echo -n '%filepart(\'/u1/src/src/foo.c\') = '
+	echo '"'+%filepart('/u1/src/src/foo.c')+'"'
+
+	echo -n '%filepart(\'foo.c\') = '
+	echo '"'+%filepart('/u1/src/src/foo.c')+'"'
+
+	echo ''
+	echo '%envvar(\'HZ\') = "'+%envvar('HZ')+'"'
+	echo '%envvar(\'HOME\') = "'+%envvar('HOME')+'"'
+	echo '%envvar(\'FOOBARTZHUMMER\') = "'+%envvar('FOOBARTZHUMMER')+'"'
+
+	echo ''
+	echo 'errno 1 = "'+%errstr(1)+'"'
+	echo '5678 seconds is "'+%etime(5678)+'"'
+	echo 'mode 105755 is "'+%fmodestr(0o105755)+'"'

@@ -1,0 +1,526 @@
+.*s 1 "Starting the Program"
+
+.*s 2 "Simple Startup - Initial Setup Menu"
+
+ECU may be started in a number of ways through use of
+command line switches, but the easiest is to enter
+.DS I
+ecu
+.DE
+by itself.
+In this case, the screen is cleared
+and the following screen, called the
+.B setup
+.B screen ,
+will be presented.
+.DS L
+  .--[ ecu 4.00T ]-----------------------------------------------.
+  |                                                              |
+  |  Destination   ________________________________________      |
+  |                                                              |
+  |                                                              |
+  |                                                              |
+  |  tty: /dev/ttys0                                             |
+  |                                                              |
+  |  duplex: F  baud: 9600   parity: N (data bits 8)             |
+  |                                                              |
+  |                                                              |
+  |  TAB:next END:proceed ^C: cmd mode ^D:phone dir ESC:quit ecu |
+  `- logical phone directory entry, phone number or empty -------'
+
+
+.DE
+Several choices may be made by navigating the setup screen.
+When you position to a field, helpful text is displayed
+on the bottom line of the form.
+
+The initial (default) values for some of the fields may be modified
+by command line switches or by the special procedure "_rc.ep".
+Also, entering a dialing directory entry name in the 'Destination'
+field and pressing Return will override the defaults with the values
+in the directory entry.
+See the sections related to dialing
+and the section in the Procedure Language manual titled "_rc.ep".
+
+.*s 3 "Destination"
+
+If a dialing directory has been configured,
+a literal phone number need not be entered.
+You may enter a "logical" name matching the name
+of a directory entry.
+
+However, on your first invocation,  you'll very likely have
+no directory.  You have several options:
+
+.DS I
+1.  Enter a literal telephone number, (e.g. 18005551212).
+    Hyphens and open and close parentheses may also
+    be entered.
+
+2.  Press END to enter open the indicated serial port,
+    beginning interactive mode to communicate
+    directly with the attached DCE (modem).
+
+3.  Enter a "period-containing" hostname for a telnet
+    call (if configured for telnet; see below).
+
+4.  Press ^D to enter the telephone directory to enter
+    your first directory entry.
+
+5.  Press ^C to enter command mode immediately (with no
+    line attached). This has certain uses, but probably
+    not for early use.
+
+6.  Press ESCape to exit ecu.
+.DE
+
+.*s 3 "Other Fields"
+
+If your call is an async serial, not telnet, call,
+other fields in the setup form apply.
+
+The 'tty' field may be used to select an outgoing line
+other than the default.
+For important considerations on line choice, see the sections
+titled "Choosing a Dialout Line" and "DCDwatch".
+
+The 'duplex' field may be used to select a
+duplex value other than the default 'F' (full).
+
+The 'baud' field may be used to select a
+bit rate value other than the default selected at Configure time.
+
+The 'parity' field may be used to select a
+parity value other than the default selected at Configure time.
+
+.*s 3 "Keyboard Functions"
+
+Special keyboard characters while filling in the
+startup screen are:
+
+.DS I
+ Enter        terminate entry in a field (or skip to
+              the next field if you do not modify it)
+
+ ^B           back up to previous field
+
+ Cursor Up    same as ^B (if the key is available on
+              your terminal and environment).
+
+ TAB          move to next field ... if nothing typed in
+              the field, do not disturb contents
+
+ Cursor Down  same as TAB (if the key is available on
+              your terminal and environment).
+
+ END          proceed with session, dialing remote if
+              logical directory entry name or literal
+              telephone number enetered
+
+ ^D           enter phone directory
+
+ ^C           enter command mode with no line attached
+
+ ESC          quit ecu without starting a session
+.DE
+
+.*s 2 "Command Line Switches and Arguments"
+
+ECU can be started in a number of ways:
+.DS I
+o  with no switches or arguments
+       select options interactively; manual command to begin
+       connection
+
+o  with switches (excluding -p) and no arguments
+       override some defaults for options but still enter
+       interactive option selection; manual command to begin
+       connection
+
+o  zero or more switches (excluding -p) and one argument
+       fully automatic startup to connect to the remote
+       specified by the argument (a telephone number
+       or dialing directory entry)
+
+o  zero or more switches, with -p the last switch
+       fully automatic startup by executing procedure whose
+       name is specified by the first argument; the initial
+       procedure receives the remainder of the command line
+       arguments
+.DE
+
+.*s 3 "Usage Summary"
+
+.DS I
+usage: ecu [-l <ttyname>] [-b <baud_rate>] [-eon]
+           [-h] [-t] [-P <phonedir>]
+           [-F name] [-T <trace-level>] [-z]
+           [-p <initial_proc> [-d] [-D] | <phone_number>
+           <logical> | <hostname> ]
+-D unconditionally stop execution when -p initial
+   procedure is done
+-F sets an alternate funckeymap name for the *keyboard*
+-P choose alternate phone directory (<phonedir> must be
+   a full pathname)
+-T set procedure tracing to level: 0=none, 1=standard,
+   2=ECU-debugging
+-b choose bit rate (any UNIX rate 110-38400)
+-d stop execution if -p initial procedure fails
+-e even parity   -o odd parity   -n no parity
+-h half duplex ... default is full duplex
+-l choose line (/dev/<ttyname>)
+-n 
+-p execute an initial procedure
+-t append NL to incoming and outgoing CR characters
+-z if telnet connection, show options traffic 
+<phone_number> is either an actual number or a dialing
+   directory entry name
+
+If configured for telnet use, if a period '.' appears in
+phone number, contact host by that name using telnet; a
+trailing period will be removed.
+.DE
+
+.*s 3 "Switches"
+
+Many switches are used to override defaults specified
+at the time the Confifgure procedure was used.
+Note these defaults may also be overriden interactively if the command
+does not specify automatic startup option (-p or dialing argument).
+Also, the value chosen by a dialing directory entry or an
+initial procedure will override
+the Configured default and/or the value specified by this switch.
+
+.*s 4 "-b <baud>"
+
+This switch overrides the default bit rate.
+Any valid UNIX rate may be chosen.  
+ECU chooses the number of stop bits based on the bit rate.  Rates below
+300 baud get 2 stop bits.  Rates 300 baud and above get one stop bit.
+
+.*s 4 "-d"
+
+The
+.B
+-d switch
+.R
+instructs ECU to "die" (terminate with error status) if
+an initial procedure (-p) fails.  This switch ensures a batch
+ECU execution will hang up any connection and terminate if
+a procedure error occurs. See also -D below.
+
+Absence of the
+.B -d
+and
+.B -D
+switches
+causes ecu (upon any completion of the
+initial procedure) to enter the 1) interactive mode if a line
+was successfully attached by the procedure or 2) the setup screen
+if no line was attached. 
+
+.*s 4 "-e, -o, -n"
+
+Normally, ECU starts up with data bits and parity chosen at
+Configure time.  The 
+.B -e ,
+.B -o 
+and
+.B -n 
+.B switches
+allow you to override the default.
+
+Since combinations like eight data bit and even parity or
+seven data bits and no parity are not in  ECU's
+capability to use, the parity selection also dictates the
+choice of data bits. Even or odd parity implies seven data bits.
+No parity implies eight data bits.
+
+.*s 4 "-h"
+
+Normally, ECU starts up in the full duplex mode.
+If half duplex is desired, the
+.B
+-h switch
+.R
+is used.
+
+.*s 4 "-l ttyspec"
+
+When ECU starts up, it normally chooses a line as described later
+in the section titled "Choosing a Dialout Line".
+Specifying the
+.B -l
+.B switch
+overrides the default tty specified
+at Configure time.  Depending upon other command line options,
+this switch may be nothing more than a hint.
+
+For important considerations on line choice, see the sections
+titled "Choosing a Dialout Line" and "DCDwatch".
+
+Two styles of argument to -l allow line selection by two methods.
+
+Of course, no -l is meaningful for a telnet destination.
+
+.*s 5 "by specific device"
+
+The ususal argument to the switch is the base name
+of the tty (e.g., "tty1a" or "acu0").  
+
+Note to old users of ECU:
+In previous SCO versions of ECU, since ttys were generally all
+named with the prefix "tty", ECU allowed you to
+omit the "tty" (e.g., "1a" or "4g"). This is no longer the case.
+
+.*s 5 "by Devices type"
+
+Alternatively, if your platform supports
+HDB UUCP, you may choose a line by UUCP Devices type by
+specifying the type with a leading equals sign.
+You must also explicitly set the bit rate with -b (unless
+the default bit rate is acceptable).
+.DS L
+    ecu -l=VoiceDial -b2400
+.DE
+searches the UUCP Devices file for an entry whose type is
+``VoiceDial'' that accepts 2400 baud.
+
+.*s 4 "-p <proc>"
+
+The 
+.B
+-p switch
+.R
+causes ECU to execute the procedure <proc> ("<proc>.ep")
+immediately upon startup.  Such a procedure is termed the
+.B
+initial procedure.
+.R
+It is recommended that, when used, -p be the last switch on the
+command line.  All non-switch arguments after <proc> are passed
+as arguments to the initial procedure (see the descriptions of
+the integer function
+.B %argc
+and the string function
+.B %argv 
+in the Procedure Manual).
+
+For example,
+.DS L
+    ecu -p batchjob remsys 22
+automatically executes the procedure command equivalent
+    do 'batchjob' 'remsys' '22'
+.DE
+
+The initial procedure may read command line options
+with functions like
+.B %line ,
+.B %baud
+and
+.B %parity .
+It is also free to override any of these values it wishes.
+See the procedure manual for more information.
+
+.*s 4 "-t"
+
+The
+.B
+-t switch
+.R
+instructs ECU to map incoming and outgoing carriage
+returns to carriage return/line feed pairs.
+This is helpful if the remote connection will be to a
+display terminal rather than a computer.  Use of the
+.B
+-h switch
+.R
+may also be necessary.
+
+The interactive commands
+.B nlin
+and
+.B nlout
+also control this feature.
+
+.*s 4 "-C"
+
+The
+.B
+-C switch
+.R
+causes the compile-time configuration of ECU
+to be displayed.
+
+.*s 4 "-D"
+
+The
+.B
+-D switch
+.R
+instructs ECU to unconditionally terminate when an
+initial procedure finishes.  Contrast with the
+.B -d
+.B switch .
+
+.*s 4 "-F name"
+
+Normally, the TERM environment variable is used to determine the
+funckeymap entry (keyboard configuration) to be used.  Sometimes,
+the TERM variable is not adequate for identifying your keyboard
+arrangement.  The 
+.B
+-F switch
+.R
+switch, like the $ECUFUNCKEY environment variable, allows you to
+use override the funckeymap entry used.  For more information,
+see the section titled "Function Key Mapping (Recognition)".
+
+.*s 4 "-P phonedir"
+
+The
+.B
+-P switch
+.R
+causes ECU to begin execution using an alternate 
+phone directory.  The default is ~/.ecu/phone.  You should
+specify a full pathname if you anticipate using the change directory
+command once ecu starts.
+
+.*s 4 "-T level"
+
+The
+.B
+-T switch
+.R
+sets the procedure language trace level.  <level> is a decimal
+digit.  0 is for no tracing (the default) and 1 is for tracing.
+Values higher than 1 are for debugging ECU and have varying effects
+from revision to revision.
+
+.*s 4 "-z"
+
+If configured for telnet use, show in-band telnet option traffic on screen.
+This is useful for debugging ECU telnet connections with a
+host. This feature is controlled by the 
+.B telopt
+interactive command once ECU is running (although
+there is very little telnet traffic after a connection
+has "matured").
+
+.*s 3 "Non-Switch Arguments"
+
+Arguments are optional.
+<phone_number> or <logical> may appear when the -p switch is absent.
+One or more <arg> arguments may appear when the -p switch is used.
+These arguments are handled as described by "-p" above.
+
+.*s 4 "<phone_number>"
+
+This type of argument has a digit as its initial character and
+represents an actual telephone number to be passed to a modem
+dialer program or Dialers chat script.  The string may contain
+non-numeric characters if appropriate for a dialer program,
+such as dialTBIT or dialgT2500 (see the gendial subdirectory).
+For example:
+.DS L
+    ecu -ltty2a -b 19200 -e 5551212C
+.DE
+uses tty2a (assumed to be connected to a Trailblazer modem because
+of the dialer-specific telephone number) and
+establishes a 19200 baud, even parity PEP Compressed connection
+after dialing 5551212.
+
+.*s 4 "<logical>"
+
+This type of argument has an alphabetic initial character and
+contains no period characters. such an argument
+causes the dialing directory entry by that name to be dialed.
+The line may be specified by '-l', but if the dialing directory
+specifies a line (tty field contains other than 'Any'), the
+dialing directory entry will override it.  The '-b', '-e' and '-o'
+switches are ignored; the values specified by the dialing directory
+entry are used.  The '-t' and '-h' switches are valid and honored
+if present.
+
+.*s 4 "<hostname>"
+
+The following holds true only if ECU supports telnet
+on your system.
+If a period ('.') is present in the first non-switch
+command line argument, the argument is treated as a hostname.
+An internet telnet connection is attempted to <hostname>.
+
+If you wish to specify a simple hostname (with no domain part)
+such as "localhost", append a period to the name (making, for
+instance "localhost.").  The period will be removed by ECU.
+
+If a colon followed by a number is appended to the hostname, that number
+will be used as the port to contact instead of the default telnet
+port 23.
+
+During a telnet session, many async-style parameters simply
+do not apply.
+
+.DS L
+Examples:
+    ecu watsun.cc.columbia.edu
+    ecu localhost          search directory for 'localhost'
+    ecu localhost.         call my host's telnet port
+    ecu localhost.:25      call my host's SMTP port
+.DE
+
+.*s 4 "<arg>"
+
+This type of argument is passed to an initial procedure when
+the -p switch is present.
+
+.DS L
+ecu -p unixlogin user pwd ansi43
+.DE
+executes unixlogin.ep with arguments 'user' 'pwd' 'ansi43'
+
+For more detail, refer to the description of
+.B -p ,
+.B -d
+and
+.B -D .
+
+.*s 2 "Environment Variables"
+
+Prior to starting ECU, it is useful, but not necessary,
+to establish two environment variables, ECUPROMPT and ECUHELP.
+
+.*s 3 "ECUPROMPT"
+
+The ECUPROMPT environment variable determines the prompt printed
+by ECU when the interactive command key ("HOME") is pressed.
+When you first run ECU, try setting it to your name, e. g.,
+.DS I
+setenv ECUPROMPT Ralph    if you use csh
+
+ECUPROMPT=Ralph           if you use sh, ksh, etc.
+export ECUPROMPT
+.DE
+Then, when you see how it used, you may wish to
+establish a more permanent choice in your .login or .profile.
+
+.*s 3 "ECUHELP"
+
+Ordinarily, ECU looks for interactive command help information
+in "ecuhelp.data"
+(in the ecu library directory, normally /usr/local/lib/ecu).
+The ECUHELP environment may be set to the complete
+pathname of the ecu help file if an alternate file
+is to be used.
+
+The help file is explained later in the section
+titled "Online Command Dictionary".
+
+.*s 3 "ECUFUNCKEY"
+
+See the description of the 
+.B -F
+command line switch and the section titled
+"Function Key Mapping (Recognition)".
+

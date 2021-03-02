@@ -1,0 +1,63 @@
+#  CHK=0x120D
+#+---------------------------------------------------------
+# su.ep - switch user at remote
+# wht%n4hgf@gatech.edu
+#
+# do su 'username' 'password' ['.']
+#
+# expects new user to be running csh
+#----------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:06-28-1989-19:36-wht-use named variables
+#:06-27-1989-12:43-wht-"get prompt" message was wrong
+#:06-25-1989-13:56-wht-new do command syntax
+#:06-25-1989-12:33-wht-new if/while syntax
+#:06-16-1989-18:12-wht-creation
+
+	mkvar icsave; $icsave = %colors
+
+	color gray
+	send 'su '+%argv(1)
+	lookfor -e 'word:' 70
+	ifi $i0 == 0
+	{
+		color red;echo 'su: failed to get password prompt'
+		icolor $icsave; return 1
+	}
+	send %argv(2); lookfor '\n' 50	# send password
+	echo ''
+	lgets $s0 70 5 '\n'
+	ifi %instr($s0,'Sorry') >= 0
+	{
+		color red;echo 'su: remote said "Sorry"'
+		icolor $icsave; return 1
+	}
+	nap 5						# wait .5 sec
+	send 'set prompt="% "'		# set '% ' as prompt
+	lookfor '\n' 20				# swallow echo of set command
+	lookfor '% ' 60				# look for new prompt
+	ifi $i0 == 0
+	{
+		color lt_red
+		echo 'timeout on prompt ... system may be slow ... waiting 5 more secs'
+		color gray
+		lookfor '% ' 50				# look for new prompt
+	}
+	ifi $i0 == 0
+	{
+		color red;echo 'su: failed to "get prompt" echo'
+		icolor $icsave; return 2
+	}
+	ifs %argv(3) == '.'
+		send 'source ~wht/.cshrc'
+	else
+		send ''; lookfor '\n' 50	# kick off another prompt
+	icolor $icsave

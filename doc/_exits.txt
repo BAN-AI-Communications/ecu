@@ -1,0 +1,45 @@
+.*s 1 "Exit Codes"
+
+When ECU exits (terminates execution),
+it uses a code from the following table:
+.DS L
+OK                   0    no error
+SIG1                 1    SIGHUP (signal 1)
+SIGN                 64   signal 64 - see below
+LINE_READ_ERROR      129  could not read from attached line
+XMTR_WRITE_ERROR     130  could not write to attached line
+XMTR_LOGIC_ERROR     131  software logic error
+BSD4_IOCTL           132  not currently used
+SHM_ABL              133  not currently used
+SHM_RTL              134  not currently used
+NO_FORK_FOR_RCVR     135  could not fork receiver process
+TTYIN_READ_ERROR     136  could not read from console
+LINE_OPEN_ERROR      137  could not attach (open) requested line
+PWENT_ERROR          138  error in /etc/passwd processing
+USAGE                139  command line syntax error
+CONFIG_ERROR         140  missing or erroroenous configuration file
+CURSES_ERROR         141  error in curses use
+RCVR_FATAL_ERROR     142  receiver died unexpectedly
+MALLOC               143  critical memory allocation failure
+LOGIC_ERROR          144  internal logic error
+GEOMETRY             145  unsupported screen geometry
+INIT_PROC_ERROR      192  initial procedure terminated in error
+USER1                193  exit procedure command called with 1
+USERN                223  exit procedure command called with 31
+.DE
+
+The logical names 'SIG1' and 'SIGN' refer to a range of error codes
+signifying ecu termination due to a signal.  A larger range (64) is
+reserved than is necessary to handle reasonable expansion of
+SIG values in the OS. Not all signals will be reported
+in this manner. ECU will never report status 9 (signal 9, SIGKILL),
+for instance.
+
+The logical names 'USER1' and 'USERN' refer to a range of error
+exits codes reserved for use by the 'exit' procedure command.
+See the description of this command for more information.
+
+For ecu friend code,
+formal C #define identifiers for exit codes may be found in
+termecu.h and consist of the above logical names prefixed with 'TERMECU_'.
+

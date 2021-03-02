@@ -1,0 +1,408 @@
+	echo 'iarc/uta220 0.80'
+#+----------------------------------------------
+#  Motorola UTA220 dialer/connect procedure
+#
+# $s0=remote ISDN telno
+# $s1=username for remote
+# $s2=password for remote
+# $i0=1 for TA reset, 0 for no reset
+#-----------------------------------------------
+#+:EDITS:
+#:02-04-1997-14:54-wht@gyro-do not reopen device
+#:01-25-1997-14:50-wht@gyro-responsible retries - requires ecu 4.01
+#:01-21-1997-14:50-wht@gyro-restart upon failure
+#:01-07-1997-18:52-wht@gyro-more intimacy with uta guts
+#:11-09-1996-14:52-wht@yuriatin-typos
+#:11-01-1996-15:00-wht@gyro-use ping for continuity test
+#:10-07-1996-20:42-wht@gyro-creation
+
+	mkvar $s_buf(2048)
+	$s_logfile='/u1/wht/IARC.LOG'
+	fopen -a 2 $s_logfile
+
+	$s_telno='404xxxxxxx'
+	$s_username='wht'
+	$s_password='xYZZy'
+	$i_ta_reset=0 # reset terminal adapter? 0==NO,1==YES
+
+	$s_remoteip=''
+	$s_localip=''
+
+	goto SKIP
+
+	ifz %argc
+	{
+		$s_telno=$s0
+		$s_username=$s1
+		$s_password=$s2
+		$i_ta_reset=$i0
+	}
+	else
+	{
+		$s_telno=%argv(1)
+		$s_username=%argv(2)
+		$s_password=%argv(3)
+		$i_ta_reset=%stoi(%argv(4))
+	}
+SKIP
+
+	hangup;dial 'a'
+	ifnz $i0 echo 'Could not open TA device';exit 1
+	$i_fd = %conn
+	$i_bad_attempts=0
+	whilenz 1
+	{
+		$i_msec1=%mhack   # beginning time
+		$s0='>> Calling CONNECT';gosub LOG
+		gosub CONNECT
+		$i_duration = %mhack-$i_msec1 # in msec
+		$s0='<< '+$s0+' (duration='+%itos($i_duration)+' msec)';gosub LOG
+
+		ifi $i_duration < 10*60*1000 # if we were away < 10 minutes
+		{
+			$i_bad_attempts++
+			ifi $i_bad_attempts > 10
+			{
+				$s0='Too many short connects ... I give up!';gosub LOG
+				exit 1
+			}
+			continue
+		}
+		$i_bad_attempts = 0
+	}
+	
+
+CONNECT
+	hangup
+	# wake up TA
+	echo -n %dates+' '+%timesm+': '
+	echo 'Waking up terminal adapter'
+	$i0=0
+	$i_tries=4
+	whilez $i0
+	{
+		ifz $i_tries break     # if no more retries, bail out
+		$i_tries=$i_tries-1
+		$s0='aaaatq0v1e1'
+		echo -n %dates+' '+%timesm+': '
+		echo '    sending "'+$s0+'"'
+		send -p100 $s0
+		lookfor -e 'OK' 40 2   # sets $i0 to 1 upon find
+		nap -m 100             # sleep 100 msec
+		flush
+		ifnz $i0
+			echo ''
+	}
+	ifz $i0 $s0='could not wake up TA';$i0=120*1000;return
+
+	$i0=0
+	$i_tries=4
+	whilez $i0
+	{
+		ifz $i_tries break     # if no more retries, bail out
+		$i_tries=$i_tries-1
+		$s0='atq0v1e1'         # the usual
+		$s0=$s0+'%a2=2'        # V.120
+		$s0=$s0+'%a4=0'        # 64 kbps
+		$s0=$s0+'\q3'          # RTS/CTS flow control
+		$s0=$s0+'x4'           # maximum result codes
+		$s0=$s0+'w1'           # show carrier/protocol result codes
+		$s0=$s0+'&d2'          # follow DTR
+		$s0=$s0+'&c1'          # real DCD
+		$s0=$s0+'&k3'          # bidirectional RTS/CTS
+		echo -n %dates+' '+%timesm+': '
+		echo '    sending "'+$s0+'"'
+		send -p20 $s0
+		lookfor -e 'OK' 20 2   # sets $i0 to 1 upon find
+		ifz $i0
+			nap -m 100         # sleep 100 msec
+	}
+	$i10=$i0
+	lookfor -e quiet 2
+	ifz $i10 $s0='could not initialize TA';$i0=120*1000;return
+
+	# if reset wanted, do it
+	ifnz $i_ta_reset
+	{
+		echo -n %dates+' '+%timesm+': '
+		echo 'Reseting terminal adapter'
+		$i0=0
+		$i_tries=4
+		whilez $i0
+		{
+			ifz $i_tries break
+			$i_tries=$i_tries-1
+			send -p150 'atz9'
+			lookfor -e 'OK' 75 2
+		}
+		ifz $i0 $s0='could not reset TA';$i0=120*1000;return
+		lookfor -e quiet 30 # wait 3 seconds for reset to occur
+	}
+
+	# try connecting three times
+	$i_call_attempts=3
+	whilenz $i_call_attempts
+	{
+		$i_call_attempts=$i_call_attempts-1
+		gosub CALL
+		ifnz $i_connect break
+	}
+	ifz $i_connect
+		$s0= '******* COULD NOT CONNECT *************';$i0=2*1000;return
+
+	# login
+	lookfor -e 'gin:' 50 5
+	ifz $i0
+		$s0= '******* NO LOGIN PROMPT ***************';$i0=2*1000;return
+	send $s_username
+
+	# login
+	lookfor -e 'word:' 50 5
+	ifz $i0
+		$s0= '******* NO PASSWORD PROMPT ************';$i0=2*1000;return
+	send $s_password
+
+	# ISP dependent
+	# PPP session from (206.240.110.6) to 207.120.207.161 beginning
+	#                   local             remote
+	$i_lines=15
+	$s_localip=''
+
+	$i_starting_mhack = %mhack
+	whilenz 1
+	{
+		ifz $i_lines break     # if no more lines, bail out
+		$i_lines=$i_lines-1
+		ifi %mhack-$i_starting_mhack > 10*1000
+		{
+			echo -n %dates+' '+%timesm+': '
+			echo 'timeout after login/password sequence success'
+			break
+		}
+		lgets $s_buf 100 5 '\n' # get a line
+		ifz $i0 continue       # if nothing read
+		echo $s_buf
+		ifi %instr($s_buf,'PPP session') > -1
+		{
+			$i0=%instr($s_buf,'(')
+			ifi $i0 < 0 break
+			$s_remoteip=%mid($s_buf,$i0+1)
+			$i0=%instr($s_remoteip,')')
+			ifi $i0 < 0 break
+			$s_remoteip=%left($s_remoteip,$i0)
+			echo 'IARC said remote IP address is '+$s_remoteip
+			$i0=%instr($s_buf,'to')
+			ifi $i0 < 0 break
+			$s_localip=%mid($s_buf,$i0+3)
+			$i0=%instr($s_localip,' begin')
+			ifi $i0 < 0 break
+			$s_localip=%left($s_localip,$i0)
+			echo 'IARC said local  IP address is '+$s_localip
+			break
+		}
+	}
+	ifz %len($s_localip)
+	{
+		$s0= 'could not get local IP address';hangup;$i0=1
+		return
+	}
+
+	# echo -n %dates+' '+%timesm+': '
+	# echo 'Flushing route table'
+	# system 'route -f >&/dev/null'
+
+	$s0='/usr/local/etc/pppd fd'+%itos($i_fd)+' defaultroute '
+	# $s0=$s0+'debug '
+	$s0=$s0+'lcp-echo-interval 10 lcp-echo-failure 3 '
+	$s0=$s0+'mru 1500 mtu 1500 '
+	# $s0=$s0+'-vj '
+	$s0=$s0+'crtscts '
+	echo -n %dates+' '+%timesm+': '
+	echo 'Starting ppp <'+$s0+'>'
+	fork $s0
+	echo -n %dates+' '+%timesm+': '
+	echo 'PPP started (pid='+%itos($i0)+')'
+	$i_ppp_pid = $i0
+
+	echo -n %dates+' '+%timesm+': '
+	echo 'Looking for route (local IP '+$s_localip+')'
+	$i_lookonce=0
+	gosub LOOK_FOR_UP; $i_lkup = $i0
+
+	# echo -n %dates+' '+%timesm+': '
+	# echo 'Reinserting 148.62.x.x routing entries'
+	# system 'route add net 148.62.1.0 148.62.21.250 5 >& /dev/null'
+	# system 'route add net 148.62.2.0 148.62.21.250 5 >& /dev/null'
+	# system 'route add net 148.62.5.0 148.62.21.250 5 >& /dev/null'
+	# system 'route add net 148.62.20.0 148.62.21.250 5 >& /dev/null'
+	# system 'route add net 148.62.21.0 148.62.21.250 5 >& /dev/null'
+	# system 'route add net 148.62.22.0 148.62.21.250 5 >& /dev/null'
+	# system 'route add net 148.62.23.0 148.62.21.250 5 >& /dev/null'
+
+	nap -m 100
+	echo ''
+
+	ifnz $i_lkup
+	{
+		ifi $i_ppp_pid > 0 kill $i_ppp_pid 9
+		$s0= 'Never saw UP';$i0=2*1000;return
+	}
+
+	$s0='PPP '+$s_localip+'<-->'+$s_remoteip+' IS UP ON '+$s_interface
+	gosub LOG
+
+	$i_pause_sec = 60
+	$i_pause_msec = $i_pause_sec*1000
+	whilenz 1
+	{
+##		$s_fn='/tmp/uta220.'+%itos(%pid,05)+'.tmp'
+##		fdel $s_fn
+##		$s0='ping 206.240.110.6'
+##		# echo -n %dates+' '+%timesm+': ' # <>
+##		# echo $s0
+##		$s0=$s0+' > '+$s_fn
+##		system $s0
+##
+##		fopen 1 $s_fn
+##		ifnz $i0
+##			echo $s_fn+': '+%errstr($i0);break
+##		fgets 1 $s0
+##		fclose 1
+##		fdel $s_fn
+##		ifi %instr($s0,'alive') < 0
+##			break
+
+		kill $i_ppp_pid 0 # set $i0 to -1 if process gone, else 0
+		ifnz $i0 break
+
+		# echo -n %dates+' '+%timesm+': ' # <>
+		# echo $s0
+
+		nap -m $i_pause_msec
+	}	
+
+	ifi $i_ppp_pid > 0 kill $i_ppp_pid 9
+	$s0='PPP '+$s_localip+'<-->'+$s_remoteip+' DOWN ON '+$s_interface
+	$i0=5*1000;return
+
+#----------------------------------------------------------------------
+# call telephone number subroutine
+# 11-09 14:52:45.063: CALLING 4042200911
+# 11-09 14:52:47.370: ate0d4042200911
+# 11-09 14:52:47.832: CHANNEL B1
+# 11-09 14:52:47.861: CARRIER 64000
+# 11-09 14:52:49.847: PROTOCOL: V.120
+# 11-09 14:52:49.873: SESSION ID: 1
+# 11-09 14:52:59.901: timeout waiting for CONNECT
+# 11-09 14:52:59.915: could not connect
+#----------------------------------------------------------------------
+CALL
+	echo ''
+	echo -n %dates+' '+%timesm+': '
+	echo 'CALLING '+$s_telno
+	send -p75 'ate0d'+$s_telno
+
+	# scan for CONNECT
+	$i_lines=15
+	$i_connect=0                # not connected
+	$i_call_mhack=%mhack
+	whilenz 1
+	{
+		ifz $i_lines break     # if no more relines, bail out
+		$i_lines=$i_lines-1
+		ifi %mhack-$i_call_mhack > 10*1000
+		{
+			echo -n %dates+' '+%timesm+': '
+			echo 'timeout waiting for CONNECT'
+			break
+		}
+		lgets $s_buf 100 10 '\n' # get a line
+		ifz $i0 continue       # if nothing read
+		echo -n %dates+' '+%timesm+': '
+		echo $s_buf
+		ifz %instr($s_buf,'CONNECT') $i_connect=1;break
+		ifz %instr($s_buf,'BUSY') break;
+		ifz %instr($s_buf,'ERROR') break;
+		ifz %instr($s_buf,'NO CARRIER') break;
+	}
+	ifz $i_connect
+	{
+		echo -n %dates+' '+%timesm+': '
+		echo 'could not connect'
+		return
+	}
+	vidrev
+	echo -n %dates+' '+%timesm+': '
+	echo 'BINGO!'
+	vidnorm
+	echo ''
+	return
+
+#----------------------------------------------------------------------
+# 
+# called with $s_localip = local ip address
+#             $i_lookonce = 1 for look once, else look 20 secs
+# returns $i0=0 if success ($s_remoteip,$s_interface returned)
+# 
+# lo0: flags=49<UP,LOOPBACK,RUNNING>
+#         inet 127.0.0.1 netmask ff000000
+# ppp0: flags=10<POINTOPOINT>
+#         inet 207.69.140.186 --> 168.121.1.1 netmask ffffff00
+#----------------------------------------------------------------------
+LOOK_FOR_UP
+	$i10=%mhack
+	whilenz 1
+	{
+		ifi %mhack-$i10 > 40000
+		{
+			echo 'No route established in '+%itos(%mhack-$i10)+' msec'
+			$i0=1;return
+		}
+		nap -m 2000
+		fclose 1
+		$s_fn='/tmp/uta220.'+%itos(%pid,05)+'.tmp'
+		fdel $s_fn
+		system 'ifconfig -a > '+$s_fn
+		fopen 1 $s_fn; $i_err=$i0
+		fdel $s_fn; $i0=$i_err
+		ifnz $i0 echo 'ifconfig failed for '+$s_fn+': '+%errstr($i0);return
+		$s0='',$s1=''
+		whilenz 1
+		{
+			fgets 1 $s5
+			ifnz $i0 fclose 1;break
+			ifz %instr($s5,'ppp')
+			{
+				ifi %instr($s5,'UP') > -1
+				{
+					$i5=%instr($s5,':')
+					ifi $i5 < 0
+						echo 'ifconfig confused (1)';fclose 1;$i0=1;return
+					$s_interface=%left($s5,$i5)
+					fgets 1 $s5
+					ifnz $i0 echo 'EOF on ifconfig (2)';fclose 1;return
+					ifi %instr($s5,$s_localip) > -1
+					{
+						$i5=%instr($s5,'-->')
+						ifi $i5 < 0
+							echo 'ifconfig confused (2)';fclose 1;$i0=1;return
+						$s_remoteip=%mid($s5,$i5+4)
+						$i5=%instr($s_remoteip,' ')
+						ifi $i5 < 0
+							echo 'ifconfig confused (3)';fclose 1;$i0=1;return
+						$s_remoteip=%left($s_remoteip,$i5)
+						fclose 1;$i0=0;return
+					}
+				}
+			}
+		}
+		ifnz $i_lookonce $i0=1;return
+	}
+
+LOG
+	$s20 = %dates+' '+%timesm+': '+$s0
+	fputs 2 $s20
+	fflush 2
+	echo $s20
+	return
+

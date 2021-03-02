@@ -1,0 +1,1000 @@
+Changes for 3.30 since 3.24:
+
+1.  An ANSI CUP (cursor position) with x or y values exceeding
+screen size should set the cursor to the bottom or right of the
+screen, not the top or left.  ECU did the latter; it is fixed.
+The DSR (device status report) handler was broken also.  It is
+fixed, and differentiation is now made between a type 5 and 6 DSR
+request.  As a result of all this, the X11 resize program will work
+with ECU.
+
+2. The command line -l handler now treats an argument
+with a leading equals sign as a Devices type rather than
+an explicit line.  That is,
+
+    ecu -l=VSAT
+
+will search for an ``idle'' line matching any entry
+in your HDB Devices file whose first field is "VSAT".
+The term ``idle'' is strictly correct only on SCO machines
+or where the utmp/ecuungetty code has been made to work.
+The baud rate is automatically set to the highest speed
+specified by the Devices entry, overriding any value set
+by the -b command line switch.
+
+Note that specifying a logical (directory entry name)
+rather than an actual (numeric) phone number will cause the
+directory entry choice of line to override the line specified on
+by -l.  This has always been true of -lttyxx treatment as well.
+
+Perhaps one day, I'll have time to make a directory entry
+specifying "Any" *not* override -l and initiate it's own search for a
+free line (based as it is on baud rate and type == "ACU" alone).
+There is no time now.
+
+3. The command line usage has been updated to show what
+command line variables are overriden by a logical phone number.
+Again, no time to put it in the manual.
+
+4. The integer operators << and >> were added.
+
+5. The procedure command eeod (erase to end of display) was added.
+
+6.  Previously, you could bind a function key to a character
+sequence to be transmited over the line.  You may now bind a
+function key to a procedure invocation.  If the first token in
+the third field of a key definition is "proc", the rest of the
+third field is taken to be a procedure invocation.
+
+Consider the following example entry in ~/.ecu/keys:
+
+test
+    F1:VT100 F1:esc O q
+    F2:doit:proc doit arg1 arg2 argn
+                 ^  64 chars max   ^
+                 `-----------------'
+
+The maximum length of the procedure name, arguments and
+whitespace must be less than 64 characters; any excess is
+silently discarded.
+
+Procedure doit might, for example, send a prompt to a remote to
+begin an XMODEM transaction, then start an XMODEM receive to
+get the file.  (This helps make up for the unsuitability of XMODEM's
+C or NAK header for automatic download startup.)
+
+7. The fkey definition file (~/.ecu/keys in the documentation)
+can be located in the library directory (usually /usr/local/lib/ecu).
+This has always been in the code.  Now it is documented.
+
+8. The code for saving a phone directory lacked good error detection.
+This has been fixed.
+
+9.  -D__STDC__=0 was added to gcc flags.
+
+10.  The default for SCO UNIX configuration is now 'v' not 'u',
+making 3.2v4/ODT 2.0 the default.
+
+11. A discussion of how to "finish" a remote C-kermit server was
+added to README.Q-and-A.
+
+12. Under SunOS, DTR was not properly controlled.  This has been fixed.
+
+13. Configuration for use with gcc now requires you have gcc 1.40
+or later.  If you say you have gcc 2.3.3 or later, you will get -O6
+compilations (full global optimaztion).  If you encounter problems
+with the software compile with -O6, reconfigure answering no to
+the 2.3.3 question and remake.  Please let me know of any problems.
+
+14. -Wuninitialized was added to gcc compilations.
+This is only used if you answered yes to the 2.3.3 question
+
+15. ECU works again on XENIX 286 thanks to vancleef@netcom.com
+(Henry van Cleef)
+
+    a. CFLAGS from "-M2let128" to "-M2e -i"
+    b. ZMODEM code unsigned Baudrate to unsigned long
+
+(Not a bad port given I haven't seen a 286 in 5 years!)
+
+16.  An experimental USR 2400 dialer (dceUSR24v.c/dialgUSR24v)
+has been added to gendial for attended voice line autodialer
+applications.  It is written for speed over reliability, so so
+the careful initialization found in other gendial dialers is
+absent.  This means dialgUSR24v works best with a modem that is
+dedicated to the voice autodial function.
+
+As delivered, dialgUSR24v will prefix a '1' to a number passed to it if
+the number is ten digits long and has [01] as its second digit.
+(I wanted to word click with xterm and my phone directory is an
+ancient flat file with no '1' prefix to be found.)
+You may need to adopt, hack and improve.
+
+DialgUSR24v, like all gendial dialers, are supplied "as-is" in
+hope the code may be useful. (Okay, and also to promote the
+excellent SCO solution to modem madness.)
+
+17. Previously, a Devices-specified  SCO dialer program had to
+have a full pathname specified for ECU to use it (otherwise,
+ECU would treat the token as the name of an entry in Dialers).
+Now, when ECU sees a simple name in a Devices entry, it checks
+for an executable in the UUCP library directory before searching
+Dialers.
+
+18. PgUp and PgDn have been added to the directory menu repertorie.
+
+PgUp   ^U    page up
+PgDn   ^D    page down
+
+19.  The new conxout interactive command was missing from
+interactive help.
+
+20.  I had a hack cpio entry in the main Makefile for my use
+in making gifts for ftp.uu.net:/tmp.  Folks have started
+using it, so I beefed it up.  Now it makes a proper cpio
+file even if your distribution directory is not named 'ecu'.
+
+For instance, make cpio in directory my-ecu-3 will produce
+a cpio file containing files named my-ecu-3/....
+
+21.  The Configure/config.c SCO LNG353-related logic is obsolete or 
+soon so.  It was removed.
+
+22.  Added to README.Q-and-A a sad discussion of the state of
+ecuungetty on non-SCO systems.
+
+23. I got a guest account on a Consensys SVR4 system and
+put the code through it's native compiler.  Y'all have been
+either too nice about reporting warnings or else this compiler
+is more righteous than others.  I fixed a few warnings, but
+couldn't get far in the short time I had.
+
+24.  The receiver process was not being killed when the ecu
+internal dialer was used.  Did the thing actually work for
+anyone?  I haven't used it for years (since HDB arrived on
+XENIX in days of olde).
+
+25.  Using cursor left or right in a ttygets bombed due
+to a bad call to tputs() in each handler.  Now Home xx<cleft>
+won't explode on you.
+
+26. While ECU does not support the VT-100 terminal type, it
+is close for most uses. ESC > (select numeric keyad)
+and ESC = (select application keyad) are now ignored.
+They used to hang ECU until the escape sequence collector
+timed out.
+
+27.  Previously, you had no way of knowing if an lgets procedure
+command execution with a specified delimiter actually detected
+the delimiter or not.  If you wait for a single carrige return
+with anything but a ridiculous timeout interval, how are you to
+know whether the read timed out or the return was received.
+
+Well, now in addition to setting $i0:
+
+    $i1 is zeroed upon execution of the lgets command
+    $i1 then receives 1 if you specified a delimiter and
+        it was read
+
+28. A bug prevented /usr/local/lib/ecu/colors from being read
+if a ~/.ecu/colors file was found missing.
+
+29.  I admit it.  I've been using Windows 3.1.  Starting with
+3.30, if you are shown a field on a curses screen for editing, it
+is displayed in "standout" mode (usually reverse video).
+
+If the first key you press is an editing key (e.g., backspace,
+cursor left), the standout display is replaced by a normal one
+and editing proceeds.
+
+If the first key you press is not an editing key (e.g., 'a'), the
+standout display is replaced by a normal one, the field is
+erased, and your first character becomes the first character in
+the field.
+
+If you do not wish this functionality, you may define -DOLD_WINGETS.
+
+Pressing ESCape while editing always the original field
+unchanged.
+
+29.  For special applications, -DTURNKEY.  With this switch in
+effect, executing ecu with no arguments opens the default
+line and places you in the dialing directory.
+
+30. Make depend no longer includes system header files
+(those included with <> instead of "").
+
+31.  The ioctl to F_GETFL in lopen() has been buggy since ECU
+0.1.  It depended upon random stack contents being right.  It had
+`worked' for seven years until I called lopen a bit differently
+in 3.30.  This kind of bug makes me a bit ill thinking about what
+else I've left floating out there.
+
+32.  Thanks to Carl Wuebker <clw@f.rose.hp.com>, we have an HP-UX
+port.  Robert E.  Laughlin <bel@nosc.mil> helped with the
+funckeymap entry for hpterm and with testing the port.
+
+33.  Thanks to Robert_Broughton@mindlink.bc.ca, a Linux port
+lives.  See README.Linux.
+
+34.  Daniel Harris <daniel@reubio.apana.org.au> in working on a
+BSD port found a long-present bug: in termecu, shm_done() was
+being called before restore_initial_colors() was being called;
+the catch is that the latter refers to the shm segment.
+
+35. More Linux patches from Bob Broughton seem to flesh out the
+Linux port.
+
+36.  The 8 retries at locking a port in the setup screen has
+been extended to 20.  Bob Lewis found that was better for slow
+turnaround on some getty/initcond situations.
+
+37. Bob Laughlin <bel@nosc.mil> sent an kbdtest3.out file for
+hpterm.  He says it is preliminary and that he'll look into why
+the cursor keys are not being read properly.
+
+38. hdb_choose_Any could not handle utmp status DIALOUT.
+Go figure.
+
+39. Tim Sailer found a long standing, rarely tripped bug.
+If the local console had no "mb"/"me" blink attribute
+in it's termcap (and only SCO systems do), then the ECU
+receiver would coredump if the remote system sent a blink
+escape sequence.  He found it because of modem garbage on
+a bad connect.  It is hard to believe no one has had a
+blink sequence thrown at their ECU session before now.
+
+40. A configuration item for the internal dialer timeout
+was added (INTDIAL_TO).
+
+41. USE_FIONREAD replaces NO_RDCHK. USE_SELECT replaces
+WORKING_SELECT.  USE_DECIMAL_PIDS replaces/inverts HONEYDANBER.
+USE_GETIMEOFDAY enables compilation of an ftime() substitute
+using gettimeofday().
+
+42. A Motorola Delta 88k port is compilable.  Who knows if it works?
+
+43. Daniel Harris ported the program to NetBSD.  More work to follow.
+
+44. No more references to obsolete protos.h and USE_PROTOS.
+
+45. BETA 3.28.00 released to a few.
+
+46. Fixed Linux /bin/bash wildcard expansion.
+
+47. Robert Lipe fixed several gcc warnings which make the way
+for 64-bit machines (overflow in integer constants, primarily).
+
+48. When the highest level procedure exits, ecu is supposed
+to close all files opened with `fopen'.  Now it does.
+
+49. WHT ported it to Motorola SVR41.
+
+50. Added models/ecu-ansi.tinfo and models/ecu-ansi.tcap.
+
+51. cfsetispeed()/cfsetospeed() is not used in lieu of
+cfsetspeed() in all termios use.  cfsetspeed() appears to be
+a rare beast while the i/o pair seems ubiquitous.
+
+52. gcc 2.5.8 disallows `const' if -traditional, so -Dconst=
+for all gcc compilations.  I'll never code one of the pinky-extended
+striped-pants things myself.
+
+53. Finish port to ODT3 DS.
+
+54. config.c scans /usr/include/sys/{types,select}.h for fd_set.
+Code uses it for select() in lieu of old BSD &int.
+
+55. config.c scans /usr/include/sys/{time,select}.h for struct timeval.
+Some systems define it in select.h for hysterical reasons.
+
+Changes for 3.30 patch 1:
+
+56.  Fixed bug in winget_single whereby End, etc.  could not be
+entered in a curses single character input field.  Robert
+Broughton <Robert_Broughton@mindlink.bc.ca> reported this three
+time during alpha and beta testing, but I never got it into the
+code.
+
+57.  A long standing bug with funckeymap support has been fixed.
+ASCII special characters with two character representations (such
+as `gs') would be rejected by ECU.  This was pointed
+out by David A.  Avery <daa@CERF.NET>
+
+Changes for 3.30 patch 3:
+
+58. The termio (vs. termios) version of disp_termio() was
+displayed incorrectly.
+
+59. Once SCO CRTSFL flow control was turned on with a value of 4
+or 7, it could not be turned off with an argument < 4.
+In addition, using an argument greater than 4 caused *input* flags
+to be trashed instead of control flags being manipulated.
+
+60. Steve Feuerstein <sgf@acsu.buffalo.edu> reported that the
+procedure command `fopen' returns an error on a successful open.
+Indeed, I found it would return normal success on a failed open.
+This has been fixed.
+
+61. A problem with use of select() under Linux was fixed.
+Thanks for that goes to Bob Broughton.
+
+Changes for 3.30 patch 3:
+
+62. yzrnur!rene (Rene Lampe) reported a DTR flash 
+fix for ESIX SVR4. Now, `hangup' works.
+
+63. Screen size defines SCREEN_LINES_MAX and SCREEN_COLS_MAX
+have been renamed  CFG_ScreenLinesMax and CFG_ScreenColsMax.
+Configure now asks for max screen lines and columns. Experimental
+but confidence is high.
+
+64. Andrey Chernov provided patches for eight-bit clean input and
+for porting to FreeBSD.
+
+65. I reworked a great deal of conditional code to get rid
+of some "porting rot" -- hope I didn't break anything.
+
+66. The file transfer raw tx and rx data counts and other stats 
+were not updated on XMODEM or unspecified length ZMODEM xfers
+(undefined file length). Fixed by ache@astral.msk.su.
+
+67. Again thanks to Andrey, upon file receive timeouts, the stats
+mentioned in 66 above are updated. Particularly, RTS/CTS and
+driver queue information is useful to see in these circumstances.
+(Not all ports of ECU report driver level statistics and EIA status;
+neither do many tty drivers have means of reporting this information.)
+
+Changes for 3.30 patch 4:
+
+68. On SunOS and possibly other termios users the send-break function
+hung the transmitter process. The break is signalled, but control is not
+returned. A fix for SunOS and Solaris was applied.
+
+69. Commands 'erto' and 'erverbose' have been added to the
+interactive and procedure command repertoire. Below is the interactive
+help information.  The procedure commands function in the same
+manner, but require arguments.
+
+
+    ERTo
+    Usage: erto [<msec>]
+
+    This command specifies the default timeout period (in milliseconds)
+    of the next "expect" in an ECU-executed expect-respond script.
+    Remember that ECU expect-respond scripts can change timeouts on their
+    own, so this number may not "stick." Entering the command with no
+    arguments displays the current value (which, again, may not be the
+    value ECU started with or the value you last selected).
+
+    ERVerbose
+    Usage: erverbose [<true-false>]
+
+    This command specifies the verbosity level of an ECU-executed
+    expect-respond script.  Entering the command with no argument
+    displays the current status of verbosity. To change the value, enter
+    and argument beginning with an lower-case 'y' or 'n'.
+
+    Examples:
+        erv
+        erv y
+
+There is some clash between the erverbose commands and the -v
+flag of the procedure expresp command. Complaints will get
+an immediate fix, but otherwise, the fix is in the stack.
+
+70. Fixed many typos in the manuals (thanks to Bob Lewis
+at SCO for the time he spent editing!).
+
+71. Cleaned up support for variable max lines and columns.
+
+72. GREATLY simplified timed line reads (lgets_timeout and lgetc_timeout)
+may be used by defining SIMPLIFY in eculine.c. This reduces
+timed reads to ASR-33 speeds (10 char/sec), but if you have trouble
+during a port, here is a way out of swimming in molasses.
+
+73. Made many Chernov FreeBSD patches standard for all versions
+(eight-bit cleanness).
+
+74.  On systems supporting ecuungetty, a choice is now provided
+by Configure as to how to handle lines which do not appear in
+your UUCP Devices file.  Lines in Devices (generally) are
+involved in shared dial-in/dial-out or UUCP services; lines which
+are are not in Devices are not involved in such use.  
+
+If you answer yes to the new Configure question 'Do you want
+ecuungetty to manage only lines in Devices?' then ECU will manage
+the ownership and permissions only of lines in Devices.  This
+means ECU will not `monkey' with the ownership or permissions of
+serial lines NOT in Devices (which of course implies permissions
+must be already be set correctly for you to be able to access the
+chosen line).
+
+75.  The undocumented interactive command hack 'sgr' had a minor
+bug preventing the "Stimulus:" display on the console.
+Ecu.scr.log was always updated properly.  I needed to beef it up
+anyway and added `sgrto1' and `sgrto2' while I was at it.
+
+Changes for 3.37
+
+76. Added `con80x25' and friends to funckeymap for later Linux.
+
+77. Non-vt console attribute mapping under Linux improved.
+
+78. Later gcc does not permit "volatile" keyword with -traditional.
+I quit using "volatile".
+
+79. My apologies to Andrey Chernov for mispelling his name Andrew
+for five years. Rather than generate the 12kb patches to fix the
+numerous occurrences, I'll try to remember and make the fix in
+the next full release.
+
+80.  BSD 4.4 defines st_size as "long long" instead of long, so printf %ld
+fails. Andrey supplied a patch.
+
+81. lstat() is no longer provided in lstat.c.  It was only there
+for folks with 3.2v2 DS that were too cheap to buy the 3.2v4 DS when 
+they moved to 3.2v4 OS.  It causes problems with all post-3.2v4
+and post-ODT 2 SCO systems.
+
+82. If ecu is chown uucp/chmod u+s, then uucp owned lines can be
+directly opened on any ecu platform (without ecuungetty on systems
+which normally require it).
+
+83. The maximum screen geometry is now shown by the stat
+interactive command.
+
+84. An early ALPHA version bug with configuring lines and columns
+has been fixed.
+
+85. For SCO, -nointl has been removed.
+
+86. Support for SCO 3.2v5/Open Server 5 has been added.
+
+87. A hack for SCO UNIX cross-compile of XENIX binaries was removed.
+
+88. Support for automatically installing ECU setuid UUCP was added.
+Such is automatically done for OS5.
+
+89. There are KNOWN PROBLEMS WITH USING ECU WITH SCOTERM
+which there was no time to diagnose:
+
+> From: emory!raider.raider.net!root (Mark J. Bailey [HOME])
+> X-Mailer: SCO System V Mail (version 3.2)
+> To: n4hgf!wht@uunet.uu.net
+> Subject: ecu and scoterm
+> Date: Wed, 21 Jun 95 10:36:48 CDT
+> Status: O
+> 
+> hi warren
+> 
+> still have ecu freeze up TIGHT any scoterm I try to run it in the second it
+> (ecu) closes down.  can't even click the scoterm away.  i iconized it and it
+> did die off after 30 minutes or so.  weird.  ideas?  i am sco open server 
+> enterprise 3.0 - compiled ecu 3.342 with cc
+> 
+> mark
+
+Changes FOR 3.37
+
+89a. I cannot find this problem with OS5.  I had no way to
+test under earlier versions because I have not had a monitor
+or keyboard on my ODT3 box for over a year :).
+
+90. Configure now take a cue from the user's local/bin directory
+for it's default for local/lib/ecu directory.
+
+91. The rtscts command value may now be set before a local line is attached.
+
+92. The dialing directory supports setting the rtscts value.
+
+ | description       don't call this_________________________ |
+ | debug level       0  (dialer -x value 0-9)                 |
+ | DCD watch         n                                        |
+ | RTS/CTS flow ctl  n  (0=off,7=best,n=no change)            |
+ |                                                            |
+
+93. Wonder of wonders, ecu.man has been updated for changes 91-92.
+
+94. make cpiogz does the same job as make cpio, but creates
+a gzip file instead of a compressed file.
+
+95. SCO 32v5 converts ALL characters of a tty name to lower case
+for a lock file name.  This is now supported by ECU for 32v4 and beyond.
+
+96. Examination shows the Linux version does not support
+DCD watcher set to '1' (catch connection terminations, but
+continue ECU with communications I/O intact).
+
+97. ANSI SU (scroll up) did not work except for native
+SCO multiscreens.  
+
+98. An updated ECU/ANSI terminfo file ecu-ansi.tinfo is
+supplied in the models/ subdirectory.
+
+99. Drop pretense of XENIX 286 support.
+
+100. Drop SEAlink support.
+
+101. Added 57600 and 115200 baud support for Linux.
+
+102.  Finally an unlazy moment after 6 years of wishing.  All(?)
+references to "baud rate" have been replaced with "baud" or "bit
+rate." "Baud rate" is a redundant and meaningless term.  The
+usage has become acceptable like saying "It's me" over a
+telephone.  I want to turn the tide (heh heh, likely story).
+
+103. select() now used for all timing functions. nap() decommitted.
+
+104. Serial-line oriented commands moved from eculine.c to ldserial.c.
+
+105. Now funckeymap entry names (like vt100, sco, etc.) may have comments
+after them.
+
+106. Minimum geometry is 80x24 now. No one has complained that
+there are still terminals out there with only 24 lines??
+
+107.  FOR MADMEN ONLY:
+Added a very preliminary but stable telnet option.  From command
+line only, an internet connection may be established by
+specifying a logical "telephone number" with a period in it.  For
+instance,
+
+    ecu blah.org
+    ecu 127.0.0.1
+    ecu kepler.
+
+The last example shows how to call a host with a simple name like
+"kepler": suffix the simple name with a period.
+
+To enable this experimental feature to systems
+other than Linux or SunOS, you must add (or add to)
+a file in the ecu distribution directory named 'config.local':
+
+The file must contain the line:
+LOCAL_CFLAGS = -DCFG_TelnetOption
+
+On SCO or similar, you must add the line
+LOCAL_LIBS = -lsocket
+
+The -z switch enables display of telnet option negotiation.  The
+interactive and procedure 'telopt' commands also control the
+display, but the show is mostly over by the time you get a login
+prompt, so consider using-z or putting 'telopt yes' in an _rc.ep
+file.
+
+108. %telnet is a procedure integer function which returns zero
+if the current connection is a serial connection, 1 if an
+internet connection.
+
+109. mk.cpio now uses /bin/pwd rather than a simple pwd. Linux
+does not behave as we would like.
+
+110. The rcvr ANSI filter has grown up.
+
+     a. NO_ANSI_EMULATION hack for BSD now fully implemented
+        as CFG_NoAnsiEmulation.  Turn this on in config.local
+        if you want to break a nice toy.  No screen image
+        support.
+
+     b. If included, it defaults to on.
+
+     c. controllable by interactive and procedure `ansif' commands;
+        `ansif' may be used in _rc.ep
+
+     d. startup switch -n disables the ANSI filter.
+
+111. All serial line-oriented configuration commands may now
+be used in _rc.ep.  Previously, setting rtscts or the like
+would fail because no line was attached.
+
+112. F12 is now the Shift-BkTab (redraw screen from ANSI filter's POV)
+key for Linux's main console. The console keyboard driver sends
+0x09 for both Tab and Shift-Tab.
+
+113. make targz and mk.targz added to make standard Linux tar.gz files.
+
+114. README.Linux updated and ecu-3.37.tar.lsm created for tsx-11 release.
+
+Changes FOR 3.37.90
+
+115. ZMODEM file transmit working! Rx is next!
+
+116. ZMODEM file receive works. What was needed was an sz that
+would properly escape IAC characters.  See README.telnet.
+
+********************************************************************
+* tsx-11.mit.edu:/pub/linux/sources/Communications/ecu-3.37.tar.gz *
+* was released at this point                                       *
+********************************************************************
+
+Changes for ECU 3.38.02
+
+117. Setuid() macro expands to seteuid on systems which have it,
+setuid on others. This enables setuid uucp to work on SunOS and the like.
+
+118. Shell wild card characters may now be used in specifying
+the interactive log command file name character.
+
+119. The procedure function %uname now returns the node name
+(utsname.nodename) rather than the system name (utsname.sysname).
+A function %sysname was added to return utsname.sysname.
+
+Changes for ECU 3.38.03
+
+120.  Fix hanging built-in dialer if tty not stdin, as when using
+ecu from cron job.  Thanks to Jim Melton <jmelton@i-link.net> for
+reporting the bug.
+
+Changes for ECU 3.38.04
+
+121. Bob Lewis <robertle@sco.com> suggested tty1A is a better default
+than tty1a for SCO. config.c was changed to comply.
+
+Changes for 3.40
+
+122. Andrey Chernov supplied more configurations fixes for FreeBSD.
+
+Changes for 3.41
+
+123. Keep uninitialized ecutcap code from trying to send
+console control sequences before being initialized.
+If your session hung after saying,
+Terminal type 'xxx' does not have the beef.
+Try again with a screen-oriented terminal.
+
+124. Make sure insert/delete line/character is present.
+Warn if not.
+
+125. Add al,ac,dl,dc to models/ecu-ansi.{tinfo,termcap}
+
+Changes for 3.42
+
+126. Fixed erroneous reference to `ac' instead of `ic' for TERMCAP
+insert character identifier. 
+
+127. models/ecu-ansi.tcap had `ac' instead of `ic'.
+
+128. Better diagnostics for termcap/terminfo shortcomings.
+    Warning: Terminal type '%s' has
+      No standout/standend (`so')
+      No insert line (`al' or `il1')
+      No insert character (`ic' or `ich1')
+      No delete line (`dl' or `dl1')
+      No delete character (`dc' or `dch1')
+    The first `code' is the TERMCAP identifier for the feature
+    while the second `code' is the TERMINFO identifier.
+    We will continue, your screen may be inaccurately painted.
+    Press RETURN to continue or ESCape to exit:
+
+129. At certain times, ECU is supposed to be killable with a
+keyboard interrupt.  Now it is, though the feature was broken.
+
+Changes for 3.43
+
+130. Better diagnostics in error report for bad screen geometry.
+
+Changes for 3.44
+
+131. Rearrange curses use to minimize version differences (now
+watch it break everywhere I cannot run it! :>).
+3.40 on would not compile on Solaris.  I had problems
+with whline and wvline, so I took the opportunity to
+revise all curses use, collecting various conditionals
+into universal (HA!) code.
+
+132. Apply Andrey Chernov <ache@nagual.ru> patches for FreeBSD:
+a. improve console color handling
+b. use getwd() to get current directory.
+
+133. Apply Don Yuniskis <dgy@rtd.com> patches for FreeBSD:
+a. use /etc/uucp for UUCP library directory
+b. fix serious problems with more esoteric features
+   of configuring/handling internal dialer
+
+Changes for 3.45
+
+134. Don Yuniskis <dgy@rtd.com> work turned out to be
+on an older version of FreeBSD.  He gets no less thanks
+for having taken the time to submit.  FreeBSD uses Taylor
+UUCP nowadays.  More porting work is needed before ECU
+can use its `Devices'-like logic under FreeBSD.
+
+Changes for 3.46
+
+135. Andrey Chernov <ache@nagual.ru> sent me a set of
+patches he describes as:
+1) 8bit/ctype fixes.
+2) locale tuning.
+ 
+Few words about 1). According to ANSI and POSIX standard valid
+ctype macros range is EOF,0..UCHAR_MAX. In most implementations
+it means -1,0..255. So, you can use is.*(char) only if you are
+absolutely shure that "char" here is ASCII char. Small example:
+char c = `\200'; for signed char compilers expands to -128.
+It means that isalhpa(c) becomes isalpha(-128) which is illegal
+per ANSI/POSIX range definition. Most common way to fight
+it is (unsigned char) cast for all char* strings, since char
+can't become EOF. I.e. isalpha((unsigned char)-128) is legal,
+because it is equal to isalpha(128) and 0 < 128 < 255. Don't use
+this cast for "int" arguments, f.e. getchar() result,
+because you truncate EOF (-1) to 255 (valid char) in this way.
+
+136. I got rid of attempts to use AT characters in window
+box drawing.  There are too many ports around now and
+curses grovelling started taking more time to maintain
+than everything else.
+
+137. Screen dumps now dump the virtual screen map
+in all ports. SCO console capable of reporting their
+hard display contents used to be the source of
+screen dumps.
+
+138. Command line switch -C and interactive command 'rev'
+shows compile-time configuration.
+
+139. MOTSVR4 excited some kind of Motorola bug. After
+exiting a child csh process, ECU (and /bin/vi!) get a SIGTTOU which
+I have hacked into submission by using signal(SIGTTOU,SIG_DFL).
+Like vi, ecu prints "Stopped (tty output)" after HOME !csh.
+Just type `fg'.
+
+Changes for 3.47
+
+140. Now we use cua0, not ttyS0 for linux for the default port.
+ttyS0 is for incoming connections.
+
+141. Clean up MANY unfortunate gcc "comparison between signed and unsigned"
+warnings.
+
+Changes for 3.48
+
+142. Consolidation/cleanup of chtype/unsigned char and other curses
+incompatibilities.  Using CFG_UseSetupterm, CFG_UseACS _locally_
+for now, globally (config.c, Makefile) in the future.
+
+143. MAKING AND INSTALLING portion of README moved to INSTALL.
+
+Changes for 3.49
+
+144. Uh, I forgot one relatively important note for 3.48: normalized
+telnet behavior with async so that one can arbitrarily switch between
+them during one ECU session.
+
+145. Fixed bad 'else' procedure command that improperly execute
+a command appearing on the same line as the else. i.e,
+
+   ifnz 1 echo 'good'
+   else echo 'bad'
+
+used to print good and bad, whereas
+
+   ifnz 1 echo 'good'
+   else
+        echo 'bad'
+
+would only print good.  Now both codings work as expected.
+
+146. Added unsupported stuff.
+
+Changes for 3.50
+
+147. Tildes are now converted to hyphens when saving phone directories.
+Why one might have wished to used a tilde in a directory entry
+is past my wisdom: my apolgies.  Now, colons in fields
+(like "localhost:25") are protected from the passwd-style
+database by converting them to colons.  When the entries
+are reread from the directory files, tildes are restored to
+colons.
+
+A nasty side-effect: those who edit phone directories directly
+have to remember to type localhost~25, not localhost:25.
+
+148. Created ecuicmd.1 interactive command man page.
+
+149. Auto-configuring for telnet option for
+SCO (and potentially for other SVR3+-lsocket platforms).
+
+150. A carriage return was missing from the redial "no line attached"
+message.
+
+151. Merged ecuicmd.1 plus two hours of drudgery into ecu.1.
+
+152. Lengthened TTY field in setup and phone directory.
+Motorola SVR4 port names can get loong. E.g., /dev/port/m332_c0d0.
+
+153. ECU RCVR now handles a dying socket: it signals XMTR to do 
+funeral and probate.
+
+154. break/lbreak in telnet sends IP.
+
+155. Added qmake to make my life easier.
+
+Changes for 3.54
+
+156. Added whilez/whilenz procedures commands.
+
+157. Added auto-search for sys/filio.h.
+
+158. Added SIGINT interrupt and 20 second alarm() timeout
+for connect().
+
+159. Added fork and kill procedure commands.
+
+Changes for 3.55
+
+160. Support && and || integer operators in procs.
+
+Changes for 3.56
+
+161. Add %dates, %timesm and %timesmz.
+
+162. Bob Lewis <robertle@sco.com> verified ECU
+runs on SCO UnixWare 2.1.
+
+4.00 RELEASED
+
+Changes for 4.01
+
+163. Add fflush proc command.
+
+164. Fix fputc/fputs procedure command documentation.
+
+165. Implement ++,-- operators.
+
+Changes for 4.02
+
+166. Fix bug in ecuicmd.c where non-telnet build gets a
+syntax error.  Reported by Robert M. Bailin <72027.3605@CompuServe.COM>.
+
+Changes for 4.03
+
+167.  Manuals (and other, obscure, files) were omitted from the
+4.00 release.  Oops.
+
+168. Catch qmake at 'make clean' time.
+
+169. Add modem dialer procedures.
+    "Modem Dialer Procedures (dialproc)"
+
+    You may use a procedure to do the modem dialing function.
+    Just create a subdirectory called "dialproc" in your personal
+    .ecu directory or in /usr/local/lib/ecu.  In that directory,
+    place a procedure whose name matches the port's base name.
+    That is for "/dev/ttys0", create dialproc/ttys0.ep".  For
+    "/dev/port/m332_c0d3", create "dialproc/m332_c0d3.ep".
+
+    The procedure is passed one argument, the telephone number to
+    be dialed.  It is the responsibility of the dialproc merely
+    to establish a connection.  Procedure status is returned in
+    $i0 and $s0.
+
+     $i0 values
+     0    connected
+     1    did not connect
+     2    interrupt attempts (unrecoverable)
+     3    modem error (unrecoverable)
+     4    try ecu dialer
+     
+     $s0 is returned set to the modem result string, such as "CONNECT 9600"
+     or "BUSY".
+
+
+Changes for 4.04
+
+170. Fixed procedure commands sx and sy due to ECU not passing ecusz
+a baudrate.  PLEASE, will the fellow who reported this and whose mail
+I lost please step forward to take credit for this fix??
+
+Changes for 4.05
+
+171. Inconsequential bug in telnet_open never caused any harm;
+getservbyname call had wrong protocol. getservbyname("telnet","telnet")
+now corrected to getservbyname("telnet","tcp");
+
+172. Andrey Chernov <ache@nagual.ru> or <ache@null.net> wrote that
+> BTW, here small patch to fix 'date' POSIX-ly. Previous one work only
+> for subset of systems. Latest POSIX test suite requires direct set to 'C'
+So the ecu makedate is now made with 
+echo 'char *makedate="@(#)'ecu `LC_TIME=C date` $(SYSTEM)'";'  >makedate.c
+
+173.  A BIGGIE: Bob Lewis <rll@felton.felton.ca.us> fixed the
+code for SCO 3.2v2, ODT, OpenServer 5.0.x and UnixWare so that
+actual box ruling characters are displayed on the computer
+console across the whole SCO product line.  I had let this lapse.
+Thanks, Bob, for restoring/extending/hardening the feature!
+
+Changes for 4.06
+
+174. A bug in winget_single() made single character form input
+misbehave if a function key delimiter (ie, <END>) pressed.
+The bug has been in there since 3.46 (August 1996!) so GO FIGURE!!
+Thanks to Jeff Liebermann <jeffl@comix.santa-cruz.ca.us>
+and Bob Lewis <robertle@sco.com> for the report and diagnostic help.
+
+175. The setup screen showed 'E' instead of 'H' for half duplex.
+(Part of jeffl and robertle work).
+
+Changes for 4.07
+
+176. Updated models/iarc.ep, my killer-app procedure; it is
+probably operationally useless to you unless you use a Motorola
+UTA220 ISDN terminal adapter to access iarc.net's ISP.
+However, the style and usage of the procedure language in iarc.ep
+is the best effort yet I have put into .ep hackery yet.
+
+177. A bug in expresp.c qallocated one too few bytes for a string.
+Some mallocs and string lengths worked, some not, because of slop that
+may have been part of the allocated memory. Mea culpa.
+
+Changes for 4.08
+
+178. ecu 4.08 was damaged ... this is 4.08a, a reconstruction
+named 4.08 also, since ecu's structure does not allow for letter
+suffixes.  If you are in doubt, check for
+
+ecu.h:/*:11-03-1997-02:16-wht@kepler-4.08a-add proc_option_localvars */
+ecunumrev.c:/*:11-03-1997-02:13-wht@kepler-4.08a-identified as 4.08.10 */
+pcmd.c:/*:11-03-1997-02:10-wht@kepler-4.08a-option command */
+proc.c:/*:11-03-1997-02:23-wht@kepler-4.08a-option command+doc primping */
+
+Changes for 4.10
+
+179. SCO OS7!!!!!!!
+
+Changes for 4.11
+
+180. more portability, fix make q.
+
+181. Thanks to him!
+/*:12-18-1997-16:18-wht@kepler-w/help from robertle@sco.com fix OS5/OS7 */
+
+Changes for 4.12
+
+182. port to aix; compiles OK but untested
+
+183.  fix OS7 port: OS7 worked fine, but in an effort to make the
+same configuration work for OS5 (CFG_FionreadRdchk for both), we
+found that ioctl(fd,FIONREAD,&chars_waiting) does not work for at
+least some consoles.
+
+Changes for 4.13
+
+184. More OS5, OS7, SVR4, AIX tweaking. 4.10-4.12 all had problems.
+
+Changes for 4.14
+
+185. Upgrade regexp clarity.
+
+186. Upgrade error handling - add erc_text
+
+Changes for 4.21
+
+187. Fix Linux port for redhat 5.
+
+188. Bob Bailin of Pilgrim Electronics <72027.3605@compuserve.com> wrote:
+> I use the SCO atdialer binary for all my dialing needs.  Out of
+> the box, the atdialer and its links have perms of --x------ uucp
+> uucp which seems to work just fine for cu and uucp.  However, ecu
+> complains about a permissions error when it attempts to execute
+> one of these dialers.  Now in the past under 3.2.4.2, I've just
+> changed the perms to --x--x--x, but since 5.0.4 does period
+> software verifications, I would like ecu to work with the default
+> perms listed above.
+>
+> What's interesting is that I've elected to run /usr/bin/ecu
+> setuid uucp, perms are --s--x--x uucp bin, (same as cu & uucp),
+> so if it's running as uucp, (no problems with device access), why
+> is it complaining about these atdialers?
+
+Because I was using access() to check for final permission to execute
+a dialer program. Access() checks for accessibility to the
+ORIGINAL uid that executed the program.  Not only did my test
+for execution permission fail, but I need to setuid to uucp
+for --x------ uucp-owned programs.
+
+189.
+Add special purpose socket/tty interface. See pcmdserve.c
+ptyfork.c and models/{iarcbs,serve42}.ep for clues.
+Mysterious ... and turned off by CFG_TelnetServer
+

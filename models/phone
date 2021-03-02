@@ -1,0 +1,4 @@
+#ECUPHONE
+# when saving this file, ECU will preserve commented lines
+#sco2:1(408)425-3502::2400:N:sosco uucp
+navobs:1(202)653-0351::1200:N:Naval Observatory Time

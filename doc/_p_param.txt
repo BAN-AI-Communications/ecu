@@ -1,0 +1,208 @@
+.*s 1 "Arguments"
+
+There are five types of arguments to procedure commands:
+.DS I
+Switch
+Alphabetic Token
+Integer
+String
+Relational Operators
+.DE
+This section describes the syntax and construction of each type in turn.
+There are separate groups of valid of relational operators for integers
+and strings; thus, they are described under the appropriate sections.
+
+.*s 2 "Switches"
+
+Switch arguments begin with a hyphen (minus, '-').  The switch
+argument must be the first argument after the command.  Only
+one switch argument is allowed on the command line.  If
+switches '-a', '-b' and '-c', are available and '-a' and '-b'
+are desired, '-ab' or '-ba' is entered.
+
+.*s 2 "Alphabetic Tokens"
+
+Alphabetic tokens, for lack of a better term, are non-integer,
+non-quoted terms used as arguments for certain commands, such as:
+.DS I
+plog off
+.DE
+Such argument types are fairly simple to understand and use; they are
+described here for completeness.
+
+.*s 2 "Integers"
+
+Integer values are 32-bit quantities ranging between -2147483647
+and 2147483647.
+
+In one case, an integer is used to store a 32-bit color mask as
+described by the
+.B color
+command and the
+.B %colors
+integer function.
+
+.*s 3 "Constants"
+
+Integer constants are numeric strings, optionally with an initial
+minus sign, the absolute value of which must be less than
+2147483648.  If the constant begins with the string "0x", it is
+interpreted as hexadecimal.  Octal, like FORTRAN and COBOL will
+be dead soon (heh heh); until then, however, octal constants may
+be denoted by a leading "0o".  This differs from the usual
+convention so as to allow decimal strings with leading zeroes to
+be correctly interpreted.
+
+.DS L
+Examples:
+    123   --> 123(10)
+    0123  --> 123(10)
+    0x123 --> 291(10)
+    0o123 -->  83(10)
+.DE
+
+.*s 3 "Variables"
+
+There are 50 numbered, permanent integer variables referenced by
+the terms '$i0' through '$i49'.  When ECU is started, the value of each
+variable is zero.  Variables retain their
+value until changed, even between procedure executions.
+The integer variable number may be expressed
+as an expression by enclosing an integer expression in brackets.
+For instance:
+.DS L
+     $i[4+5]      refers to $i9
+
+     $i2=5
+     $i[20+$i2]   refers to $i25
+.DE
+
+Integer variables may be created for use as "local" variables or
+to promote code readability.  Refer to the
+.B mkvar
+command.
+
+.*s 3 "Functions"
+
+ECU has many built-in functions which return the value of ecu- or
+system-related information.  A list of the functions appears in a
+later section.
+
+.*s 3 "Expressions"
+
+In almost any place an integer argument is allowed, an expression
+may be supplied.  Expressions are composed of two or more integer
+constants or variables separated by operators from the group:
+.DS L
+    +     addition
+    -     subtraction
+    *     multiplication
+    /     division
+    |     OR
+    ||    logical OR
+    &     AND
+    &&    logical AND
+    @     MOD
+    ^     XOR
+    <<    shift left
+    >>    shift right
+.DE
+Evaluation of expressions is left-to-right.  Parentheses are
+not allowed.
+
+.*s 3 "Relational Operators"
+
+Integer relational operators are chosen from the following group:
+.DS L
+     =       "is equal to"
+     ==      "is equal to"
+     !=      "is not equal to"
+     <>      "is not equal to"
+     >       "is greater than"
+     <       "is greater than"
+     >=      "is greater than or equal to"
+     <=      "is less than or equal to"
+.DE
+
+.*s 2 "Strings"
+
+Strings are classic concatenations of zero or more eight-bit
+characters.  In general, the maximum size of a string used by
+ECU is 256 characters.  The absolute maximum size is 16384 characters.
+
+Null in strings are poorly handled.
+You may be able to get away with using them, but it is not recommended.
+
+.*s 3 "Constants"
+
+String constants are formed by placing alphanumeric characters
+between single quote characters (apostrophes).  The backslash ('\e')
+character is used to "escape" certains characters:
+.DS L
+    \e\e             one backslash
+    \en             newline
+    \et             tab
+    \e'             apostrophe
+.DE
+
+NOTE: ecu converts every tab in a procedure line to one space when the
+procedure file is read in.  Therefore, IF YOU WISH TO PLACE A TAB IN A STRING
+CONSTANT, you 
+.B must
+place it there with the \et escape sequence.
+
+.*s 3 "Variables"
+
+There are 50 numbered, permanent string variables referenced by
+the terms '$s0' through '$s49',
+each possessing a maximum length of 256 characters
+When ECU is started, the value of each
+variable is null (zero length).  Variables retain their
+value until changed, even between procedure executions.
+The string variable number may be expressed
+as an expression by enclosing an string expression in brackets.
+For instance:
+.DS L
+     $s[4+5]      refers to $s9
+
+     $s2=5
+     $s[20+$s2]   refers to $s25
+.DE
+
+String variables may be created for use as "local" variables or
+to promote code readability.  Refer to the
+.B mkvar
+command.  
+Created variables have a life equal to the duration
+of the procedure which created them.
+Regardless of the declared size of a created string variable,
+ECU will automatically grow it to a maximum of 16384 characters
+as necessary.  Numbered (permanent) string variables have a maximum
+size of 256 bytes.
+
+.*s 3 "Functions"
+
+ECU has many built-in functions which return the value of ecu- or
+system-related information.  A list of the functions appears in a
+later section.
+
+.*s 3 "Expressions"
+
+String expressions are formed by the concatenation of string
+constants, variables and function return values using the '+'
+operator:
+.DS L
+Example:
+   'The quick brown fox jumped over the '+$s0'+' dog at '+%time
+.DE
+
+.*s 3 "Relational Operators"
+
+String relational operators are chosen from the following group:
+.DS L
+     =       "is equal to"
+     ==      "is equal to"
+     !=      "is not equal to"
+     <>      "is not equal to"
+.DE
+

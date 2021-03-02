@@ -1,0 +1,2390 @@
+.*s 1 "Commands"
+
+.*s 2 "ansif"
+.DS L
+Usage: ansif [off | on | ]
+.DE
+
+If configured for it (and most versions are), ECU has an ANSI
+filter which when on intercepts ANSI screen control sequences in
+receive data stream and converts them to equivalent sequences for
+the local console (per the $TERM's termcap or terminfo
+description which may or may not be up to the task).  This
+command controls or displays this feature.  By default, this
+feature is turned on.
+
+The startup -n switch also disables the ANSI filter.
+
+.*s 2 "autorz"
+
+usage: autorz [off | on]
+
+ECU in the interactive mode (no procedure executing) can interpret a
+SUB, 'B', '0', '0' receive data sequence as a ZMODEM ZRQINIT frame and
+automatically begin a ZMODEM receive operation.  This command controls
+this feature.  By default, this feature is turned on.
+
+.*s 2 "ayt"
+usage: ayt
+
+If your ECU is in telnet connection, this command sends the
+AYT (Are You There?) command to the remote host.  If the
+remote is sane (and so disposed), it will reply with something
+like "[Yes]".
+
+.*s 2 "baud"
+
+usage: baud <baud-int>
+
+This command sets the bit rate for the attached line.
+The integer argument <baud-int> must be one of
+110, 300, 600, 1200, 2400, 4800, 9600, 19200 and 38400.
+
+If a line is attached (open), the change takes place immediately.
+If no line is attached, the setting is saved until
+a line is attached.
+
+Using the 'baud' procedure command in the ECU initialization
+procedure "_rc.ep" serves as an exact analog of the -b command.  The
+.B baud
+command with the
+.B setline
+command gives you programatic control over the actual choice of the
+line and rate or the defaults for the setup screen, depending upon
+other options.  NOTE: using the baud command in _rc.ep will override
+any command line -b specification.
+
+.DS L
+Example:
+    baud 9600
+    set $i0=2400; baud $i0
+.DE
+
+.*s 2 "break"
+
+usage: break
+
+This command is used inside a
+.B whilei
+or
+.B whiles
+compound statement to exit the loop.
+
+This is not to be confused with the interactive command
+"break" which sends an asynchronous BREAK signal.  Use the procedure
+command 
+.B lbreak
+for this purpose.
+
+.DS L
+Example:
+
+    whilei 1=1 #forever unless break command executed
+    {
+        echo -n 'Answer yes or no: '
+        set $s0=%cgets # get answer
+        ifi %instr($s0,'y') == 0 set $i0 = 1; break
+        ifi %instr($s0,'n') == 0 set $i0 = 0; break
+        # got neither 'y' nor 'n' ... keep trying
+    }
+    # now $i0 = 1 if yes, 0 if no
+.DE
+
+NOTE: further examples of
+.B break
+usage may be found in the example for the
+else
+command.
+
+.*s 2 "cd"
+
+usage: cd <directory-path>
+
+This command changes ECU's current working directory.
+The string argument <directory-path> may contain any
+directory pathname specification legal to be submitted to
+the shell csh.  Wild card characters may be used, provided
+the expansion produces only one pathname.
+
+.DS L
+Example:
+
+    cd '~user/bin'
+    cd %envvar('HOME')+'/bin'
+.DE
+
+.*s 2 "clrx"
+
+usage: clrx
+
+This command clears  the attached line's transmitter XOFF state.
+Issuing the command is the equivalent to receiving an XON from
+the remote system.
+
+.*s 2 "cls"
+
+usage: cls
+
+This command clears the screen.
+
+.*s 2 "color"
+
+.DS L
+usage: color <normal-foreground> [<normal-background>]
+usage: color -r <reverse-foreground> [<reverse-background>]
+.DE
+
+This command changes the current normal or reverse video colors in a
+manner similar to the setcolor(C) command.  It has no effect on systems
+using other than an SCO multiscreen color monitor.  
+If the second (background) color is
+omitted, it is assumed to be black.
+
+The command also forces normal video mode.  Refer to the
+.B vidnorm
+and
+.B vidrev
+commands.
+Refer also to the
+.B vidcolor
+command.
+
+.DS L
+Color names
+   blue      magenta      brown      black
+   lt_blue   lt_magenta   yellow     gray
+   cyan      white        green      red
+   lt_cyan   hi_white     lt_green   lt_red
+.DE
+.DS L
+Example:
+
+    color lt_green  # normal video light green on black
+    color -r red white # reverse video red on white
+.DE
+
+.*s 2 "continue"
+
+usage: continue
+
+This command is used inside a
+.B whilei
+or
+.B whiles
+compound statement to skip the remainder of any
+commands in the loop and continue execution at the first
+command in the loop.
+.DS L
+Example:
+
+    send '' # send ENTER to get prompt
+    whilei 1=1 # forever unless break command executed
+    {
+        lookfor -e 'login: ' # look for login prompt
+        ifi $i0 == 0         # if we dont get prompt ...
+        {
+            send ''          # send ENTER again
+            continue         # and look for login prompt
+        }
+        send $s_name         # send username
+        lookfor -e 'Password:'
+        send $s_password
+        get -e 0 50          # wait 10 seconds for response
+
+        # if incorrect not found in response, ...
+        if %instr($s0,'incorrect') < 0 # ... must have won
+            break
+
+        # garbled line?: system will send another 'login: '
+    }
+
+.DE
+
+NOTE: further examples of
+.B continue
+usage may be found in the example for the
+.B else
+command.
+
+.*s 2 "conxon"
+.DS L
+usage: conxon [<arg>]
+where <arg> is on    honor ^S/^Q local flow control (DEFAULT)
+               off   pass ^S/^Q to remote
+.DE
+
+This command enables or disables console xon/xoff flow control.
+If the argument is omitted, the current flow control state is displayed.
+
+If on, typing ^S/^Q stops or restarts the local console driver
+output.  If off, ^S and ^Q are passed to the remote (for EMACS,
+of course -- who else?).
+
+.*s 2 "cursor"
+
+usage: cursor <row> [<col>]
+
+This command places the cursor at a specified position on
+the video screen.  The top left of the scrren is row 0, column 0.
+If <col> is not specified, it is assumed 0 (left margin).
+.DS L
+Example:
+
+    cls
+    $i0 = 5
+    whilei $i5 < 12
+    {
+        cursor $i5
+        echo 'This is line '+%itos($i5,2d)+' of the display'
+    }
+.DE
+
+.*s 2 "dcdwatch"
+
+usage: dcdwatch [<dcdwatch-param>]
+
+This command controls the DCD watcher.  The optional argument may be:
+.DS L
+   y or yes         enable DCD watcher
+   n or no          disable DCD watcher
+   t or terminate   terminate ECU on loss of DCD
+.DE
+
+The DCD watcher when enabled causes ECU to monitor the DCD line
+(within the limits imposed by the OS with its CLOCAL=0 functionality).
+When the watcher is on and DCD drops, ecu automatically performs
+the action of the interactive or procedure
+.B hangup
+command.  If the 't'erminate option is chosen, then after
+hangup processing is complete, the ECU program will terminate.  
+
+The state of the watcher may be changed by the use of the dial
+command which uses a directory entry which changes the
+DCD watcher status.
+
+The DCD watcher depends upon the tty driver to return zero characters
+on a read when DCD is low when the termio flag CLOCAL is reset.
+The tty driver must ignore DCD if CLOCAL is set.
+If your system offers a "modem" and "direct" choice (by choice
+of filename), you probably need to use the "modem" choice for
+this to work properly.  This decision is made properly for you
+on SCO if you are using SCO "standard" tty line
+naming conventions.  This is true even though ECU appears to force
+a tty name with trailing upper case characters (modem) to 
+one with a lower case character (direct).
+
+.*s 2 "delline"
+
+usage: delline
+
+This command deletes the current line from the video display.
+
+.*s 2 "dial"
+
+usage: dial <remote>
+
+This command causes an outgoing call to be placed.  The string
+argument <remote> can take one of two forms: a numeric telephone
+number or an alphanumeric "logical" number or system name.
+
+A numeric phone number ('1(800)555-1212' or '2345678') must begin
+with a digit and must consist entirely of digits, parentheses
+or hyphens.
+If a telephone number is supplied, the phone number is
+dialed; you must first have set the desired bit rate and
+parity using the 'baud' and 'parity' commands.
+(If the last character of a telephone number is a dollar sign,
+it is removed and is replaced with the contents of the first line
+in ~/.ecu/credit.  See the description of the dialing directory.)
+
+If a logical name is entered, the phone directory (managed by
+the interactive
+.B dial
+command) is searched;
+if the entry is found, the bit rate and parity
+is automatically set from values in the directory entry; then,
+the number in the directory entry is dialed.
+
+Using the dial command with a directory entry may change the 
+DCD watcher (dcdwatch) status.
+See the section on the
+.B dcdwatch
+command and the section titled "Choosing a Dialout Line" for
+more information.
+
+When the
+.B dial
+command returns, integer variable $i0 is set to a status code
+and string variable $s0 has a text message (the modem verbal
+result code if the ECU dialer is used, a representation of
+the return status code if a uucp dialer is used [see below]).
+.DS L
+.B
+Dial Command $i0 Status Codes
+.R
+
+    0  successful connect
+    1  failed to connect (call progress)
+    2  dial interrupted by signal
+    3  modem error (non responsive or commands rejected)
+.DE
+.DS L
+.B
+Dial Command $s0 Status Messages (uucp dialer)
+.R
+
+    CONNECT ####           #### = bit rate
+    BUSY                   only some modems
+    NO ANSWER              only some modems
+    NO CARRIER             most generic "fail to connect"
+    NO DIAL TONE           only some modems
+    !Connect bad bit rate modem reported different rate
+    !Interrupted           call interrupted by signal
+    !Invalid arguments     ECU error
+    !Invalid phone number  too long or bad characters
+    !Ioctl error           should not be reported here
+    !Line in use           should not be reported here
+    !Line open error       should not be reported here
+    !Modem Error           modem did not respond
+
+Note: if the ECU dialer is used, the actual modem result code
+is returned in $s0 or one of the following two strings:
+
+    !Interrupted           call interrupted by signal
+    !Modem Error           modem did not respond
+.DE
+
+.*s 2 "do"
+
+usage: do <procname> [<arg> ...]
+
+This command executes a procedure whose name appears as the command's
+first (string) argument.  One or more arguments (up to 19) may be passed
+to the called procedure; an argument may consist of any valid string
+expression, provided, that, when expanded,  the argument does not
+exceed 256 characters in length.
+
+The called procedure may read its arguments using the
+.B %argv
+string function.  %argv(0) is the name of the procedure.
+The quantity of arguments may be obtained using the
+.B %argc
+integer function.
+
+.DS L
+Example:
+
+    do 'proc' %rname %date+' '+%time %argv(0)
+
+Note: in this example, the called procedure is passed the name
+of the calling procedure as the last argument.
+.DE
+
+.*s 2 "duplex"
+
+.DS L
+usage: duplex full | half
+       duplex 'full' | 'half'
+.DE
+
+This command specifies whether or not ECU is to locally echo
+characters typed by you at the keyboard.  The overwhelming
+majority of remote systems provide the echo function, in
+which case full duplex must be used.  For the rare occasions
+when the remote system does not echo your keyboard input,
+setting half duplex will allow you to see what you are
+typing.
+
+When communicating with another terminal in a "teletype
+conversation", setting half duplex is generally required.
+In such cases, use of the interactive
+.B nl ,
+.B nlin
+and
+.B nlout
+commands may also be required.
+.DS L
+Example:
+
+    duplex full
+    $s0 = 'full'; duplex $s0
+.DE
+
+
+.*s 2 "echo"
+
+usage: echo [-n] <string>
+
+This command prints the contents of the string argument <string>
+on the screen.  If the -n switch is not present, a newline follows
+the output of <string>.
+.DS L
+Example:
+
+    echo 'Procedure '+%argv(0)+' executing at '+%time
+    echo -n 'Enter your first name: '; $s0 = %cgets
+.DE
+
+.*s 2 "eeod"
+
+usage: eeod
+
+This command erases from the cursor to the end of the video display,
+leaving the cursor in place.
+
+.*s 2 "eeol"
+
+usage: eeol
+
+This command erases the video display to the end of the line,
+leaving the cursor in place.
+
+.*s 2 "else"
+
+.DS L
+usage: else <statement>
+
+       else
+           <statement>
+
+       else
+       {
+            any kind and number of statements
+       }
+
+       else <if> <statement>
+
+       else <if>
+       {
+            any kind and number of statements
+       }
+
+.DE
+
+This statement may follow an
+.B ifi
+or
+.B ifs 
+command to specify one or more statements to be executed if
+the if-type command condition is false.  Else commands may be
+chained together in the traditional structured language manner.
+
+For the purposes of describing this command, <statement> is
+any single or compound statement
+.B NOT
+containing a
+.B whilei
+or
+.B whiles
+command.
+If you wish to have a while-type command executed as part of an
+.B else
+condition, the while must occur within braces ("{}").
+
+<if> is an
+.B ifi
+or
+.B ifs
+command followed by an <if-condition> (see the description of the
+.B ifi
+or
+.B ifs
+commands below).
+.DS L
+Example:
+
+#+------------------------------------------------------
+# finger.ep - procedure to send 'finger' to remote
+# BSD Unix system; print resulting lines in different
+# colors: uucp logins green, root red, others cyan
+#-------------------------------------------------------
+
+    mkvar $icolor; $icolor = %colors
+    mkvar $itimeout
+    $itimeout = 50     # timeout for first line 5 secs
+    send 'ps -aux'     # send command, but do not echo
+    lookfor '\en' 40    # swallow command
+    whilei 1==1        # forever, or until break
+    {
+        lgets $s0 $itimeout 1 '\en' #get a line
+        ifi $i0 = 0 break #if no characters read
+        $itimeout = 10 #wait 1 sec for later lines
+
+        ifi %instr($s0,'% ') >= 0 # if csh prompt seen
+            break                 # exit while loop
+        else ifi %instr($s0,'Login') >= 0
+            color gray
+        else ifi %instr($s0,'root') >= 0
+            color red
+        else ifi %instr($s0,'uucp') >= 0
+            color green
+        else color cyan
+        echo $s0
+    }
+    icolor $icolor #restore entry colors
+    send ''        #force a new prompt from remote
+
+.DE
+
+.*s 2 "erto"
+
+Usage: erto <msec>
+
+This command specifies the default timeout period (in milliseconds)
+of the next "expect" in an ECU-executed expect-respond script.
+Remember that ECU expect-respond scripts can change timeouts on their
+own, so this number may not "stick." 
+
+.DS L
+Example:
+    erto 10000
+.DE
+
+.*s 2 "erverbose"
+Usage: erverbose <yes-no>
+
+This command specifies the verbosity level of an ECU-executed
+expect-respond script.  The argument is specified
+beginning with an lower-case 'y' or 'n'.
+
+.DS L
+Examples:
+    erverbose y
+    erverbose no
+.DE
+
+.*s 2 "exec"
+
+usage: exec <string>
+
+This function executes a string as a procedure statement.
+Argument <string> must contain an ecu statement exactly as
+might appear on a procedure line, with a few exceptions.
+
+.DS L
+1. There may be no label: the first command may 
+   start in column one.
+2. You should not execute a goto, gosub or return.
+3. You should not code if, while or compound statement
+   brackets.
+.DE
+
+You are on your honor with regard to items 2 and 3 above.
+If you stretch it, it will break.
+
+.DS L
+Example:
+
+    $s20 = 'Home';   $s30 = '^H' 
+    $s21 = 'End';    $s31 = '^E'
+    $s22 = 'F1';     $s32 = '^A'
+    $s23 = 'F2';     $s33 = '^B'
+    $i10 = 0
+    whilei $i0 < 4
+    {
+        $s0 = 'fkmap '+$s[20+$i10]+' '+$s[30+$i10]
+        exec $s0
+        $i10 = $i10 + 1
+    }
+.DE
+        
+.*s 2 "exit"
+
+usage: exit [<status>]
+
+This command causes an abrupt termination of the ECU program.
+Any existing connection with a remote system
+is terminated immediately.
+If no integer argument <status> is found, ECU exits
+with a program exit status of 0.
+If <status> is found and the value is zero, then ECU exits
+with a program exit status of 0.
+If <status> non-zero,its value must be in the range of 1 to 31,
+and ECU exits
+with a program exit status of 192 plus <status>.
+This feature allows batch executions of ECU by shell script
+to detect user-determined ECU execution status.
+See the section titled "Exit Codes".
+
+.*s 2 "expresp"
+
+usage: expresp [-v[v...]] <exp-resp-str> [<timeout_msecs>]
+
+This command emulates the uuchat function as described in the
+SCO HDB UUCP documentation and in the /usr/lib/uucp/Dialers
+file.
+
+-v causes the expect-respond conversation between ECU and the
+remote system to be displayed on the screen.  This switch is
+automatically enabled if procdedure tracing is enabled.
+
+Multiple v's (e.g., -vv, -vvv) up to 3 'v's produce
+more verbose debug output. -vv causes each base level
+expect and respond string to be displayed. -vvv causes
+a hexadecimal dump of each  interpreted expect string to be
+displayed.
+
+The majority of procedure tracing features use the current trace
+state (from the
+.B ptrace
+command setting) as a binary condition.  That is, either tracing is done
+or not.  However,
+.B expresp
+adds the tracing level to the number of -v switches to determine its
+verbosity level.
+
+Escape sequences allow you to insert special or variable
+information in your expect and respond strings.  Escape sequences
+begin with either the backslash or the tilde.  NOTE: remember to
+use two backslashes inside a literal string constant to get one
+backslash in the resulting string.  The procedure language's
+string parser has it's own use for a single backslash followed by
+another character.  For instance:
+
+.DS L
+    set $s0='\e\eM' sets $s00 to '\eM'
+.DE
+
+Some of the escape sequences have meaning in both expect and respond
+tokens while others have a use in only one of the two types.
+
+.DS L
+   Meaning of the escape sequences:
+   \eD - current phone number
+   \eE - turn on echo checking when sending (for slow devices)
+   \eK - send a BREAK
+   \eM - turn on line CLOCAL 
+   \eN - null byte (same as \e000)
+   \eT - current phone number with Dialcodes and
+         character translation
+   \ec - append no new-line to send string (must be last
+            "character" in a send string)
+   \ed - delay (2 seconds) 
+   \ee - turn off echo checking when sending
+   \em - turn off line CLOCAL 
+   \en - send or expect new-line
+   \ep - pause (approximately 1/4-1/2 second delay)
+   \er - send or expect carriage return
+   \e\e - send or expect backslash (same as \e134)
+   \e~ - send or expect tilde (same as \e176)
+   \e### - send or expect character respresenting three
+           character octal value ### (*MUST* be three digits
+           with leading zeroes as necessary)
+   ~m[##] - set expect timeout to ## milliseconds (NOT
+            SUPPORTED BY DIALERS; SEE BELOW)
+   ~n[##] - nap ## milliseconds (NOT SUPPORTED BY DIALERS;
+           SEE BELOW)
+   ~t[##] - set expect timeout to ## seconds (NOT SUPPORTED
+            BY DIALERS; SEE BELOW)
+   Speed - Hayes-style CONNECT handler (as sole contents of
+           an expect string, equivalent to using CONNECT)
+.DE
+
+<timeout_msecs> specifies an optional timeout in milliseconds
+for waiting on expect strings;  it defaults to 10,000 milliseconds
+(10 seconds).
+The resolution for timeouts is limited to the basic tick time of
+your system (HZ, 10 msec for UNIX/386 3.2.0, 16 (1000/60) msec
+for 3.2.1 (ODT 1.0) and 3.2v2 (ODT 1.1), back to 10 msec for
+3.2v4 (ODT 2.0) and 20 msec for XENIX/386 and XENIX/286).  Whew!
+The timeout for 'Speed' expects is fixed at by the value
+specified at Configure time ("How many seconds should the
+built-in dialer wait for carrier?").  The default is 60 seconds
+for this configuration item.  (ECU revisions prior to 3.30 used a
+fixed value of 90 seconds for this value).
+
+~t[##] and ~m[##] may appear at the beginning of an expect portion
+of a script.  They set the expect timeout delay in seconds and
+milliseconds, respectively.  The ## is a decimal number; if it is
+specified <= 0, there will be no delay.  The initial timeout set
+for each execution of the expresp command is 10 seconds.  The
+timeout period remains as you set it for the remainder of the
+script unless you change it again.
+
+.DS L
+Examples:
+
+    ~t[20]gin:      look for "gin:" for 20 seconds
+    ~m[500]\001     look for STX for 500 milliseconds
+    "" ~t[3]gin:--gin: uname ~t[10]word: secret
+.DE
+
+~n[##] may appear anywhere in a respond portion of a script.  
+It causes ECU to nap the number of milliseconds specified
+by the decimal ## argument.  This function was served by \em prior
+to ECU 3.20.  Addition of SVR4 \eM and \em necessitated
+the change.
+
+.DS L
+Example:
+
+    a~n[20]b~n[20]c   send "abc" with 20 msec between each
+                      character
+.DE
+
+
+Integer variable $i0 is set to one if the expect-respond script 
+fails, else it is set to 0.
+
+.*s 2 "fchmod"
+
+usage: fchmod <mode> <filenum>
+
+This command sets the mode of <filenum> to <mode>.
+The <mode> argument takes one of two forms, a nine-character
+mode string (e.g., 'rwxr-xr-x') or an integer value (0755).
+The <filenum> argument is either a string value forming a
+filename or an integer file number representing a file opened with the
+.B fopen
+command.
+
+The command sets $i0 = 0 if successful, else to the
+.B errno
+from the associated system call (refer to the 
+.B %errstr
+string function and/or /usr/include/sys/errno.h).
+
+.DS L
+Example:
+
+    fopen 1 '/tmp/123'; fchmod 'rwxrwxrwx' 1
+    fchmod 'rwxrwxrwx' '/tmp/123'
+    fopen 1 '/tmp/123'; fchmod 0777 1
+    $i0 = 0777; fchmod $i0 '/tmp/123'
+
+All of the above example result in the same result.
+.DE
+
+.*s 2 "fclose"
+
+usage: fclose <filenum>
+
+This command closes <filenum>.
+The <filenum> argument is an
+integer file number representing a file opened with the
+.B fopen
+command.
+
+The command is ignored if <filenum> is not open.
+No integer variable is modified by
+.I fclose .
+
+.DS L
+Example:
+
+    fclose 1
+.DE
+
+.*s 2 "fdel"
+
+usage: fdel <filenum>
+
+This command removes a file.
+
+The command sets $i0 = 0 if successful, else to the
+.B errno
+from the associated system call (refer to the 
+.B %errstr
+string function and/or /usr/include/sys/errno.h).
+
+.DS L
+Example:
+
+    fdel '/tmp/123'
+.DE
+
+.*s 2 "fgetc"
+
+usage: fgetc <filenum> <destination>
+
+This command reads a character from <filenum>.
+The <filenum> argument is an
+integer file number representing a file opened with the
+.B fopen
+command.
+
+The argument <destination> is either a string variable
+or an integer variable.
+If the file has reached end of file: an integer variable
+receives -1; a string variable is returned null.
+Otherwise, the character's numeric value (0-255) is placed
+in an integer variable or a string variable is returned with a
+length of one with the file character as its only character.
+
+.DS L
+Example:
+
+    fgetc 1 $s0
+    fgetc 1 $i_input
+.DE
+
+.*s 2 "fgets"
+
+usage: fgets <filenum> <strvar>
+
+This command reads a character from <filenum>.
+The <filenum> argument is an
+integer file number representing a file opened with the
+.B fopen
+command.
+
+The argument <strvar> is a string variable.
+If the file has reached end of file, <strvar> is returned null and
+integer variable $i0 is set to 1.
+Otherwise, the <strvar> receives input from the file minus
+the trailing newline and $i0 is returned zero.
+
+.DS L
+Example:
+
+    fgets 1 $s0
+.DE
+
+.*s 2 "fkey"
+
+.DS L
+usage: fkey <str>
+       fkey -r
+.DE
+
+This command selects a function key definition from the ~/.ecu/keys
+file.  The -r version resets to the original defaults, plus
+loads any entry in keys named "default".
+
+.*s 2 "fkmap"
+.DS L
+usage: fkmap 
+       fkmap <keyname>
+       fkmap <keyname> <keylist>
+       fkmap -l <name>
+       fkmap -r
+       fkmap -s <file>
+.DE
+
+This command manages the mechanism ECU uses to recognize function
+keys when they are entered at the console.  Entering the command
+with no arguments displays the current mapping in funckeymap format.
+
+If supplied, the first argument to the command must be the
+recognized name of a function key from the list:
+.DS L
+ F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12
+ Home End PgUp PgDn CUP CUL CU5 CUR CUD
+.DE
+The case of the entered argument is unimportant.
+
+If only one argument is supplied, the mapping for the specified key
+is displayed.  If more than one argument is supplied, the keyboard
+mapping is changed.  Arguments 2-n are character code specifiers
+in the format used to define a funckeymap entry.
+.B WARNING :
+If found to be syntactically correct, a mapping change
+is installed immediately.  If incorrect mapping of the HOME
+key is requested, you may lose control of ECU.
+
+The -l form reads an entire funckeymap definition matching <name>
+from ~/.ecu/funckeymap (if not found there, in a file by the same
+name in the library directory).  This form behaves exactly
+in the same manner as the command line switch -F.
+Due to the drastic nature of this command, if it fails to
+execute properly, ECU terminates itself.  Note that
+improper use of this form of the command can still render
+ECU an albatross (with Home unrecognizable).
+
+The -r form rereads the original funckeymap definition (as
+at program invocation), reseting the mapping.  The -s switch
+saves the current mapping to <file>.
+
+Note: the fkmap command line must contain literal text.
+No variable or expression expansions are not done.
+Switches may not be combined.  Only one switch may appear.
+
+.DS L
+Examples:
+
+    fkmap f10       display F10 mapping
+    fkmap Home ^Z   map Home to ^Z
+                    after this command, type ^Z for Home
+.DE
+
+.*s 2 "flush"
+
+usage: flush
+
+This command causes any characters received by the system
+from the line, but not yet read by the procedure to be "forgotten"
+or flushed.
+
+If no line is attached, the command is ignored (a warning is printed
+*if* procedure tracing is enabled).
+
+.*s 2 "fopen"
+
+usage: fopen [-<mode>] <filenum> <filename>
+
+This command opens a file named by the string argument <filename>
+and associates it with the user-chosen file number <filenum> (which
+must be an integer value between 0 and 4, inclusive).
+
+The argument switches govern how a file is opened and must be chosen
+from this list:
+.VL 15 4
+.LI -r
+The file is opened read-only; if it does not
+exist, an error occurs.
+.LI -r+
+The file is opened for reading and writing; if it does not
+exist, an error occurs.
+.LI -w
+The file is opened for writing (any previous contents
+of the file are lost); if it does not
+exist, it is created.
+.LI -w+
+The file is opened for reading and writing (any previous contents
+of the file are lost); if it does not
+exist, it is created.
+.LI -a
+The file is opened for appending (writes to the file
+are added to the previous file contents); if it does not
+exist, it is created.
+All writes are appended to the file (the
+.B fseek
+command has no effect).
+.LE
+
+The switches argument may be omitted; in such cases,
+the file is opened as though '-r' had been supplied.  However,
+if procedure tracing is enabled (see the description of the
+interactive and procedure command
+.B ptrace ),
+a warning message will be issued.
+
+The command sets $i0 = 0 if successful, else to the
+.B errno
+from the associated system call (refer to the 
+.B %errstr
+string function and/or /usr/include/sys/errno.h).
+.DS L
+Example:
+
+    fopen -r 1 '/etc/passwd'
+    fopen -w+ 2 '/tmp/123'
+    fopen -a 3 'tranact.log'
+.DE
+
+.*s 2 "fork"
+
+usage: fork 'cmd'
+
+This command starts the specified cmd as a background process.
+The integer variable $i0 received the new process ID
+or -1 if no process is started.
+
+Csh-style redirection is supported.
+
+.DS L
+Examples:
+
+    fork 'ls -lR / > /tmp/1'
+    ifi $i0 < 0 echo 'fork failed'; return
+    $i_forkpid = $i0
+    $i0 = 0
+    whilez $i0
+    {
+        do foregreound work
+        kill $i_forkpid 0 # set $i0 to -1 if process gone, else 0
+    }
+    use /tmp/1
+.DE
+
+.*s 2 "fputc"
+
+usage: fputc <filenum> <char>
+
+This command writes character <char> into <filenum>.
+The <filenum> argument is an
+integer file number representing a file opened with the
+.B fopen
+command.
+Argument <char> is a integer value of which the lower eight
+bits are used or a string value of which the first character is used.
+
+If a write error occurs, procedure execution is terminated.
+.DS L
+Examples:
+
+	fputc 1 32                    writes a space
+    $s0='abc'; fputc 1 $s0        writes 'a'
+.DE
+
+.*s 2 "fputs"
+
+usage: fputs [-n] <filenum> <str>
+
+This command writes the string <str> into <filenum>.
+The <filenum> argument is an
+integer file number representing a file opened with the
+.B fopen
+command.
+
+If the switch '-n' is omitted, a newline is appended after <str>
+in the file; if present, no newline is written.
+
+If a write error occurs, procedure execution is terminated.
+.DS L
+Example:
+
+    $s0='abc'; fputc 1 $s0          writes 'abc\n'
+    $s0='abc'; fputs -n 1 $s0       writes 'abc'
+.DE
+
+.*s 2 "fseek"
+
+usage: fseek <filenum> <position>
+
+This command sets the file position of <filenum> to <position>,
+an integer value.
+The corresponding integer function
+.B %ftell
+may be used to determine the current file position.
+
+.B Note :
+if <filenum> is open for append ('-a'), then the
+.B fseek
+command will have no effect.
+
+.'' .*s 2 "getf"
+.'' 
+.'' .DS L
+.'' usage: getf -x <int-var-spec> <offset>
+.'' 
+.'' where: -x ==
+.''    -b byte
+.''    -w word (little-endian)
+.''    -W word (big-endian)
+.''    -l 32-bits (little-endian)
+.''    -L 32-bits (big-endian)
+.'' .DE
+
+.*s 2 "gosub"
+
+usage: gosub <label>
+
+This command transfers control of procedure to a statement
+other than the one immediately following.  The <label>
+argument may be literal text or may be a string, allowing
+a "computed gosub" feature.
+
+When the next return statement is executed, control is
+returned to the 
+next statement after the gosub.
+
+.DS L
+Example:
+
+    gosub GET_NEXT
+    gosub 'GET_NEXT'
+    gosub 'GET'+'_NEXT'
+    $s0 = 'GET_NEXT'; gosub $s0
+    $s0 = 'NEXT'; gosub 'GET_'+$s0
+
+Note: all the above examples cause transfer to the label GET_NEXT.
+.DE
+.DS L
+A switch or case function of sorts may be implemented by something like:
+
+    #$i0 has been set to the "switch" value
+    ifi $i0 < 0 || $i0 > 2  # avoid gosub label not found
+    {
+        echo 'bad my_case state value'+%itos($i0)
+        DO SOMETHING LIKE DIE OR DUMP VARS AND DIE
+    }
+    $s0 = 'my_case_'+%itos($i0,03)
+    gosub $s0
+
+my_case_000
+    echo 'handle case 0'
+    return
+
+my_case_001
+    echo 'handle case 1'
+    return
+
+my_case_002
+    ifi $i_already_did_002
+    {
+        echo 'whoops'
+        return
+    }
+    echo 'handle case 2'
+    $i_already_did_002 = 1
+    return
+.DE
+
+.*s 2 "gosubb"
+
+usage: gosubb <label>
+
+This command serves the same function as the
+.B gosub
+command except the programmer is signifying that the label
+is
+.B b ehind
+the current statement, resulting in slightly faster execution.
+(The label is not REQUIRED to be at any specific location
+in the procedure relative to the
+.B gosubb
+statement.)
+
+.*s 2 "goto"
+
+usage: goto <label>
+
+This command transfers control of procedure to a statement
+other than the one immediately following.  The <label>
+argument may be literal text or may be a string, allowing
+a "computed goto" feature.
+.DS L
+Example:
+
+    goto GET_NEXT
+    goto 'GET_NEXT'
+    goto 'GET'+'_NEXT'
+    $s0 = 'GET_NEXT'; goto $s0
+    $s0 = 'NEXT'; goto 'GET_'+$s0
+.DE
+Note: all the above examples cause transfer to the label GET_NEXT.
+
+.*s 2 "gotob"
+
+usage: gotob <label>
+
+This command serves the same function as the
+.B goto
+command except the programmer is signifying that the label
+is
+.B b ehind
+the current statement, resulting in slightly faster execution.
+(The label is not REQUIRED to be at any specific location
+in the procedure relative to the
+.B gotob
+statement.)
+
+.*s 2 "hangup"
+
+usage: hangup
+
+This command causes Data Terminal Ready (DTR)
+to be dropped momentarily, causing (hopefully)
+the termination of any current connection
+to a remote system. 
+This command is only effective if the attached Data Communications
+Equipment is configured
+to terminate its connection on loss of DTR.
+
+If no line is attached, the command is ignored (a warning
+is generated if procedure tracing is enabled).
+
+.*s 2 "hexdump"
+
+.DS L
+usage: hexdump [-s] <str>
+       hexdump -t[s] <str1> <str>
+
+<str> buf to dump
+<str1> title (if -t)
+-s short (terse) dump
+.DE
+
+This command prints a hexadecimal dump of <str> on the screen
+(and to the procedure log file, if logging enabled with the
+.B ptrace
+command).
+
+The switch '-t' signifies that <str1> is a title to be printed
+.DS L
+Example:
+
+    $s0='The quick brown fox jumped over the lazy dog\e's back'
+    hexdump -t 'Example hex dump' $s0
+---------------------------- Example hex dump ----------------------------
+0000  54 68 65 20 71 75 69 63 6B 20 62 72 6F 77 6E 20 | The quick brown  |
+0010  66 6F 78 20 6A 75 6D 70 65 64 20 6F 76 65 72 20 | fox jumped over  |
+0020  74 68 65 20 6C 61 7A 79 20 64 6F 67 27 73 20 62 | the lazy dog's b |
+0030  61 63 6B                                        | ack              |
+.DE
+.DS L
+    hexdump %left($s0,9)
+0000  54 68 65 20 71 75 69 63 6B                      | The quick        |
+.DE
+.DS L
+    hexdump -ts 'Example hex dump' %left($s0,9)
+Example hex dump
+0000  54 68 65 20 71 75 69 63 6B | The quick |
+.DE
+.DS L
+    hexdump -s %left($s0,9)
+0000  54 68 65 20 71 75 69 63 6B | The quick |
+.DE
+
+.*s 2 "home"
+
+usage: home
+
+This command homes the video cursor.
+
+.*s 2 "icolor"
+
+usage: icolor <int-colors>
+
+This command sets the normal and reverse foreground
+and background colors according to <int-colors>, an integer
+value in the format as that returned by the
+.B %colors
+integer function.
+
+This command is provided primarily to be able to save the color
+state, modify it temporarily and then restore it.
+.DS L
+Example:
+
+    mkvar $icolor_save; $icolor_save = %colors
+    color red; echo 'Connection seems to be dead'
+    icolor $icolor_save # restore previous colors
+.DE
+
+.*s 2 "ifi"
+
+.DS L
+usage: ifi <int> <rel-op> <int> <statement>
+       ifi <int> <rel-op> <int>
+           <statement>
+       ifi <int> <rel-op> <int>
+       {
+           any kind or number of statements
+       }
+.DE
+
+This command selectively executes one or more statements
+based on a test of two integer quantities.  See the
+description of the
+.B break ,
+.B continue ,
+and
+.B else
+commmands for examples of how the command is used.
+
+.*s 2 "ifs"
+
+.DS L
+usage: ifs <str> <rel-op> <str> <statement>
+       ifs <int> <rel-op> <int>
+           <statement>
+       ifs <int> <rel-op> <int>
+       {
+           any kind or number of statements
+       }
+.DE
+
+This command selectively executes one or more statements
+based on a test of two string values.  See the
+description of the
+.B break ,
+.B continue ,
+and
+.B else
+commmands
+and many other examples throughout the document,
+for examples of how the command is used.
+
+.*s 2 "insline"
+
+usage: insline
+
+This command inserts a line onto the video screen at the current line.
+
+.*s 2 "kill"
+
+usage: kill <pid> [<signal>]
+
+This command performs the kill(2) function on a process
+and returns the system call status in integer variable $i0
+(-1 for success, 0 for success).
+
+The first argument must be an integer value reflecting
+the target process ID.  The optional second integer argument
+contains a signal number (default is SIGKILL, usually 15).
+
+As a special case, if the signal value is 0, an ESRCH
+error from kill(2) will be treated as no error.
+
+.*s 2 "lbreak"
+
+usage: lbreak
+
+This command transmits a break to the remote system.
+On asynchronous ports this is done with a "long space disconnect."
+On telnet, an Interrupt Process command is sent.
+It is the procedure command analogous to the
+.B break
+interactive command.
+
+If no line is attached, the command is in error
+and terminates the procedure.
+
+.*s 2 "lgets"
+
+.DS L
+usage: lgets [-er] <strvar> <t1-int> <t2-int> [<stop-str>]
+
+-e echo received characters to screen
+-r raw read (retain carriage returns)
+.DE
+
+This command reads a string from the attached communications
+line and places it into <strvar>.
+<t1-int> is the number of tenths of seconds before
+timing out waiting for the first character to be received.
+<t2-int> is the number of tenths of seconds before
+timing out on later characters.
+<stop-str> is an optional argument, which if received, immediately
+terminates the read.
+
+.*s 3 "Variables $i0 and $i1"
+
+Variables $i0 and $i1 are modified by lgets as follows:
+
+.DS L
+    $i0 is set to the count of characters received.
+
+    $i1 is zeroed upon execution of the lgets command
+    $i1 then receives 1 if you specified a <stop-str> and
+        it was read
+.DE
+
+.*s 3 "String Variable Restrictions"
+
+Most procedure commands will increase the size of an 
+unumbered string variable as needed until the maximum 
+string size is reached.
+The
+.B lgets
+command
+.I does
+.I not .
+With
+.B lgets ,
+you must use a string variable whose size
+is already of sufficient length.
+Normally, this is a moot point: most reads are short.
+Refer to the section on string variables
+above and the section describing the
+.B mkvar
+command below for information on the maximum size of string variables.
+
+If <strvar> is filled with characters
+before the <stop-str> has been encountered or before a timeout
+occurs, then the command returns with the <strvar> full
+and $i0 set to the maximum size of the variable.  
+
+.*s 2 "logevent"
+
+.DS L
+usage: logevent <str>
+.DE
+
+This command writes a log item to ~/.ecu/log.
+
+.DS L
+Example:
+
+    $s0='/tmp/alm.log'
+    log 'appending alarm info to '+$s0
+
+writes:
+10-02-1989-17:39-01261-PROC appending alarm info to /tmp/alm.log
+.DE
+assuming the transmitter process pid is 1261 and you are living in
+1989.
+.*s 2 "lookfor"
+
+.DS L
+lookfor [-e] [quiet | <str>] [<timeout-int>]
+
+-e echo to screen while "looking"
+.DE
+This command is used to read from the attached communications line
+until one of two user-specified conditions occurs.
+
+The 'quiet' option waits for the line to become
+quiet for the number of tenths of seconds specified  by <timeout-int>.
+
+The other option reads the line until <str> is read from the line
+or until <timeout-int> tenths of seconds elapses.  With this option,
+integer variable $i0 is set to 1 if <str> is found within the
+timeout period or 0 if not.
+
+.DS L
+Examples:
+
+    lookfor -e quiet 20   wait for quiet line for 2 secs
+    lookfor 'word:' 50    wait for 'word:' for up to 5 secs
+.DE
+.*s 2 "mkvar"
+.DS L
+usage: mkvar [$]i<name>
+       mkvar [$]s<name>(<size>)
+.DE
+
+This command creates one or more named (temporary)
+integer or string variables.
+The variable type is determined by the first character
+of the variable, which must be 'i' or 's'.  The size of a string
+variable must be specified via the <size> argument.  An optional '$'
+may be supplied for neatness, but may be omitted if desired.
+
+.*s 3 "Variable Names"
+
+The names for created (named, temporary) variables consist of
+a dollar sign ('$'), an 'i' for integer or 's' for string and
+up to fifteen characters from the set [A-Za-z0-9_].
+
+The first character after the 'i' or 's' in <name> 
+must be non-numeric.  '$sxyz' and '$s_3xyz' are legal, but '$s3xyz'
+is not (it would be interpreted as '$s3' followed by the illegal
+command sequence 'xyz').
+
+The <name> space for integer and string variables are separate.
+It is possible to have an integer variable named '$ixyz' and a string
+variable named '$sxyz'.  
+
+.*s 3 "Variable Life and Scope"
+
+The life and scope of created variables is for
+the duration of the execution
+of the creating procedure.  Procedures called
+by the creating procedure (by 'do') can reference
+temporary variables declared by a
+previous procedure.  When created, integer variables are set
+to zero and string variables are set to zero length.
+These features differ from numbered variables
+which retain their scope and values at all times, even when
+procedure execution terminates and ECU returns to interactive mode.
+
+Variables may be created by the same name more than once.
+The latest mkvar execution specifies the variable referenced.
+Thus if proc1 declares '$ixx' and calls proc2 which also declares '$ixx',
+proc2's variable is distinct from proc1's and disappears when proc2
+terminates, thus making proc1's available to it again, containing
+the same value as it had at the time proc2 was called.
+
+.*s 3 "String Variable Size"
+
+The maximum value for <size> is 16384.
+Regardless of the size specified in the creation of a string
+variable, ECU will usually expand it's size as necessary up to the
+maximum.  Check the documentation for the operation you are
+performing; if there is no exception noted, ECU will expand
+the string maximum size as necessary.  For instance, the
+set command will grow a string as part of assignment.  However,
+the
+.B lgets
+command will not.
+
+.DS L
+Examples:
+
+    mkvar i_count
+    mkvar $i_count
+    mkvar s_20(20),s_80(80),i_timeout,$i_colors
+.DE
+
+.*s 2 "nap"
+
+usage: nap <int>
+       nap -m <int>
+
+This command suspends procedure execution for <int> tenths of
+seconds if 
+.B -m
+is not specified.
+If -m is used, execution is suspended for <int> milliseconds.
+Note: the actual period execution is suspended depends, as usual,
+on the scheduling load of the system.  For small -m values, be aware
+that the granularity of the nap duration is set by the system,
+20 milliseconds for XENIX 286 and 386, 10 milliseconds for UNIX.
+
+If you need to know the frequency of the system clock,
+something like
+.DS L
+      $i0 = %stoi(%getenv("HZ"))
+.DE
+will obtain the value for you (provided HZ is in the process' environment).
+.DS L
+Examples:
+
+    nap 30
+    nap $i0*$i2
+    nap -m 50
+.DE
+
+.*s 2 "nice"
+
+usage: nice <int>
+
+This command sets the nice value of the process.  It behaves
+exactly like the nice(S) or nice(2) system call. The <int> argument
+must be in the range 0 through 39, inclusive.  If the call
+fails, a warning is printed and the procedure continues to
+execute.  The current nice value may be obtained using the
+.B %nice
+integer function.  See also the description of the
+.B nice
+interactive command. 
+
+.*s 2 "parity"
+
+.DS L
+usage: parity [even | odd | none]
+       parity <str>
+.DE
+
+This command sets the parity for the attached communications line.
+If <str> is supplied, the first character must be 'e', 'o' or 'n'.
+Uppercase equivalents are also accepted.
+
+If a line is attached (open), the change takes place immediately.
+If no line is attached, the setting is saved until
+a line is attached.
+
+.DS L
+Examples:
+
+    parity even
+    parity 'e'
+    parity 'Even now as we speak'
+.DE
+
+.*s 2 "pclose"
+
+usage: pclose <filenum>
+
+This command should be issued when a command started by the
+interactive
+.B popen
+command completes.
+
+.*s 2 "plog"
+
+.DS L
+usage: plog
+       plog <str>
+       plog off
+.DE
+
+This command controls logging to a file of the screen output during
+procedure execution.  With no argument, the command displays the status
+of logging.  <str> specifies a log file pathname, while the 'off'
+argument turns logging off.
+
+If procedure execution terminates due to an error, procedure logging
+is turned off.  However, if procedure execution terminates
+normally while logging is active, erratic and unpredictable portions
+of interactive mode screen output will continue to be logged to
+the current log file.
+
+The interactive mode command
+.B plog
+may also be used to control procedure logging.
+.DS L
+Example:
+
+    mkvar s_logname(128)
+    $s_logname = %dir+'logname'
+    plog $s_logname
+    echo 'Test'
+    plog off;cd 'somewhere_else';plog $s_logname
+    echo 'Test'
+.DE
+
+.*s 2 "popd"
+
+.DS L
+usage: popd [ | <#> | all]
+.DE
+
+This command returns to a previous directory after a
+.B pushd
+command has been previously executed.
+
+If no argument is supplied, the directory at the immediately previous
+level is restored.  
+
+If a numeric argument is supplied, the directory
+at the specified level is restored; the level numbers may be obtained by
+issuing a
+.B pushd
+command with no arguments.
+
+If the 'all' argument is supplied, it is treated as a numeric argument of 0;
+that is the directory stack is cleared and the directory at level 0 is
+restored.
+
+The directory stack is shared between interactive and procedure
+commands.  Neither beginning nor ending a procedure affects the
+directory stack level.
+
+.DS L
+Examples:
+   popd
+   popd 3
+   popd all
+.DE
+
+.*s 2 "popen"
+
+usage: popen [-switches] <filenum> <command>
+
+This command executes a shell command defined by the string argument <command>
+and associates it with the user-chosen file number <filenum> (which
+must be an integer value between 0 and 4, inclusive).
+
+The argument switches govern whether the command is
+to receive input from ECU or output to ECU and must be chosen
+from this list:
+.VL 15 4
+.LI -r
+The command will output to ECU.
+.LI -w
+The command will receive input from ECU.
+.LE
+
+The switches argument may be omitted; in such cases,
+the file is opened as though '-r' had been supplied.  However,
+if procedure tracing is enabled (see the description of the
+interactive and procedure command
+.B ptrace ),
+a warning message will be issued.
+
+The command sets $i0 = 0 if successful, else to the
+.B errno
+from the associated system call (refer to the 
+.B %errstr
+string function and/or /usr/include/sys/errno.h).
+.DS L
+Example:
+
+    popen 0 -r 'ls -l *.log'
+    popen 1 -w 'cat | sort > /tmp/sorted'
+.DE
+
+
+.*s 2 "prompt"
+
+usage: prompt <str>
+
+This command allows selection of an alternate prompt to the interactive
+mode HOME command trigger.
+Refer to the section titled "ECUPROMPT"
+for more information on the interactive mode prompt.
+
+Note: the interactive and procedure
+.B hangup
+commands both cause the default prompt to be reestablished.
+
+.DS L
+Example:
+
+     prompt %rname+' >'    use remote name in prompt
+.DE
+
+.*s 2 "ptrace"
+
+.DS L
+usage: ptrace [ <str> | off ]
+.DE
+
+This command controls procedure execution tracing.  Trace
+output is written to the screen and varys in its nature depending upon
+the command being traced.  Specifically, any change to a string or
+integer variable is noted.  If tracing is enabled, the output will also
+be written to any active procedure log file (see the
+.B plog
+interactive and procedure commands).
+
+The majority of procedure tracing features use the current trace
+state as a binary condition.  That is, either tracing is done
+or not.  However, the procedure command
+.B expresp
+emits varying levels of debugging output in a manner similar to
+the uucico -x flag.
+
+.*s 2 "pushd"
+
+.DS L
+usage: pushd [ | <dir>]
+.DE
+
+This command either 1) saves the current directory pathname on
+a stack and establishes a new current directory or
+2) displays the current stack and current directory.
+The stack size is 10.
+
+If no argument is supplied, the directory stack is displayed.
+
+The directory stack is shared between interactive and procedure
+commands.  Neither beginning nor ending a procedure affects the
+directory stack level.
+
+.DS L
+Examples:
+   pushd
+   pushd '/tmp'
+.DE
+
+.*s 2 "putf"
+
+Not yet implemented.
+
+.*s 2 "return"
+
+usage: return [<int>]
+
+This command serves two functions: to return from a gosub to or
+return from a procedure execution.  If <int> is supplied, it must be in the
+range 0 to 255.  Other values result in a return value of 255.
+
+If no gosub is active,
+.B return
+causes the currently executing procedure to terminate,
+returning either to a calling procedure or to the interactive mode.
+If <int> is supplied and it's value is nonzero, then all procedure execution is
+terminated and the integer status is printed
+on the screen along with the name of the executing procedure.
+
+If a gosub is active,
+.B return
+or
+.B return
+0 causes control to return to the statement immediately following the
+.B gosub
+which invoked the subroutine.
+If <int> is supplied and it's value is nonzero, then all procedure execution is
+terminated and the integer status is printed
+on the screen along with the name of the executing procedure.
+
+It is not possible to terminate a procedure with normal status from
+within a subroutine.
+
+.DS L
+Example:
+
+#---------------------
+# gosub.ep
+#---------------------
+    echo 'main'; gosub SUB; echo 'back to main'
+    return
+
+SUB
+    echo 'sub'
+    gosub SUB2
+    echo 'back to sub'
+    return
+
+
+SUB2
+    echo 'sub2'
+    return
+
+.DE
+
+.*s 2 "rk"
+
+usage: rk [-a]
+
+This command invokes C-Kermit to
+receive
+files. ECU searches the PATH list for 'kermit' or 'ckermit',
+expecting to find Columbia University C-Kermit version 5A(173)
+or later.  The file ~/.kermrc must be set up to have any desired
+initialization parameters you desire (refer to C-Kermit
+documentation for more information).
+The remote protocol must have been started prior to the
+execution of this command.
+
+WARNING: until further notice, avoid suspending Kermit
+with ^\Z.  ECU is totally unprepared to act as a job control
+process group leader.
+
+If switch '-a'
+is omitted, the received files are stored as received; otherwise
+carriage return/linefeed pairs are converted to newlines.
+
+.*s 2 "rlog"
+
+.DS L
+usage: rlog [-srf] <str>
+       rlog 'off'
+.DE
+
+This command controls receiver logging.  It's function is the same as
+the interactive
+.B log
+command.
+
+The first form of the command enables logging. The
+.B -s
+switch causes the file to be
+.B s cratched
+when it is opened (otherwise the file is opened for append).  The
+.B -r
+switch causes raw logging, else filter logging is performed.  The
+.B -f
+switch causes the log file to be flushed  each time it is written to
+(unbuffered I/O); this switch is useful if you are logging to
+a terminal or hard copy device and wish to see output as soon as it
+is produced.
+
+.*s 2 "rname"
+
+usage: rname <str>
+
+Normally, the %rname string function returns the same string
+as the logical dialing directory entry.  This command allows
+the default value to be overridden with a user-selected
+value (63-character maximum).
+
+This feature is useful in situations where one system is initially
+dialed, but a connection is made to yet another system from the dialed
+system via networking.
+
+.*s 2 "rtscts"
+.DS L
+usage: rtscts [ off | on | no | yes | 0..7 ]
+.DE
+
+This command controls the RTS/CTS flow control feature of
+the line driver (which may or may not work).
+This is a very confusing area though it should not be.
+
+If no argument is supplied, the current setting is
+displayed.  Specifying 0 or n disables the facility;
+1 or y causes RTS/CTS flow control to be enabled.
+
+If a line is attached (open), the change takes place immediately.
+If no line is attached, the setting is saved until
+a line is attached.
+
+What the command does is to manipulate the RTSFLOW and CTSFLOW
+bits of the termio c_cflag word (see 
+.B termio(S) ).
+
+SCO's sio driver before UNIX 3.2v4/ODT 2.0
+does half duplex flow control.
+FAS does hardware flow control based on the device magic
+number, but if you use a device number specifying no hardware flow
+control, RTSFLOW and CTSFLOW can be used to specify SCO-style flow
+control.
+CRTSFL offers full duplex line control
+on 3.2v4 and later ONLY for SCO's sio driver.
+
+.DS I
+ arg | RTSFLOW | CTSFLOW    arg | RTSFLOW | CTSFLOW | CRTSFL
+-----+---------+---------  -----+---------+---------+--------
+ off |   0     |   0         0  |   0     |   0     |
+ on  |   0     |   1         1  |   0     |   1     |
+ no  |   0     |   0         2  |   1     |   0     |
+ yes |   0     |   1         3  |   1     |   1     |
+                             4  |   0     |   0     |   1
+.DE
+Choice 4 only works on SCO 3.2v4 and ODT 2.0.
+As you can see, numeric values are masks.
+If the 4 bit is present in the numeric value, it
+overrides the lower-order bits:  Specifying 7 as an argument
+specifies CRTSFL is to be used if it is supported, otherwise
+RTSFLOW and CTSFLOW.
+
+Under System V Release 4, an TCGETX/TCSETX manipulation
+is performed, modifying the x_hflag bits as follows:
+.DS I
+argument | RTSXOFF | CTSXON    argument | RTSXOFF | CTSXON 
+---------+---------+---------  ---------+---------+---------
+  off    |   0     |   0         0      |   0     |   0
+  on     |   0     |   1         1      |   0     |   1
+  no     |   0     |   0         2      |   1     |   0
+  yes    |   0     |   1         3      |   1     |   1
+.DE
+Under SunOS 4.1, only CTS support is provided.  You should read
+the termio and zs man pages.  Arguments result in the stated
+manipulations of the termio element c_cflag:
+.DS I
+argument | CRTSCTS    argument | CRTSCTS
+---------+---------  ----------+---------
+  off    |   0           0     |   0
+  on     |   1           1     |   1
+  no     |   0     
+  yes    |   1    
+.DE
+
+.DS L
+Examples:
+
+    ifi %baud >= 9600
+        rtscts 7 | use CRTSFL if available, otherwise whatever
+.DE
+
+.*s 2 "rx"
+
+usage: rx [-a] <str>
+
+This command invokes the XMODEM file receive protocol
+to receive file <str>.  If switch '-a'
+is omitted, the received file is stored as received; otherwise
+carriage return/linefeed pairs are converted to newlines.
+The remote sender must have been started prior to the
+execution of this command.
+
+.*s 2 "ry"
+
+usage: ry
+
+This command invokes the YMODEM Batch (not to be confused with
+XMODEM-1K) protocol to receive files from a remote system.  The remote
+sender must have been started prior to the execution of this command.
+
+.*s 2 "rz"
+
+usage: rz
+
+This command receives files with ZMODEM/CRC-32.
+The remote sender must have been started prior to the
+execution of this command.  
+Automatic ZMODEM frame detection is NOT supported during
+procedure execution.
+
+.*s 2 "scrdump"
+
+usage: scrdump [<str>]
+
+This command causes the current screen contents to be
+stored in a file.  If <str> is supplied, it is used as a pathname.
+If <str> is not supplied, "~/.ecu/screen.dump".
+The actions of the interactive
+.B sdname
+command have no effect on the execution of this command.
+
+See the section titled "Screen Dump" for more information.
+The subsection titled "Multiscreen and Non-Multiscreen" will be
+of particular interest when using screen dumps in an
+automated environment.
+
+.*s 2 "send"
+
+usage: send [-n] <str>
+
+This command sends <str> to the communications line.  If the '-n'
+switch is omitted, a carriage return (0x0D) is transmitted after <str>.
+If '-n' is supplied, no carriage return is transmitted.
+
+.DS L
+Examples:
+
+    send 'ps -au'
+    send -n %chr(0x02)+'START'+%chr(0x03)
+.DE
+
+.*s 2 "set"
+
+.DS L
+usage: set [$]i<name>=<int-expression>[, ...]
+       set [$]s<name>=<str-expression>[, ...]
+       set [$]i<name>++[, ...]
+       set [$]i<name>--[, ...]
+.DE
+
+This command either 1) sets an integer or string variable
+to an expression or 2) increments or decrements
+an integer variable.
+
+The 'set' verb may be omitted provided the
+otherwise optional '$' is supplied.  There are many examples of
+how the set statement is performed throughout this document.
+The examples here are to further clarify the statement's syntax.
+
+If the '=<expression>' is omitted, the value of the variable is
+displayed (useful when debugging).   If procedure tracing is
+enabled with the
+.B ptrace
+command, all variables referenced by the
+.B set
+command, whether a value is assigned or not, are displayed.
+
+.DS L
+Examples:
+
+    set i0=0
+    set $s0='brown',s1='The quick '+$s0+' fox'
+    set $S0              with no '=', displays contents
+    set i0,$i1,s0='abc',s1
+    $s0 = 'abc'          legal
+    set s0='abc'         legal
+    s0 = 'abc'           illegal
+
+    set $i0++            increments $i0
+    set i0++             increments $i0
+    $i0++                increments $i0
+    $i0--                decrements $i0
+.DE
+.*s 2 "setline"
+
+.DS L
+usage: setline <filename>
+.DE
+This command is an exact analog of the -l command line switch.
+<filename> is used on the setup screen (if it is presented)
+as the default filename. If you do not edit this name, ECU will
+attempt to open the line when you press End or ^D. 
+<filename> has the format of a complete pathanme in /dev or simple
+tty name. 
+
+.B setline
+may only be used in _rc.ep.  Using the
+.B setline
+command with the
+.B baud
+command gives you programatic control over the actual
+choice of the line and rate or the defaults for the setup screen,
+depending upon other options.
+
+NOTE: using the setline command will override any command line -l
+specification.
+
+NOTE: For important considerations on line choice, see the
+ECU manual sections titled "Choosing a Dialout Line" and "DCDwatch".
+
+.DS L
+Example:
+  setline '/dev/tty1a'
+  setline 'tty1a'
+  setline 'cua0'
+.DE
+.*s 2 "sk"
+
+usage: sk [-a] <str>
+
+This command invokes C-Kermit to
+send
+files. ECU searches the PATH list for 'kermit' or 'ckermit',
+expecting to find Columbia University C-Kermit version 5A(173)
+or later.  The file ~/.kermrc must be set up to have any desired
+initialization parameters you desire (refer to C-Kermit
+documentation for more information).
+The remote protocol must have been started prior to the
+execution of this command.
+
+WARNING: until further notice, avoid suspending Kermit
+with ^\Z.  ECU is totally unprepared to act as a job control
+process group leader.
+
+If switch '-a' is supplied,
+newlines are converted to carriage return/linefeed pairs.
+If '-a' is omitted, the file(s) are transmitted without modification.
+
+Integer variable $i0 receives the exit status from the transfer.  If 0,
+transfer was normal.
+Note:
+procedure execution IS terminated by a SIGINT to the spawned file
+transfer process.  This is different than for versions prior to 3.10.
+If $i0 is set to -1, the file transfer program did not begin.
+
+.*s 2 "sx"
+
+usage: sx [-ak[l]] [<label-str>] <filename-str>
+
+This command invokes the XMODEM or XMODEM-1K file transfer protocol
+to send a file.  If '-k' is supplied, XMODEM-1K is used, else XMODEM.
+If switch '-a' is supplied,
+newlines are converted to carriage return/linefeed pairs.
+If '-a' is omitted, the file(s) are transmitted without modification.
+If '-l' is supplied, then <label-str> specifies a string to
+display on the bottom of the file transfer screen.  If '-l' is
+omitted, then <label_str> must also be omitted.
+
+Integer variable $i0 receives the exit status from the transfer. If 0,
+transfer was normal.
+Note:
+procedure execution IS terminated by a SIGINT to the spawned file
+transfer process.  This is different than for versions prior to 3.10.
+If $i0 is set to -1, the file transfer program did not begin.
+
+.DS L
+Examples:
+
+    sx -al 'sending log file' '/tmp/log.file'
+    sx -
+.DE
+
+.*s 2 "sy"
+
+usage: sy [-a[l]] [<label-str>] <filelist-str>
+
+This command invokes the YMODEM Batch (not 
+to be confused with XMODEM-1K) file transfer protocol
+to send one or more files. 
+
+If switch '-a' is supplied,
+newlines are converted to carriage return/linefeed pairs.
+If '-a' is omitted, the file(s) are transmitted without modification.
+If '-l' is supplied, then <label-str> specifies a string to
+display on the bottom of the file transfer screen.  If '-l' is
+omitted, then <label_str> must also be omitted.
+
+Integer variable $i0 receives the exit status from the transfer. If 0,
+transfer was normal.
+Note:
+procedure execution IS terminated by a SIGINT to the spawned file
+transfer process.  This is different than for versions prior to 3.10.
+If $i0 is set to -1, the file transfer program did not begin.
+
+.*s 2 "system"
+
+usage: system [-ls] <cmdstr>
+
+<cmdstr> is passed to the Bourne shell.
+
+If switch '-l', is supplied, the attached communications line 
+becomes the stdin and stdout for the command.
+
+If switch '-s', is supplied, all ECU file descriptors remain
+open.  The -s option is important to include if you pass the
+ECU line file descriptor to another process.
+
+Integer variable $i0 is set to
+the spawned process' exit status if the process exits "normally",
+or 0x100 if the process is killed, dumps core or interrupted.
+
+Note:  procedure execution is NOT terminated by a SIGINT to
+the spawned process.  It is the responsibility of the procedure
+to process the exit status returned in $i0.
+If $i0 is set to -1, the file transfer program did not begin.
+
+.DS L
+Examples:
+
+    $s2 = '/tmp/ecu'+%itos(%pid,05)
+    system ' fgrep foo bar > '+$s2
+
+    system -s '/etc/NBSsetclk -i '+%itos(%conn)
+.DE
+
+.*s 2 "sz"
+
+usage: sz [-anf[l]r] [<label-str>] <filelist-str>
+
+This command sends files using ZMODEM/CRC-32.
+The remote protocol must have been started prior to the
+execution of this command unless the remote has automatic
+ZMODEM frame detection.
+
+Switch '-a' specifies an ASCII transfer; the default is binary.
+
+Switch '-f'  causes the full pathname of each file to be sent;
+otherwise, the simple filename is transmitted.
+
+Switch '-l' with the <label-str> argument specifies a string to
+display on the bottom of the file transfer screen.  If '-l' is
+omitted, then <label_str> must also be omitted.
+
+Switch '-n' causes the receiver to accept files which do not
+already exist at the remote system or which have older
+times of  last access than that at the sending system.
+Not all remote protocol software will accept or obey this option.
+
+Switch '-r' causes an interrupted file transfer to be resumed.
+If the remote receiver supports the ZMODEM protocol feature.
+
+Integer variable $i0 receives the exit status from the transfer. 
+If 0, transfer was normal.  Other $i0 values possible:
+.DS L
+  1-126:   count of files not transmitted (see ~/.ecu/log)
+  127:     127 or more files not transmitted (see ~/.ecu/log)
+.DE
+Other ecusz error codes are shown here for refernce, but
+they are converted by ECU to printed messages and result in procedure
+termination.
+.DS L
+  128-192: process terminated with signal==code-128
+           signal 0 == program logic error
+  253:     could not open any files
+  254:     protocol failed (bad line conditions,brain dead remote)
+  255:     usage
+.DE
+
+Note:
+procedure execution IS terminated by a SIGINT to the spawned file
+transfer process.  This is different than for versions prior to 3.10.
+If $i0 is set to -1, the file transfer program did not begin.
+
+.*s 2 "telopt"
+.DS L
+Usage: telopt [off | on | ]
+.DE
+
+If configured for it, ECU can make internet (telnet) connections.
+When in one, telnet options are exchanged between ECU and
+the remote telnetd.
+This command controls or displays whether or not ECU
+displays visible evidence of such traffic.  By default, this
+feature is turned off.
+
+The startup -z switch also turns on this feature.
+
+.*s 2 "vidcolor"
+
+usage: vidcolor <type> <fcolor> [<bcolor>]
+
+This command allows control over the internal color choices
+ECU makes.  <type> must be one of the following:
+
+.DS I
+normal   - normal video color
+reverse  - reverse video color
+notify   - color used for low key notifications such as
+           "[interactive mode]" and "[procedure finished]"
+success  - color used for modem CONNECT messages and other
+           "success" notifications
+alert    - color used to alert user for warning or caution
+           purposes
+error    - color used to display error status or messages
+.DE
+
+<fcolor> and <bcolor> are color names as described in the description of the
+.B color
+command. <fcolor> choses the foreground color and must be supplied.
+<bcolor> choses the background color and is optional; if not supplied,
+the background color is black.
+
+Note: The vidcolor normal and reverse options are analogs of the
+.B color
+and
+.B
+color -r
+.R
+command.
+
+.DS L
+Examples:  (showing ECU default internal color list)
+
+    vidcolor normal lt_green 
+    vidcolor reverse red white
+    vidcolor notify gray
+    vidcolor success lt_green 
+    vidcolor alert yellow 
+    vidcolor error red 
+.DE
+
+.*s 2 "vidnorm"
+
+usage: vidnorm
+
+This command causes later screen output to appear in the
+normal, as opposed to reverse video mode.
+The
+.B color
+command forces normal video mode.
+
+.*s 2 "vidrev"
+
+usage: vidrev
+
+This command causes later screen output to appear in the
+reverse, as opposed to normal video mode.
+The
+.B color
+command forces normal video mode.
+
+.*s 2 "whilei"
+
+.DS L
+usage: whilei <int> <rel-op> <int> <statement>
+       whilei <int> <rel-op> <int>
+           <statement>
+       whilei <int> <rel-op> <int>
+       {
+           any kind or number of statements
+           (labels are not allowed inside braces)
+       }
+.DE
+
+This command executes a loop one or more statements
+based on a test of two integer quantities.
+The <rel-op> argument is descibed in a earlier subsection
+titled "Relational Operators."
+See the
+description of the
+.B break ,
+.B continue ,
+and
+.B else
+commmands
+and many other examples throughout the document,
+for examples of how the command is used.
+
+.*s 2 "whilenz"
+
+.DS L
+usage: whilenz <int>
+       whilenz <int>
+           <statement>
+       whilenz <int>
+       {
+           any kind or number of statements
+           (labels are not allowed inside braces)
+       }
+.DE
+
+.*s 2 "whiles"
+
+.DS L
+usage: whiles <str> <rel-op> <str> <statement>
+       whiles <int> <rel-op> <int>
+           <statement>
+       whiles <int> <rel-op> <int>
+       {
+           any kind or number of statements
+           (labels are not allowed inside braces)
+       }
+.DE
+
+This command executes a loop of one or more statements
+based on a test of two string values.  
+The <rel-op> argument is descibed in a earlier subsection
+titled "Relational Operators."
+See the
+description of the
+.B break ,
+.B continue ,
+and
+.B else
+commmands
+and many other examples throughout the document,
+for examples of how the command is used.
+.*s 2 "xon"
+
+.DS L
+usage: xon <arg>
+where <arg> is on    input and output flow control
+               off   no flow control
+               in    input flow control
+               out   output flow control
+.DE
+
+This command enables or disables xon/xoff flow control.
+
+.DS L
+Examples:
+
+    hangup
+    dial 'mysys'
+    ifi %conn != 0 parity none;xon on
+.DE

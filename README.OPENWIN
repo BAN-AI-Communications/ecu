@@ -1,0 +1,55 @@
+If you are using Open Windows on a Sparc, try these hints:
+
+Date: Tue, 28 Apr 92 16:41:42 EDT
+From: ifsbd!cma (Mark Ashton)
+To: n4hgf!wht
+Subject: Key mapping for ecu in Openwin shelltool
+
+Create a ~/.ttyswrc file containing the following:
+
+mapi R7 \E[H
+mapi R9 \E[I
+mapi R11 \E[E
+mapi R13 \E[F
+mapi R15 \E[G
+mapi F1 \E[M
+mapi F2 \E[N
+mapi F3 \E[O
+mapi F4 \E[P
+mapi F5 \E[Q
+mapi F6 \E[R
+mapi F7 \E[S
+mapi F8 \E[T
+mapi F9 \E[U
+mapi F10 \E[V
+mapi F11 \E[W
+mapi F12 \E[X
+
+See the shelltool man page for mention of .ttyswrc
+
+Then, add 'sun-cmd' to the ansi funckeymap
+
+    F1:F1:          esc [ M 
+    F2:F2:          esc [ N 
+    F3:F3:          esc [ O 
+    F4:F4:          esc [ P 
+    F5:F5:          esc [ Q 
+    F6:F6:          esc [ R 
+    F7:F7:          esc [ S 
+    F8:F8:          esc [ T 
+    F9:F9:          esc [ U 
+    F10:F10:        esc [ V 
+    F11:F11:        esc [ W 
+    F12:F12:        esc [ X 
+    Home:Home:      esc [ H 
+    End:End:        esc [ F 
+    PgUp:PgUp:      esc [ I 
+    PgDn:PgDn:      esc [ G 
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+    CU5:CU5:        esc [ E 
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ L
+    BkTab:BackTab:  esc [ Z
+

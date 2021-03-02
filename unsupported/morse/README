@@ -1,0 +1,23 @@
+This is a driver that works for SCO UNIX V/386 that produces morse code.
+It is based on a speaker driver I got from usenet.
+
+To install
+----------
+As root, make install
+You must remake the kernel environment when asked, then reboot
+
+To test
+-------
+As non-root: make
+testmorse is a sound show
+usemorse copies from the keyboard to the speaker
+
+You can also:
+cat>/dev/morse
+-or-
+fopen("/dev/morse","w");
+fputs("text",fp);
+
+----------------------------------------------------------------------------
+Warren Tucker                     emory!n4hgf!wht or wht@n4hgf.Mt-Park.GA.US
+"I was 35 years old before I knew a pie was meant to be eaten." - Moe Howard

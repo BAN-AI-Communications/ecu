@@ -1,0 +1,103 @@
+#  CHK=0xFF6D
+#+---------------------------------------------------------------
+# Makefile for helpgen (ecu help system)
+#----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:09-04-1995-19:12-wht@n4hgf-prettify install since now part of iecu
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:07-25-1991-12:58-wht@n4hgf-ECU release 3.10
+#:04-21-1991-13:31-wht@n4hgf-convert to Make.src
+
+SHELL = /bin/sh
+PROGRAM = helpgen
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h .src .data
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+
+SRC	= \
+	$(PROGRAM).c\
+	util.c
+
+OBJ	= \
+	$(PROGRAM).o\
+	util.o
+
+all: $(PROGRAM) ecuhelp.data # ecuhelp.doc
+
+$(PROGRAM): $(OBJ)
+	$(BINTIME) $(CC) $(LDFLAGS) $(OBJ) $(LIBS) -o $(PROGRAM) 
+
+$(OBJ): Makefile
+
+ecuhelp.data: ecuhelp.src $(PROGRAM)
+	./$(PROGRAM) -b
+
+ecuhelp.doc: ecuhelp.src $(PROGRAM)
+	./$(PROGRAM) -d
+
+$(PROGRAM).fls: Makefile
+	ls $(SRC) >$(PROGRAM).fls
+
+install: $(PROGRAM) ecuhelp.data # ecuhelp.doc
+	@../makedirs -m 755 $(ECULIBDIR)
+	@rm -f  $(ECULIBDIR)/ecuhelp.data
+	@cp ecuhelp.data $(ECULIBDIR)/ecuhelp.data
+	@chown bin $(ECULIBDIR)/ecuhelp.data
+	@chgrp bin $(ECULIBDIR)/ecuhelp.data
+	@chmod 444 $(ECULIBDIR)/ecuhelp.data
+	@echo Installed
+	@ls -l $(ECULIBDIR)/ecuhelp.data
+
+neat:
+	rm -f .make.* depend.tmp eddep.tmp Makefile.new *.bak *.BAK
+	rm -f core tags cscope.out
+	-rm -f *~ *# *.orig *.rej make.log a.out
+
+clean: neat
+	rm -f $(OBJ)
+
+clobber: clean
+	rm -f $(PROGRAM) ecuhelp.data ecuhelp.doc
+
+#MSC -Zg is broken and even my kludge mechanism can't make this one
+#anymore.  Decommitted until some future day.
+#protos: $(PROGRAM).fls
+#	echo > protos.h
+#	csh ../zgcc $(PROGRAM).fls protos.h ..
+
+#
+# MAKE DEPEND: regenerate .c:.h, .ol:.c, .ol:.asm dependencies automatically
+#
+depend:
+	rm -f depend.tmp
+	grep '^#include' $(SRC) \
+	| sed \
+		-e '/</d'\
+		-e 's?:[^"]*"\([^"]*\)".*?: \1?'\
+		-e 's?\(.*\)\.c?\1.o?'\
+	 >> depend.tmp
+
+	echo '/^# DO NOT DELETE THIS LINE' >eddep.tmp
+	echo '.+1,$$d' >>eddep.tmp
+	echo 'r depend.tmp' >> eddep.tmp
+	echo 'w' >> eddep.tmp
+	cp Makefile Makefile.new
+	ed Makefile.new < eddep.tmp
+	rm eddep.tmp depend.tmp
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >>Makefile.new
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY'>>Makefile.new
+	echo '# see make depend above'>>Makefile.new
+	mv Makefile Makefile.bak
+	mv Makefile.new Makefile
+
+# DO NOT DELETE THIS LINE
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

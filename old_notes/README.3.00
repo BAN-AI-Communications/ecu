@@ -1,0 +1,25 @@
+NOTE TO PRE-REVISION-3 USERS:
+
+There have been *MANY* changes to ecu since revision 2.8.  It is
+worth re-reading this file and *at least* the table of contents of
+the manual to see what's changed.  No effort has been spared to
+remain compatible with the previous version, but some changes
+were necessary.
+
+Notably, your pre rev-3 ~/.ecu/phone file must have a special
+line added manually to the top of it: #ECUPHONE.  See
+models/phone for an example.
+
+In general:
+
+    $i0 = 5
+    whilei $i0 != 0
+    {
+        do 'read-new-man'
+        ifs %logname != 'confused'
+            break
+        $i0 = $i0 - 1
+    }
+    ifs %logname == 'confused'
+		system 'mail -s help wht@wht.net < flame.txt'
+

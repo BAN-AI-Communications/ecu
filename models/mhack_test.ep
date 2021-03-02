@@ -1,0 +1,28 @@
+#  CHK=0xEC1B
+#---------------------------------------------------------------------------
+#  mhack_test.ep - test %mhack while showing entertaining colors
+#  also useful to get a feeling for how fast the procedure language can be
+#---------------------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:03-16-1990-05:25-wht@n4hgf-requires ecu x2.64 or later
+
+	echo 'SIGINT to quit\n'
+	$i20 = %colors
+	$i21 = %colors & 0xFFFFF0FF
+	whilei 1==1
+	{
+		$i0 = %mhack
+		$i1 = $i0 & 0xF00
+		icolor $i21 | $i1
+		echo -n %itos($i0,8d)+%chr(0x0d)
+	}
+	echo ''
+	icolor $i20
+

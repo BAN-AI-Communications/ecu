@@ -1,0 +1,53 @@
+#  CHK=0xA2AF
+#------------------------------------------------------------
+#  ftst.ep - test ecu procedure file functions
+#------------------------------------------------------------
+
+ ptrace off         # turn off trace mode
+ fdel 'ftst.log'    # kill any previous file
+ plog 'ftst.log'    # turn on logging
+
+ echo ''
+ echo 'ftst '+%date+' '+%time
+ echo ''
+
+ ptrace on                  # turn on trace mode
+
+ set $s10 = '/tmp/ftst.tmp' # temp file name
+ fdel $s10                  # test proc trace warning
+ fopen -w 0 $s10            # open file 0 for write
+ set i0=%ftell(0)           # should produce 0
+ fputs 0 'abcdefghijk'      # put a line in the file
+ set i0=%ftell(0)           # should produce 12
+ fclose 0 n                 # close the file
+
+ fopen -r 0 $s10    # open again for reading
+ fgets 0 $s0        # should produce 'abcdefghijk'
+ fseek 0 0          # rewind to read again
+ fgets 0 $s0        # should produce 'abcdefghijk'
+ fgets 0 $s0        # should produce null string
+ set $i0=%fmode(0)  # test file mode function
+ fclose 0           # close the file
+
+ fchmod 'rw-rw-r-x' $s10 # set mode using string
+ set $i0=%fmode($s10)
+
+ fchmod 0777 $s10        # set mode using constant
+ set $i0=%fmode($s10)
+
+ ptrace off              # show file attributes
+ echo ''
+ echo -n $s10+' has '+%itos(%fsize($s10),06d)
+ echo    ' (0x'+%itos(%fsize($s10),x  )+') bytes'
+ echo 'accessed '+%edate(%fatime($s10))
+ echo 'modified '+%edate(%fmtime($s10))
+ echo ''
+ ptrace on
+
+ # demonstrate "is directory", "is character",
+ # "is regular file" functions
+ set i0=%isdir($s10),i1=%ischr($s10),i2=%isreg($s10)
+
+ fdel $s10 # should say 'deleted'
+ ptrace off
+ plog off

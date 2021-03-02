@@ -1,0 +1,18 @@
+A very few have reported problems with applying patches.  This
+is confusing, since I use a very strict procedure when making a patch.
+Every time I make a new patch, I always reapply each patch to a
+copy of the original release to make a base line for the new
+diff.
+
+3.10 --p1--> 3.11 --p2--> 3.12 --p3--> 3.15  \
+                                              --- diff -c --> p6
+                             3.16development /
+
+Then, I copy the 3.15 to a 3.15copy directory and apply the new patch 6
+to it.
+
+3.15copy --new p6--> 3.16suspect \
+                                  ------- diff -c --> should produce nothing
+                 3.16development /
+
+

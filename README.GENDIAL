@@ -1,0 +1,38 @@
+This is a schematic hint to delvers and hackers:
+
+Gendial UUCP dialers can be used by ECU alongside a non-SCO
+UUCP package by using extra Devices entries.  uucico continues
+to use Dialers facilities familiar to it.  ECU can use the
+more flexible/robust C programs.
+
+#/etc/uucp/Devices or wherever
+# normal entry
+ACU ttya - 19200 t3000
+# extra entry
+ECUt3000 ttya - 110-34000 /usr/local/lib/ecu/dialgT3000
+
+Then, use '=ECUt3000' instead of 'ttya' for the device
+
+.--[ dialing directory ]-- /u1/wht/.ecu/phone ---------------------------------.
+| entry name | telephone number | tty | baud P | description                   |
+| .......    | 1(...)...-....   |2b   |19200 N | ....... .... ......           |
+| al.--[ entry: cis-help ]---------------------------------------.             |
+| cc|                                                            |             |
+| ch| telephone number  1(800)848-4480V                          |             |
+| ch| device            =ECUt3000______                          |             |
+| ci| baud rate         9600                                     |..... ....   |
+| ci| parity            E                                        |...... ....  |
+| ci| description       CIS Help 74,74 + NETWORK                 |..... ....   |
+| ci| debug level       0  (dialer -x value 0-9)                 |. ...... ..  |
+| co| DCD watch         t                                        |..... ....   |
+| dr|                                                            |             |
+| em| Enter tty (e.g. 1a), Any or [=/]Devices-type               |             |
+| em| ESC: exit  END: finish  ^U: erase ^B: back  TAB: fwd       |             |
+| gs`------------------------------------------------------------'             |
+| ..         | ...-....         |Any  | 2400 E |                               |
++------------------------------------------------------------------------------+
+|                                                                              |
+|                                                                              |
+`------------------------------------------------------------------------------'
+
+

@@ -1,0 +1,34 @@
+#+----------------------------------------------------------------
+# ecu-ansi.tcap - ECU ANSI emulation termcap entry
+#
+# It is likely you will have to tweak this information for
+# your system.  Just getting it incorporated on some hosts
+# you call into can be a trick.  The ECU crew probably
+# cannot help you with this (hint, don't call us) because
+# the problem would be a system-dependent.  If we knew
+# the answer to all system-dependent problems, we would
+# probably utter "Let there be light".
+#
+# Particularly, you will need to modify the li#25 below
+# if you have other than 25 screen rows.
+#
+#-----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:07-03-1996-12:10-root@kepler-ic replaces erroneous ac
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:03-13-1994-18:53-wht@fep-creation
+
+ansi|ecu|ECU ANSI emulation\
+	li#25:co#80:\
+	am:bs:cd=\E[J:ce=\E[K:cl=\E[2J\E[H:cm=\E[%i%d;%dH:\
+	:al=\E[L:dl=\E[M:ic=\E[@:dc=\E[P:\
+	:do=\E[B:bt=\E[Z:ei=:ho=\E[H:ic=\E[@:im=:\
+	:nd=\E[C:pt:so=\E[7m:se=\E[m:us=\E[4m:ue=\E[m:up=\E[A:\
+	:k1=\E[M:k2=\E[N:k3=\E[O:k4=\E[P:k5=\E[Q:k6=\E[R:\
+	:k7=\E[S:k8=\E[T:k9=\E[U:k0=\E[V:\
+	:kb=^h:ku=\E[A:kd=\E[B:kl=\E[D:kr=\E[C:eo:sf=\E[S:sr=\E[T:\
+	:mb=\E[5m:md=\E[1m:me=\E[m:\

@@ -1,0 +1,30 @@
+
+NOTE TO PRE-REVISION-3.20 USERS:
+
+1. The functionality of the "nonansikeys" file is now provided by
+the "funckeymap" file.  Conversion may be as simple as renaming
+the file.  However, there are differences.
+
+  o You must have a ~/.ecu/funckeymap file (and/or one in the library
+    directory)
+
+  o There must be an entry for "ansi" if you are on SCO.
+    Previous versions handled SCO multiscreens internally.
+
+2. Termination of file transfers by SIGINT did not cause termination
+of procedure execution in pre-3.10 versions.  In this version, it does.
+
+3. Several files that previously had to reside in ~/.ecu now may have
+system wide defaults in the ECU library directory (/usr/local/lib/ecu).
+
+4. Starting with 3.20, all keyboards must have a funckeymap entry
+(see README.KEYBRD) matching the terminal type of the executing
+screen.  Previous versions assumed terminal type "ansi"
+indicated an SCO AT-attached keyboard as part of a multiscreen.
+Other terminal types required a similar entry in a file named
+nonansikeys.  Converting preexisting nonansikeys files to
+funckeymaps files can be accomplished by merely renaming the file.
+If you are an SCO user, you must also add one entry to the new file
+if it is not already there (the old models/nonansikeys did in
+fact contain the required entry).  See README.KEYBRD for further
+detail.

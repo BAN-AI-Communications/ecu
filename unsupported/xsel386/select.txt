@@ -1,0 +1,495 @@
+NOTE from ...!gatech!emory!tridom!wht:
+the following is the mail message I originally received; with
+a little tinkering, i got the select call to behave as advertised
+in the BSD manual (my xenix is 386 2.3).  Added it to /lib/386/Slibx.a
+and all is well for me.  Good luck.
+
+
+From emory!gatech!hubcap!ncrcae!ncr-sd!crash!elgar!ag Thu Feb  2 13:04:07 EST 1989
+Article 4851 of comp.unix.xenix:
+Path: tridom!emory!gatech!hubcap!ncrcae!ncr-sd!crash!elgar!ag
+>From: ag@elgar.UUCP (Keith Gabryelski)
+Newsgroups: comp.unix.xenix
+Subject: select() on SCO XENIX 2.3.
+Message-ID: <38@elgar.UUCP>
+Date: 24 Jan 89 04:54:17 GMT
+Reply-To: ag@elgar.UUCP (Keith Gabryelski)
+Organization: Elgar Corporation, San Diego, CA
+Lines: 474
+
+A few days ago I was paging through my SCO XENIX 2.3.1 Release Notes
+and found, on page 44 (section 16), a section describing 4BSD
+enhancements to the current release of SCO XENIX.
+
+select(S) was mentioned specifically.
+
+I checked the rest of the 2.3 manuals to see if there was a clue on
+how to access select(); no dice.  I tried my 2.2 dev sys libraries to
+see if it had been supported in previous releases and just not
+mentioned; negative.
+
+I decided to see if I could get select() to work on my system.  And
+that is what this article is about.
+
+I checked /xenix and found:
+
+	% nm xenix | grep select
+	nm: xenix: too many symbols to sort		# chuckle
+	0020:00015bec  T _select
+
+Bingo!  I also found <sys/select.h> (which has a comment about
+the select(2) system call. :-) ).
+
+When a system call is made in a C program on a Unix system (eg
+open(2)), it actually links in a file from libc.a (/lib/libc.a) (in
+this case `open.o') written in assembly that loads a register with a
+system call number and causes an exception to occur.  The `trap'
+instruction is used on the 68000, on a vax it's `chmk', and on a 370
+it's `svc'.  Control is transfered to the kernel which (in the case of
+this particular exception) will index the register into a table
+(called the sysent table) to get the address of the actual routine in
+kernel memory to call (_open).
+
+At least under SCO XENIX this algorithm is modified somewhat.
+
+When a system call is made in a C program on a SCO XENIX system (eg
+open(S)), it links in a file from libc.a (/lib/386/Slibc.a) (in this
+case `open.o') written in assembly that loads the register `eax' with
+a system call number and jumps to 7:0 which (a guess) is mapped to an
+instruction that switches into supervisory mode and jumps to the
+routine ioint (??) in the kernel address space.  The interrupt routine
+hands the system call number (along with the user given arguments) to
+_trap with figures out what to sysent table to use (there are a few
+under SCO XENIX) and does the right thing.
+
+The _open routine (in libc.a's open.o) would probably look something
+like:
+
+;
+; open - open a file for reading or writing
+;
+
+	title	open
+
+	.386
+
+SYSNUM	equ 	5			; open's system call number is `5'.
+extrn	_errno:dword
+
+public  _open
+
+_TEXT	segment  dword use32 public 'CODE'
+	assume   cs: _TEXT
+_open	proc near
+	mov	eax, SYSNUM		; Get system call number.
+
+	;
+	; I don't even pretend to understand masm syntax.  I tried
+	; the following line (and variations) without any success.
+	;
+
+;	call    far 7:0			; Switch to kernel and call SYSNUM.
+
+	;
+	; Don't laugh, it works.
+	;
+
+	db 9ah
+	dw 0,0
+	dw 7
+
+	jb	short _cerror		; below == error.
+
+	xor	eax, eax		; zero return value (no error).
+	ret				; done.
+
+_cerror:
+	mov	_errno, eax		; Save error code in _errno.
+	mov	eax, -1			; Return -1 (as error).
+	ret				; done.
+
+_open	endp
+
+_TEXT	ends
+
+	end
+
+Under SCO XENIX the sysent table (struct sysent in <sys/systm.h>) looks
+something like:
+
+struct sysent
+{
+    unsigned char  sy_ret;	 /* Type of return value (int, void ...) */
+    unsigned char  sy_arg386;	 /* Number of 386 words args on stack */
+    unsigned char  sy_nlarg286;	 /* # of 286 large model word args on stack */
+    unsigned char  sy_nmarg286;	 /* 286 Small Middle: max # of args */
+    unsigned	   sy_argmask;	 /* Argument types on stack. */
+	     int   (*sy_call)(); /* System call address in kernel */
+}
+
+sy_ret is the type return of the value this system call returns.  `0'
+seems to be INT and `6' is probably void.
+
+sy_arg386 is the number of words the arguments for this system call
+take on the stack.
+
+sy_nlarg286 and sy_nmarg286 are similar to sy_arg386 but used for
+doing 286 stuff.  I don't plan on mentioning the 286 stuff in this
+article that much, it just isn't interesting to me.
+
+sy_argmask is the type of args on the stack using the following table:
+
+NUM | SYMBOL  | 386 | 286L | EXPLANATION
+ 0  |         |     |      | Arg not used.
+ 1  | DATAP   |	 2  |  1   | Arg is a data pointer; seg + address
+ 2  | TEXTP   |	 2  |  1   | Arg is a text pointer; seg + address
+ 3  | CONST   |	 1  |  1   | Arg is an int-sized constant 
+ 4  | UCONST  |	 1  |  1   | Arg is an unsigned int-sized constant
+ 5  | LCONST  |  1  |  1   | Arg is a long-sized constant
+ 6  | FDATAP  |	 1  |  1   | Arg is FAR data pointer.
+ 7  | SODATAP |  2  |      | 386: 32-bit offset.
+    |         |     |  1   | 286: low word is 16 bit data pointer offset,
+    |         |	    |      |	  high word is 16 bit selector.
+ 8  | SOTEXTP |  2  |      | 386: 32-bit offset.
+    |         |     |  1   | 286: low word is 16 bit text pointer offset,
+    |         |	    |      |	  high word is 16 bit selector.
+
+Each nybble in sy_argmask represents one argument passed to the system
+call.  Bits 0-3 represent arg one; 4-7 arg two; 8-12 arg three; etc.
+A total of eight arguments (4 bits times 8 args = 32 bits in an int)
+can be passed to a function (although MASK, a macro used to make
+sysent's sy_argmask field is limited to six arguments).
+
+NUM is the number (put in each nybble) represented by the SYMBOL (in
+<sys/systm.h>) that corresponds to the arg type EXPLANATION and takes
+[386|286] (depending on the model you are using) words on the user
+stack.
+
+So, for the open() system call: sy_argmask is 0x00000331 and sy_arg386
+is 0x04.
+
+	open(char *path, int oflag, int mode);
+             ^^^^^^      ^^^        ^^^
+             DATAP       CONST      CONST
+
+sy_call is the pointer to the function in kernel memory that should
+handle this system call request.
+
+The sysent table on my system looks something like:
+
+Syscal Num | ret| 386| L  | SM |    Arg Types    | System Call 
+sysent:
+    00     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _nosys
+    01     | 00 | 02 | 01 | 05 | 0 0 0 0 0 0 0 1 | _rexit
+    02     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _fork	
+    03     | 00 | 04 | 03 | 03 | 0 0 0 0 0 4 1 3 | _read	
+    04     | 00 | 04 | 03 | 03 | 0 0 0 0 0 4 1 3 | _write
+    05     | 00 | 04 | 03 | 03 | 0 0 0 0 0 3 3 1 | _open	
+    06     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _close
+    07     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _wait	
+    08     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 1 | _creat	
+    09     | 00 | 04 | 02 | 03 | 0 0 0 0 0 0 1 1 | _link	
+    0a     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _unlink	
+    0b     | 00 | 04 | 02 | 03 | 0 0 0 0 0 0 1 1 | _exec
+    0c     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _chdir	
+    0d     | 00 | 00 | 00 | 05 | 0 0 0 0 0 0 0 0 | _gtime
+    0e     | 00 | 04 | 03 | 03 | 0 0 0 0 0 3 3 1 | _mknod       
+    0f     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 1 | _chmod       
+    10     | 00 | 04 | 03 | 03 | 0 0 0 0 0 3 3 1 | _chown       
+    11     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 7 | _brk
+    12     | 00 | 04 | 02 | 03 | 0 0 0 0 0 0 1 1 | _stat
+    13     | 00 | 04 | 03 | 05 | 0 0 0 0 0 3 5 3 | _seek 
+    14     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _getpid      
+    15     | 00 | 05 | 03 | 03 | 0 0 0 0 0 3 1 1 | _smount      
+    16     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _sumount     
+    17     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 4 | _setuid      
+    18     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _getuid      
+    19     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 5 | _stime       
+    1a     | 00 | 05 | 04 | 03 | 0 0 0 0 3 1 3 3 | _ptrace      
+    1b     | 00 | 01 | 01 | 04 | 0 0 0 0 0 0 0 3 | _alarm       
+    1c     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 1 3 | _fstat       
+    1d     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _pause       
+    1e     | 00 | 04 | 02 | 03 | 0 0 0 0 0 0 1 1 | _utime       
+    1f     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 1 3 | _stty        
+    20     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 1 3 | _gtty        
+    21     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 1 | _saccess     
+    22     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _nice        
+    23     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 |
+    24     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _sync        
+    25     | 00 | 02 | 02 | 03 | 0 0 0 0 0 0 3 3 | _kill        
+    26     | 00 | 00 | 01 | 00 | 0 0 0 0 0 0 0 0 |              
+    27     | 00 | 00 | 02 | 00 | 0 0 0 0 0 0 0 0 |              
+    28     | 00 | 00 | 03 | 00 | 0 0 0 0 0 0 0 0 |              
+    29     | 00 | 02 | 02 | 03 | 0 0 0 0 0 0 3 3 | _dup         
+    2a     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _pipe        
+    2b     | 00 | 02 | 01 | 05 | 0 0 0 0 0 0 0 1 | _times       
+    2c     | 06 | 08 | 05 | 03 | 0 0 0 1 4 8 4 1 | _profil      
+    2d     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _lock        
+    2e     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 4 | _setgid      
+    2f     | 00 | 00 | 00 | 03 | 0 0 0 0 0 0 0 0 | _getgid      
+    30     | 00 | 03 | 02 | 02 | 0 0 0 0 0 0 2 3 | _ssig        
+    31     | 00 | 00 | 01 | 03 | 0 0 0 0 0 0 0 3 | _msgsys      
+    32     | 06 | 07 | 04 | 03 | 0 0 0 0 5 5 1 3 | _sysi86      
+    33     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _sysacct     
+    34     | 00 | 00 | 01 | 06 | 0 0 0 0 0 0 0 3 | _shmsys      
+    35     | 00 | 00 | 01 | 03 | 0 0 0 0 0 0 0 3 | _semsys      
+    36     | 00 | 04 | 03 | 03 | 0 0 0 0 0 7 3 3 | _ioctl       
+    37     | 00 | 00 | 04 | 00 | 0 0 0 0 0 0 0 0 |              
+    38     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    39     | 00 | 00 | 05 | 00 | 0 0 0 0 0 0 0 0 |              
+    3a     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    3b     | 00 | 06 | 03 | 03 | 0 0 0 0 0 1 1 1 | _exece       
+    3c     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _umask       
+    3d     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _chroot      
+    3e     | 00 | 00 | 06 | 00 | 0 0 0 0 0 0 0 0 |              
+    3f     | 00 | 00 | 07 | 00 | 0 0 0 0 0 0 0 0 |              
+    40     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    41     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    42     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    43     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    44     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    45     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    46     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    47     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    48     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    49     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    4a     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    4b     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    4c     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    4d     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    4e     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    4f     | 00 | 00 | 08 | 00 | 0 0 0 0 0 0 0 0 |              
+    50     | 00 | 00 | 09 | 00 | 0 0 0 0 0 0 0 0 |              
+    51     | 00 | 04 | 03 | 03 | 0 0 0 0 0 4 1 3 | _getdents    
+    52     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    53     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    54     | 00 | 00 | 0a | 00 | 0 0 0 0 0 0 0 0 |              
+    55     | 00 | 06 | 04 | 03 | 0 0 0 0 3 1 1 3 | _getmsg      
+    56     | 00 | 06 | 04 | 03 | 0 0 0 0 3 1 1 3 | _putmsg      
+    57     | 00 | 05 | 03 | 03 | 0 0 0 0 0 3 5 1 | _poll        
+    58     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    59     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    5a     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    5b     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    5c     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    5d     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    5e     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    5f     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    60     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    61     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    62     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    63     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys       
+    64     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys
+    65     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    66     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    67     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    68     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    69     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    6a     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    6b     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    6c     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    6d     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    6e     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    6f     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    70     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    71     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    72     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    73     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    74     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    75     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    76     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    77     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    78     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    79     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    7a     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    7b     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    7c     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    7d     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    7e     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys      
+    7f     | 00 | 05 | 05 | 0a | 0 0 0 0 0 0 0 0 | _clocal     
+
+_v7sysent:
+
+    00     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 |
+    01     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _ftime   
+    02     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    03     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nullsys 
+    04     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    05     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    06     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    07     | 00 | 05 | 05 | 0a | 0 0 0 0 0 0 0 0 | _clocal  
+    08     | 00 | 00 | 00 | 08 | 0 0 0 0 0 0 0 0 | _cxenix  
+    09     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    0a     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    0b     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    
+_s3sysent:
+    01     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 |
+    02     | 00 | 06 | 04 | 03 | 0 0 0 0 3 3 1 1 | _statfs   
+    03     | 00 | 05 | 04 | 03 | 0 0 0 0 3 3 1 3 | _fstatfs  
+    04     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _setpgrp  
+    05     | 00 | 00 | 00 | 08 | 0 0 0 0 0 0 0 0 | _cxenix   
+    06     | 00 | 04 | 03 | 03 | 0 0 0 0 0 1 3 3 | _uadmin   
+    07     | 00 | 00 | 00 | 09 | 0 0 0 0 0 0 0 0 | _utssys   
+    08     | 00 | 03 | 03 | 03 | 0 0 0 0 0 3 3 3 | _fcntl    
+    09     | 00 | 03 | 02 | 05 | 0 0 0 0 0 0 5 3 | _ulimit   
+    0a     | 00 | 00 | 01 | 03 | 0 0 0 0 0 0 0 1 | _rmdir    
+    0b     | 00 | 00 | 02 | 03 | 0 0 0 0 0 0 3 1 | _mkdir    
+    0c     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys    
+    
+_svidsysent:
+
+    01     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 |
+    02     | 00 | 06 | 04 | 03 | 0 0 0 0 3 3 1 1 | _statfs  
+    03     | 00 | 05 | 04 | 03 | 0 0 0 0 3 3 1 3 | _fstatfs 
+    04     | 00 | 00 | 01 | 03 | 0 0 0 0 0 0 0 3 | _setpgrp 
+    05     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys   
+    06     | 00 | 00 | 03 | 03 | 0 0 0 0 0 1 3 3 | _uadmin  
+    07     | 00 | 00 | 00 | 09 | 0 0 0 0 0 0 0 0 | _utssys  
+    08     | 00 | 00 | 03 | 03 | 0 0 0 0 0 3 3 3 | _fcntl   
+    09     | 00 | 00 | 02 | 05 | 0 0 0 0 0 0 5 3 | _ulimit  
+    0a     | 00 | 00 | 01 | 03 | 0 0 0 0 0 0 0 1 | _rmdir   
+    0b     | 00 | 00 | 02 | 03 | 0 0 0 0 0 0 3 1 | _mkdir   
+    0c     | 00 | 00 | 03 | 03 | 0 0 0 0 0 0 0 0 | _nosys   
+
+_clentry: used for oem CLOCAL routines.  Empty on my system.
+
+_cxentry: used for SCO added stuff.
+
+    00     | 00 | 05 | 03 | 03 | 0 0 0 0 0 4 7 1 | _shutdown
+    01     | 00 | 04 | 03 | 03 | 0 0 0 0 0 7 3 3 | _locking
+    02     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 1 | _creatsem
+    03     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _opensem
+    04     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _sigsem
+    05     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _waitsem
+    06     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _nbwaitsem
+    07     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 3 | _rdchk
+    08     | 00 | 01 | 01 | 03 | 0 0 0 0 0 0 0 4 | _stkgrow
+    09     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys
+    0a     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 5 3 | _chsize
+    0b     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 1 | _ftime
+    0c     | 00 | 02 | 01 | 05 | 0 0 0 0 0 0 0 5 | _nap
+    0d     | 00 | 05 | 04 | 01 | 0 0 0 0 3 4 3 1 | _sdget
+    0e     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 7 | _sdfree
+    0f     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 7 | _sdenter
+    10     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 7 | _sdleave
+    11     | 00 | 02 | 01 | 03 | 0 0 0 0 0 0 0 7 | _sdgetv
+    12     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 7 | _sdwaitv
+    13     | 00 | 05 | 03 | 01 | 0 0 0 0 0 7 5 3 | _brkctl
+    14     | 00 | 00 | 00 | 00 | 0 0 0 0 0 0 0 0 | _nosys
+    15     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 1 3 | _nfs_sys
+    16     | 00 | 04 | 03 | 03 | 0 0 0 0 0 1 3 3 | _msgctl
+    17     | 00 | 03 | 02 | 03 | 0 0 0 0 0 0 3 5 | _msgget
+    18     | 00 | 05 | 04 | 03 | 0 0 0 0 3 3 1 3 | _msgsnd
+    19     | 06 | 07 | 05 | 03 | 0 0 0 3 5 3 1 3 | _msgrcv
+    1a     | 00 | 05 | 04 | 03 | 0 0 0 0 7 3 4 3 | _semctl
+    1b     | 00 | 04 | 03 | 03 | 0 0 0 0 0 3 3 5 | _semget
+    1c     | 00 | 04 | 03 | 03 | 0 0 0 0 0 4 1 3 | _semop
+    1d     | 00 | 04 | 03 | 03 | 0 0 0 0 0 1 3 3 | _shmctl
+    1e     | 00 | 04 | 03 | 03 | 0 0 0 0 0 3 4 5 | _shmget
+    1f     | 00 | 04 | 03 | 06 | 0 0 0 0 0 3 7 3 | _shmat
+    20     | 00 | 04 | 03 | 03 | 0 0 0 0 0 1 3 3 | _proctl
+    21     | 00 | 03 | 00 | 06 | 0 0 0 0 0 0 3 7 | _execseg
+    22     | 00 | 02 | 00 | 03 | 0 0 0 0 0 0 0 7 | _unexecseg
+    23     | 00 | 00 | 03 | 03 | 0 0 0 0 0 5 5 1 | _swapon
+    24     | 00 | 09 | 05 | 03 | 0 0 0 1 1 1 1 3 | _select
+
+I couldn't really figure out how uadmin() was accessed.  libc's
+uadmin.o links in a routine that calls system call 0x37.  Hmmm...
+
+The _cxentry is accessed by (documented in the programmer's reference
+under System Calls) setting a bit in the system call number.  It seems
+as though it actually shifts the system call number up half a word and
+puts 0x28 in the low order halfword.
+
+Now we see that select() exists as a cxenix function (number 0x24),
+
+There is also poll(), putmsg(), and getmsg() -- streams stuff.
+Since the tty device is not a streams device (actually it looks as if
+the streams stuff has been nulled out -- look at the master file for
+more information) it is highly unlikely that these routines will do
+anything useful.  Infact, they don't.  Change the SYSNUM (and symbols)
+in the example open.s above to their appropriate values to try out the
+streams routines.
+
+select.s looks something like:
+
+; select
+;
+;
+;
+
+	title	select
+
+	.386
+
+SYSNUM	equ 	2428h
+
+extrn	_errno:dword
+
+public  _select
+
+_TEXT	segment  dword use32 public 'CODE'
+	assume   cs: _TEXT
+_select	proc near
+	mov	eax, SYSNUM		; Get system call number.
+
+	;
+	; I don't even pretend to understand masm syntax.  I tried
+	; the following line (and variations) without any success.
+	;
+
+;	call    far 7:0			; Switch to kernel and call SYSNUM.
+
+	;
+	; Don't laugh, it works.
+	;
+
+	db 9ah
+	dw 0,0
+	dw 7
+
+	jb	short _cerror		; below == error.
+
+	xor	eax, eax		; zero return value (no error).
+	ret				; done.
+
+_cerror:
+	mov	_errno, eax		; Save error code in _errno.
+	mov	eax, -1			; Return -1 (as error).
+	ret				; done.
+
+_select	endp
+
+_TEXT	ends
+
+	end
+
+There is a header file you'll need in <sys/select.h> which has some
+information in it.
+
+A Synopsis of the SCO XENIX implementation:
+
+	#include <sys/select.h>
+
+	nfds = select(width readfds, writefds, exceptfds, timeout)
+	int width, *readfds, *writefds, *exceptfds;
+	struct timeval *timeout;  /* timeval is a pointer to a structure */
+
+I tested select() and found it to be half way implemented.  It seems
+as if there must be some extra field in struct cdevsw <sys/conf.h>.
+
+So, I guess I wait 'til 3.2.
+
+Pax, Keith
+
+Ps, FYI.
+
+Pps, if I made a mistake in my description of system call handling on
+SCO XENIX or what not, please correct me.
+
+Ppps, `call far 7:0' seems really reasonable to me.
+-- 
+ag@elgar.CTS.COM         Keith Gabryelski          ...!{ucsd, crash}!elgar!ag
+
+

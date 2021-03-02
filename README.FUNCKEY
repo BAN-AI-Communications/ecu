@@ -1,0 +1,41 @@
+Most function keys consist of multi-character sequences starting
+with ESCape.  How long do you wait after seeing an ESC before you
+decide the key is an "ESCape" and not the first character of a
+function key sequence?  Not very long, huh?  But what if the
+source may be an xterm, a serial line, a telnet/rlogin network
+connection, or even a radio packet TNC.  The ESC could arrive a
+long time before the next character in a sequence.  There is no
+single answer.  I try to do what I can to guess, but you may want
+to play with the 'eto' interactive command to diddle the timeout.
+Don't make the timeout too short or ECU won't recognize the HOME
+key and you'll have to go somewhere and kill ECU from another
+terminal.
+
+Function keys work fairly well so long as you
+follow these suggestions (feel free to experiment with each to
+see if they are appropriate for your keyboard):
+
+1. After pressing ESCape, expect a delay before it is processed.
+Wait for a second or so before pressing any other keys:
+
+2. Don't press and hold ESC or extended keys (avoid auto-repeat).
+
+3. After pressing a key you think should be accepted, if you hear
+a bell or if nothing happens, wait a half a second or so and try
+the key again.
+
+Greater magicians than me have trouble in this area and many
+high class programs don't get it right either. I've lost a
+great deal of sleep over this one.  Maybe it is stable now.
+
+Starting with 3.20, all keyboards must have a funckeymap entry
+(see README.KEYBRD) matching the terminal type of the executing
+screen.  Previous versions assumed terminal type "ansi"
+indicated an SCO AT-attached keyboard as part of a multiscreen.
+Other terminal types required a similar entry in a file named
+nonansikeys.  Converting preexisting nonansikeys files to
+funckeymaps files can be accomplished by merely renaming the file.
+If you are an SCO user, you must also add one entry to the new file
+if it is not already there (the old models/nonansikeys did in
+fact contain the required entry).  See README.KEYBRD for further
+detail.

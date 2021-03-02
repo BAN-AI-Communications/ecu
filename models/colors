@@ -1,0 +1,7 @@
+#colors - ecu color file
+normal lt_cyan black
+reverse red white
+notify black gray
+success lt_green black
+alert yellow black
+error red black

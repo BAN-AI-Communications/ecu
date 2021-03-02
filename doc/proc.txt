@@ -1,0 +1,297 @@
+
+.de *s
+.H "\\$1" "\\$2" \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+.br
+..
+.po 4
+.ll 7.2i
+.ls 1
+.nh
+.tp
+.sp 2i
+.ft B
+.ce 10
+ECU
+
+(Extended Call Utility)
+.ce 0
+.sp 1i
+.ce 100
+Research and Engineering
+Asynchronous Communications Package
+for SCO UNIX, XENIX System V and UnixWare,
+HP-UX, Motorola Delta SVR32 and SVR41, Linux,
+NetBSD, FreeBSD, SunOS 4.1, Solaris 2.x,
+ISC 386/ix, ISC System V Release 4,
+and ESIX System V Release 4
+.ce 0
+.ft P
+.sp 2i
+.lp
+.ce 1
+Warren H. Tucker, III <wht@tridom.com>
+.sp 1i
+.ce 100
+Procedure Language
+Revision 4.01
+January 25, 1997
+.ce 0
+.sp 1i
+.ls 1
+NOTE: Many sections of the manual are likely to be obsolete at any given
+time until the writer get lots of free time.  Much of it was written when
+the program was supported only on SCO XENIX and UNIX. 
+
+.PH "'ECU Procedure Language''%'"
+.PF "'wht@tridom.com''\n(mo/\n(dy/\n(yr'"
+.nr si 2n
+.nr Cl 9
+.nr Ej 1
+.nr U 1
+.SA 0
+.ul
+.bp 2
+
+.*s 1 Introduction
+
+Procedures are "programs" or "scripts" written in an addled but
+adequate language which ECU executes upon demand.
+The documentation refers to procedures as files on the disk
+or as in-memory copies under execution.
+
+An "initial procedure" may be executed when ECU starts up (see
+the description of the -p command line switch).  Certain special
+procedures are executed automatically as described below in the
+section "Special Procedures."
+
+The procedures themselves are source files consisting of
+the procedure "name" with an extension of ".ep".
+When executing a procedure by name,
+.DS I
+do name       interactive
+-or-
+do 'name'     from inside a procedure
+.DE
+is sufficient if the procedure is in the current directory,
+the user's ~/.ecu directory or in the ECU library
+subdirectory "ep" (normally /usr/local/lib/ecu/ep).
+Procedure files
+are searched for in the above order, so you may have
+a system default in the lib directory, a user default
+in the ~/.ecu directory and a specific version in the current
+directory all by the same name.
+
+You may execute a procedure by specifying it's full pathname
+(minus the .ep extension).  For example:
+.DS I
+do /tmp/doit       interactive invocation of /tmp/doit.ep
+-or-
+do '/tmp/doit'     from inside a procedure
+.DE
+
+Many example procedures, some quite useful, some not so,
+are found in the models subdirectory of the release.
+There are also many fragments
+used as examples throughout the following sections.
+
+.*s 1 "Line Syntax (Labels, Commands and Comments)"
+Lines in a procedure 
+consist of an optional label, followed by optional commands and
+arguments.  Anything on a line after an octothorpe (#) outside
+of quote marks is ignored (read "# is the comment character").
+
+.DS L
+Example:
+----------------------------------------------------------------------
+# example procedure
+    echo 'Hello.  Please tell me your name.'
+    $s0 = %cgets  # read string from console into string variable $s0
+    ifs $s0 == 'foo' goto label
+    echo 'Hello there, '+$s0
+    return
+
+label echo 'You must be kidding.'
+----------------------------------------------------------------------
+.DE
+
+Labels must begin in column one.
+A label may appear on a line by itself or with a comment
+appended.  A common mistake I make (from writing too much C) is
+to append a colon to a label declaration; this does not work unless
+you also "goto label:".  
+Labels are not allowed inside braces
+(inside of compound statements); you may get away with it sometimes
+because the procedure language processor is written for speed, not
+political correctness.
+
+Commands must have white space before them and
+white space before each argument.
+
+.so _p_param.txt
+
+.so _p_ifunc.txt
+
+.so _p_sfunc.txt
+
+.so _p_cmd.txt
+
+.*s 1 "Special Procedures"
+
+ECU provides for special "hook" procedures to be executed
+at certain times.  Their use is encouraged, but you must
+take precautions not to excecute any unreasoable commands
+in them, for they are rather "raw" hooks and it is easily possible
+to confuse ECU by performing illogical operations in them.  
+Judicious use can, however, be quite productive.
+
+They are searched for in the same manner
+as any other procedure, so you can have a
+customised version of them in a working directory and a default
+in your ~/.ecu subdirectory.  No error is reported if they are not found.
+
+.*s 2 "_rc.ep"
+
+After ECU is initialized, but before it presents the setup
+screen or executes a -p initial procedure,
+procedure '_rc' is executed with no arguments.
+(It is named in the tradition of /etc/rc, .mailrc, etc..)
+This procedure can be used to customize the ecu environment
+prior to beginning the usual operation.  This is not a place
+to do any dialing or long-lived operations, nor is it possible to
+bypass the setup screen: for this, use the -p initial procedure.
+
+The %getenv() function may be useful in here (Am I running on an
+xterm?  Do I want to change the prompt string from
+the default environment variable $ECUPROMPT?).
+
+Procedure commands likely to be of interest here:
+.DS I
+  autorz
+* baud
+  color
+  dcdwatch
+* duplex
+  prompt
+  rtscts
+* setline
+.DE
+
+Commands marked with an asterisk affect the initial (default)
+values presented on the setup screen.
+
+If _rc.ep returns a non-zero status or fails (due to syntax or
+other error), ecu terminates immediately.
+
+.*s 2 "_connect.ep"
+
+This procedure is executed after every connection success
+after the CONNECT message ("result code") is printed.
+It is passed one argument, the "result code" string
+generated by the dialer function (e.g., "CONNECT 19200").
+
+You may use %rname and other functions and features to customize
+this function based on the particular system just reached.  Note
+that integer variable $i0 and string variable $s0 set zero prior
+to executing the function.  This function may modify the behavior
+of coorperating dialer functions by setting the value of numbered
+string or integer variables.  In particular, the dialer function
+will inherit the values of $i0 and $s0 when this special function
+terminates.
+.B
+Be careful of what you do in here since MANY ecu procedure commands
+affect $i0 and $s0 as a side effect of their operation.
+.R
+Even if you know what you do in _connect.ep does not modify $i0
+or $s0, use of the preservation technique shown in the example
+below may save you headaches if you add to the function in the
+future (long after you have forgotten this pedantic admonition).
+
+If this procedure fails (abnormal procedure termination
+or non-zero return code), ECU hangs up on the line and proceeds
+as if the connection failed.
+
+.DS L
+Example:
+#+------------------------------------------------------------------
+#  _connect.ep - post-CONNECT special "hook" procedure
+#-------------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:36-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-19:59-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:38-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:58-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:38-wht@n4hgf-ECU release 3.20 BETA
+#:07-13-1991-14:47-wht@n4hgf-creation
+
+  $iv0_save = $i0  # it is a VERY good idea to save the dialer
+  $sv0_save = $s0  # function return status
+                   # since gobs of functions and commands modify $i0
+                   # and/or $s0 as a side effect of their operation
+
+  $s30 = '_connect '+%rname+' ('+%argv(1)+')'
+  echo $s30        # this still will also live to be visible by
+                   # the dialer function
+
+  ifi %baud > 2400
+  {
+     xon    off    # turn XON/XOFF off first, then ...
+     rtscts on     # turn on RTS/CTS
+  }
+  else
+  {
+     rtscts off    # turn off RTS/CTS, then ...
+     xon    on     # turn XON/XOFF on
+  }
+
+  $i0 = $iv0_save  # restore dialer return status
+  $s0 = $sv0_save
+.DE
+
+.*s 2 "_connfail.ep"
+
+This procedure is executed after every connection failure after
+the failure message ("result code") is printed.  It is passed two
+arguments, the logical system name (the dial directory
+entry name or the phone number)
+and the "result code" string generated by the dialer
+function (e.g., "BUSY").  The function is called after $i0 has
+been set to 1 and $s0 has been set to the result code.  This
+function may modify the behavior of coorperating dialer functions
+by setting the value of numbered string or integer variables.  In
+particular, the dialer function will inherit the values of $i0
+and $s0 when this special function terminates.
+.B
+Be careful of what you do in here since MANY ecu procedure commands
+affect $i0 and/or $s0 as a side effect of their operation.
+.R
+See _connect.ep above for further screams and moans.
+
+If you get very involved with using this procedure, you'll sooner
+or later run into some undocumented $so values.  You'll have to
+take a look at ecuDCE.c and hdbintf.c
+for an authoritative reference, but perhaps
+you can get along by knowing that result codes with an exclamation point
+as their first character are generated by ECU.
+
+ECU ignores any failure (abnormal procedure termination
+or non-zero return code) resulting from the execution of this procedure.
+
+.*s 2 "_hangup.ep"
+
+This procedure is executed after every connection termination.
+It is passed one argument, a string representation
+of the number of seconds you were connected.
+You may use %rname and other functions and features
+to customize this function based on the particular system
+just reached.  ECU ignores any error
+returned by the procedure.
+ECU ignores any failure (abnormal procedure termination
+or non-zero return code) resulting from the execution of this procedure.
+
+.br
+.nr si 0n
+.af % i
+.ls 1
+.TC 1 1 3

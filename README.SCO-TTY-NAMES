@@ -1,0 +1,48 @@
+Under SCO prior to 32v5 or Open Server 5, SCO observes the
+convention of using the last character of the tty file name
+(always an alpha character) to indicate whether a tty file name
+refers to the _direct_ (ignoring control signals) or to the
+_modem_ (observing control signals) access methods for the same
+physical port.
+
+A file name with an _upper case_ character refers to the modem
+access method.  A file name with a _lower case_ character refers
+to the direct access method.
+
+/dev/tty1a refers the same physical port as /dev/tty1A, but with
+differing access methods.
+
+The choice of tty file names is established (by SCO) in pre-32v5
+UNIX by use of the kernel configuration file
+/etc/conf/node.d/sio.  Some sample contents:
+
+sio     tty1A   c       128
+sio     tty1a   c       0
+
+Note the choice of "tty1A" and "tty1a" in the file is completely
+`arbitrary' from the point of view of the kernel building
+facility.  The convention is set by the system architect who
+chose to assert the name relationship we have enjoyed, lo, these
+many years.  A simple examination shows this choice to be FAR
+superior to such decisions as "acu0", "ttyd0" and "ttya" found on
+certain unnamed "systems." SCO follows their convention for
+pre-32v5 all the way back to the very advent of Xenix (and SCO
+UNIX of course).
+
+A problem arises with third party vendors who do not use
+the convention (maybe they have 900 port boards).
+
+The result is that *NO* convention exists for lock names of this
+type (like the foreign system's acu0, ttyd0, ttya case).
+
+The solution for this is that in 32v5 and later, SCO now mandates
+that lock file names be now constructed by converting *ALL*
+filename characters to lower case, not just the last.  This does
+not cover the degenerate case of /dev/ttyHotTubDcdParadise01 and
+/dev/ttyHotTubDownAndDirty01, but just think of it as evolution
+in action :).
+
+This means:
+	/dev/ttyA08	locks to 	LCK..ttya08
+	/dev/ttya08	locks to 	LCK..ttya08
+

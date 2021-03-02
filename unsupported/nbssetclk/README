@@ -1,0 +1,201 @@
+This is an unreleased cmostime5 ... very little has changed
+since version 4 and very little doc update has been done
+
+cmostime4 AT CMOS RAM TIME UTILITIES FOR SCO UNIX AND XENIX V/286&386
+Thu May 14 03:47:54 EDT 1992
+
+	wht@wht.net
+
+The NBS portions of this program were derived from the original
+work of mike@whutt.UUCP (BALDWIN) "utc.c" posted to the newsgroup
+comp.sources.misc as v03i079: N.B.S. Time Service program
+
+Overview
+---------------------------------------------------------------------
+This collection of programs for AT-based *nix boxes allows you to:
+
+1) set the AT cmos clock and system time very accurately by calling
+   the Naval Observatory ((202)653-0351 in DC) using NBSsetclk,
+
+3) set the system clock from the (somewhat drifty) cmos clock
+   by using CMOSstime,
+
+4) display "interesting" things in the cmos ram by using cmos_disp or
+   rtc_disp, depending on which device(s), /dev/rtc or /dev/cmos,
+   your OS supports.
+
+You may one day be able to set the AT cmos clock and system time
+very accurately by accessing a locally attached Heath Most
+Acccurate Clock (with EIA interface option) using MACsetclk.
+I have no MAC, so this code is supplied as-is, unfinished.
+
+Testing
+---------------------------------------------------------------------
+The NBS versions programs have been proven to work on most AT-style
+clones with XENIX/386 2.3.x and SCO UNIX and ODT.
+
+CMOS RAM and time support by OSs
+---------------------------------------------------------------------
+SCO UNIX and XENIX support the AT cmos ram with two devices
+(/dev/cmos, /dev/clock), programs /etc/setclock and /lib/cvtdate
+and a shell script /etc/asktime.  However, there is no way to set
+the system time or the cmos clock ACCURATELY using these tools
+since seconds are not in the paradigm of setclock or /dev/clock.
+One can, however, set the cmos clock accurately by the direct
+manipulation of /dev/cmos.  By reading /dev/cmos, one can get the
+correct time and set the system time with stime(S).
+
+SCO and ISC UNIX supports at AT CMOS ram with /dev/rtc.  Versions
+of these programs may be made for /dev/rtc.  /dev/rtc and
+/dev/cmos are found in SCO UNIX; it is your choice and no matter
+of significance which device you use.  ISC has only /dev/rtc.
+
+UNIX stime(S) note: Make sure you use -DUTC_CLK under SCO UNIX.
+stime(S) under SCO UNIX _appears_ to me to update the cmos clock,
+keeping it in UTC.
+Making the program with an improper use or lack of use of
+-DUTC_CLK under SCO UNIX and using CMOSstime will definitely
+cause your clock to get successively changed by the delta between
+your local time zone and UTC.  This is probably true of ISC as
+well.  It does not seem to be the case with XENIX.  A bit of
+experimentation may be necessary.
+
+Remove all of the cron jobs which set the clock (or replace the
+jobs with calls to CMOSstime if your system clock drifts more
+than your CMOS clock).
+
+On SCO replace /etc/asktime and /etc/asktimerc with one line
+scripts executing CMOSstime.  I cannot advise you for other
+systems.
+
+Making the programs
+---------------------------------------------------------------------
+Edit the Makefile, changing variables marked with "-->".  Then,
+just "make".
+
+NBSsetclk
+---------------------------------------------------------------------
+NBSsetclk assumes a Hayes modem is connected to the line and that
+command recognition is enabled.  The code will ignpore a Telebit
+"RRING" result code, but otherwise, "CONNECT" must appear as a
+substring of the connect message.  Any other result code is
+considered a failure.  /dev/tty1a is used by default, but the
+Makefile establishes this policy.  After connecting, the program
+tries up to 40 times (40 seconds) to read the time, making it
+likely that you will succeed.  However, the program will
+terminate well before the minimum 1 minute connect charge has
+been spent.  NBSsetclk MUST be run by root.  Why waste a long
+distance call only to have stime() fail?
+
+Most users will use the default parameters of this program by
+invoking it with
+    NBSsetclk -
+Running the program with no parameters gives you the options available.
+
+When invoked (say, from ECU) with -i#, then no dialing or hangup
+is done and # is used as a file descriptor.  In this case,
+NBSsetclk assumes a connection with NBS already exists.
+Similiarly, it is the responsibility of the invoker to terminate
+the connection when NBSsetclk exits.
+
+A suitable ecu procedure command:
+   system -s '/etc/NBSsetclk -i '+%itos(%conn)
+
+Exit status codes for the NBSsetclk:
+1-n  signal values if program killed
+200  illogical cmos device behavior (when reading clock)
+249  stime() call failed
+250  could not open communications line
+251  /dev/cmos read&write access denied
+252  user is not root
+253  usage
+254  couldn't get time from line (after 40 retries! BAD line conditions)
+255  couldn't establish a connection
+
+Usage: NBSsetclk [-][-i#][-e][-o][-n][-b#][-t#][-l<name>]
+Defaults 1200-N 1(202)653-0351 /dev/tty2b
+ -        use defaults
+ -i#      bypass line open and use fd #
+ -e       even parity
+ -o       odd parity
+ -n       no parity
+ -b#      baud rate
+ -t#      telephone number
+ -l<name> line (e.g., /dev/tty2a; use non-modem device)
+
+MACsetclk
+---------------------------------------------------------------------
+MACsetclk is supplied as-is, unfinished
+
+CMOSstime
+---------------------------------------------------------------------
+CMOStime reads the cmos clock and sets the system time to the second.
+Run it in your /etc/rc in place of the rather klunky 'asktime'.  The
+program returns exit status 0 if it succeeds, 1 for most failures
+(stime() failure or /dev/cmos read access failure), or 200 for the rare
+cases where the cmos device appears to be acting up.
+
+cmos_disp
+---------------------------------------------------------------------
+This is an experimental program that displays information contained
+in the cmos ram.  It has some bugs in it (on my systems, it reports
+no floppy drives, when I in fact have one).  The information used to
+build the program came from the sketchy notes in the IBM AT Technical
+Reference Manual.  Look in header file 'dev_cmos.h' and source file
+'cmos_disp.c' for notes I have made about empirical "discoveries".
+There are certainly some discrepancies, particularly on machines
+other than the IBM AT.
+
+set_24hr.c
+---------------------------------------------------------------------
+Once or twice during a power main glitch, the 24-hour mode bit got
+reset.  This program sets the bit (/dev/cmos only).
+
+ECU 3.20 use
+---------------------------------------------------------------------
+NBSsetclk has a primitive line lcok/dialing facility.
+ECU 3.20 provides a more comprehensive mechanism for
+establishing a connection :-).
+
+1. Append this line in your root /.ecu/phone directory (you may
+need to edit the phone number and tty):
+
+nbssetclk:12026530351:tty2h:1200:N:Naval Observatory Time:0:1
+
+2. Put this in /.ecu/nbssetclk.ep:
+
+--- cut ---
+#+------------------------------------------------------
+# nbssetclk - use NBSsetclk to set system time
+#-------------------------------------------------------
+    dial 'nbssetclk'
+    ifi $i1 == 2 echo 'interrupted'; goto SORRY
+    ifi $i1 != 0 goto SORRY
+    $s0 = '/etc/NBSsetclk -i '+%itos(%conn)
+    $s1 = '*************************'
+    echo $s1+'\n'+$s0+'\n'+$s1
+    system -s '/etc/NBSsetclk -i '+%itos(%conn)
+    hangup
+    return
+SORRY
+    echo 'sorry'
+--- cut ---
+
+
+Then, a root execution (say in a cron job) specifying
+/path/ecu nbssetclk 2>&1 > /dev/null
+
+will do the job.
+
+Acknowlegments
+---------------------------------------------------------------------
+The routines for converting mm/dd/yy hh:mm:ss to seconds since
+the epoch were adapted from the 'tm_to_time.c' module in Emmet P.
+Gray's conversion of arc to unix.
+
+The concepts of parsing the Naval Observatory data stream came from
+utc.c, by Michael Scott Baldwin of ATT Bell Labs.  Utc.c is available
+from comp.source.misc archives; it is v03i079.  I apologize to Mr.
+Baldwin for having variously called him "anonymous author of nbs.c"
+and "the original author", but I had originally found what was
+obviously his work hacked by someone and renamed "nbs.c".

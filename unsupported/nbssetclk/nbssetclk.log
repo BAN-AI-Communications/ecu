@@ -1,0 +1,29 @@
+% ecu -p nbssetclk -D 
+Call NBS: ecu pid is 18903
+--> Dialing attempt 1
+Dialing Naval Observatory Time
+on /dev/tty2B at 1200 baud (06:45:41)
+Type ^C to abort ... CONNECT 1200
+[DCD watcher set to TERMINATE (terminate ecu on DCD loss)]
+
+--> Connected to NBS
+--> /etc/NBSsetclk -f 3
+NBSsetclk rev 5.01
+using supplied file descriptor 3
+Connect time 1 second(s)
+cmos time before setting: 09/15/1996 10:46:05 UTC
+cmos time after setting:  09/15/1996 10:46:08 UTC
+Local time: Sun Sep 15 06:46:08 1996
+
+_hangup on nbssetclk after 00:00:05 connect
+
+--> /etc/tts -o -m -vvv
+tts 0.3
+TTS: send datagram to [148.62.9.0]:10999
+DATAGRAM SENT
+74 74 73 20 38 34 32 37 38 34 33 37 30 0A  | tts 842784370. |
+
+--> /usr/local/bin/usemorse -f 880 -t 5 nbs
+
+--> SUCCESS!
+[procedure finished]

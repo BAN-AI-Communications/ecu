@@ -1,0 +1,50 @@
+.*s 1 "Introduction"
+
+ECU (Extended Call Utility) is a research and engineering
+communications program originally written for users of SCO UNIX
+V.3.2/386 and XENIX V on 80286 and 80386 systems.  Support for
+other systems has been added and further porting is possible with
+"minor" effort to other systems based on or similar to UNIX
+System V.  This preliminary document describes ECU functionality
+and implementation from a technical point of view and provides at
+least rudimentary documentation for its features and commands.
+
+ECU provides the classic terminal communications facility of
+passing keyboard data to a serial line (or a telnet TCP/IP
+connection if configured) and incoming data to the computer video
+display.  In addition, a dialing directory, a function key
+mapping feature, and session logging are available.
+
+A very flexible procedure (script) language is also incorporated
+to automate many communications tasks.  In addition to augmenting
+interactive tasks, by using shell scripts and ECU procedures, ECU
+can perform batch-style communications sessions in an entirely
+"unattended" fashion.  Because of limitations of my nroff
+program, the procedure language is described in a separate
+document.
+
+ECU presents to the host a flexible "ANSI" terminal type,
+accepting any valid video control sequences from MS-DOS or SCO
+documentation as of late 1990.  It also fares well, though
+imperfectly, with Sun and VT-100 in-band video control sequences.
+You may disable the ANSI
+filter if you wish.
+Standards are great: everybody should have one, especially if
+they call it "ANSI." For more information, refer to the section
+below titled "ANSI Filter."
+
+The program supports almost any local terminal (console) which
+can be described in a termcap database entry.
+A robust terminfo or termcap description is required for your
+local console to use ANSI emulation.
+For more information, refer to "Supported Terminals."
+
+ECU supports numerous file transfer protocols: as of this writing,
+XMODEM, XMODEM/CRC, XMODEM-1K, YMODEM/CRC Batch, ZMODEM/CRC-16,
+ZMODEM/CRC-32, and Kermit are supported.
+For more information, refer to the sections describing the
+individual interactive and procedure file transfer commands.
+
+A great deal of care has been taken in accurate and robust production
+of ECU code.  Perhaps, time permitting, one day I can say the
+same for this document.

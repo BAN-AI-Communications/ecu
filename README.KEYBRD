@@ -1,0 +1,175 @@
+ECU 3.20 presents itself to the world by default as a much
+better clone of an SCO multiscreen terminal than ever before.
+
+This includes
+   video display control and
+   key codes emitted by pressed function keys
+
+In addition, many MS-DOS video control sequences are supported.
+
+These features are described in tedious detail in the manual.  What is
+missing from the manual -- and what this README attempts to
+describe -- is how ECU keyboard management really looks from the
+macro perspective.
+
+Keyboard management is divided into two parts:
+
+  o  Function key recognition
+  o  Function key action
+
+Function key recognition means detecting function key presses
+in the ecu keyboard input stream.  This is controlled by the
+~/.ecu/funckeymap file.
+
+Function key action means what ecu does with a function key once
+it gets it.  This is controlled by the ~/.ecu/keys file.
+
+Function Key Recognition 
+------------------------
+
+You have to use funckeymap entries to get ecu to recognize the
+function keys.  Pre-3.20 users take note: funckeymaps serves the
+purpose previously handled by ~/.ecu/nonansikeys.  This is a rare
+backward compatibility problem (the 2nd in ECU history).
+Starting with 3.20, SCO multiscreens require an entry, whereas
+earlier versions had multiscreen support built in.  The TERM name
+for SCO multiscreens is "ansi", hence the name "nonansikeys".  I
+think you'll agree the new name is more appropriate.
+
+If ~/.ecu/funckeymap does not exist, ECU searches for a file
+by  the same name in the library directory, usually /usr/local/lib/ecu).
+
+At startup,
+ECU selects an entry in ~/.ecu/funckeymap whose label matches
+the terminal type of the executing screen (the TERM environment
+variable).  If ecu is started
+non-conversationally (/dev/null for stdin), this is not done.
+The environment variable ECUFUNCKEY, if found, overrides the
+TERM variable for funckeymap keyboard management only.  TERM is always
+used for identifying the display.
+
+See the manual sections titled "Supported Terminals" thru "Line Editing".
+There are some additional notes in the distribution file
+models/funckeymap.  Please forgive any conflicts.  I can only
+type so fast and the code gets priority.
+
+An example entry for an SCO multiscreen console:
+
+#+-------------------------------------------------------------------
+#   SCO  multiscreen  ($TERM=ansi)
+#--------------------------------------------------------------------
+ansi
+ansi43
+sco
+    F1:F1:          esc [ M 
+    F2:F2:          esc [ N 
+    F3:F3:          esc [ O 
+    F4:F4:          esc [ P 
+    F5:F5:          esc [ Q 
+    F6:F6:          esc [ R 
+    F7:F7:          esc [ S 
+    F8:F8:          esc [ T 
+    F9:F9:          esc [ U 
+    F10:F10:        esc [ V 
+    F11:F11:        esc [ W 
+    F12:F12:        esc [ X 
+    Home:Home:      esc [ H 
+    End:End:        esc [ F 
+    PgUp:PgUp:      esc [ I 
+    PgDn:PgDn:      esc [ G 
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+    CU5:CU5:        esc [ E 
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ L
+    BkTab:BackTab:  esc [ Z
+
+ECU tries to support any "reasonable" video terminal as an ECU
+console.  Video differences are handled by curses and
+termcap/terminfo.  The keyboard is normalized with funckeymap.
+Hopefully, someone has already constructed a funckeymap entry for
+your keyboard.  If not, you must construct one.
+
+For this, make several experiments with kbdtest3.
+Start a terminal session in the ecu distribution directory
+and run kbdtest3 (assuming it has been made).
+Kbdtest3 will prompt you to press each function key in return.
+The program is generally self-explanatory, but some notes are
+worthy of note:
+
+  o If it asks you for a key not on your keyboard, pick some
+    reasonable alternate
+
+  o If you simply cannot find an alternate, you will have to type
+    a slash ('/') to signify no key choice exists.
+
+  o If you are on an xterm, you may get spurious or no response
+    for the "unusual" keys like Home and End.  Just type a
+    slash for the time being and go on.  When you are finished,
+    re-read the manual section titled "Function Key Mapping
+    (Recognition)".  There are also some notes in models/funckeymap.
+    There are guidelines in there for using xmodmap to achieve
+    reasonable X mapping for spurious or dead keys.
+    A notorious example is the xterm shift-Tab that generates
+    the single character sequence 0x09 just like the tab key does.
+
+		XTerm*VT100*Translations: #override\
+			 Shift <Key>Tab:  string(0x1b) string("[Z") \n \
+
+    in ~/.Xdefaults takes care of this.
+
+Repeat the kbdtest3 and hackery exercises until you have an
+acceptable entry.  Acceptable means a working key for each of
+ecu's 23 function keys where each key produces a
+unique key sequence.
+
+Kbdtest3 writes funckeymap entries to ./kbdtest3.out.  When you
+edit the file, you will see the results of each kbdtest3
+run appended one after the other.  Presumabaly you quit using kbdtest3
+when you were satisfied, so skip to the bottom of the file and examine the
+last entry.  If it looks good, cut that section out and put
+it in ~/.ecu/funckeys.  Also, -*PLEASE*- send it to wht@wht.net
+so I can archive it.  Include the environment details
+such as "Wyse 232XKQ Rom revision 2.3" or "Pluton 9001 console
+under RiskOs 1.4".
+
+Now ecu can recognize your function keys and map them to internal
+values.  Command screens needing up and down arrows, insert and
+so forth will work.  
+
+Once you have installed a new funckeymap, the ECU interactive
+command "kbdtest" may assist in verifying it works.
+I would appreciate your mailing me the output file (kbdtest3.out)
+from each keyboard you try out.  This will assist me in making
+funckeymap entries for futures releases. [[ HEH HEH, I wrote this
+three years ago -- I've received ONE entry -- wht 4/94]]
+[[ HEH HEH, HEH, HUM -- I've STILL received only ONE entry -- wht 7/96]]
+
+Function Key Actions
+--------------------
+
+Function key actions are determined by ecu program code when
+you are executing ecu interactive commands.  When you are
+in the interactive mode, keyboard actions are governed by
+startup definitions or ~/.keys actions.  These are described
+in the manual section titled "Function Key Actions", but a
+few quick notes here might serve well:
+
+   o  startup default actions
+      All of the 23 function keys save 2 are preset to generate
+      the same sequence they would on an SCO.  See the manual
+      subsection "Standard Function Keys" for a list
+      The 'Home' and 'Cursor 5' keys have reserved meanings
+      and may not be overriden.
+
+   o  ~/.keys and the interactive command fkey
+      You can override the defaults by loading a custom keyset
+      you have placed in ~/.fkeys.  The interactive command
+      fkey may be explicitly used to load a keyset.
+      If you use a logical dialing directory name to connect
+      to a remote and ~/.keys has an entry whose name (sometimes
+      called the label) matches the directory entry name, ECU
+      will load the ~/.keys entry automatically.
+      See "Standard Function Keys" for details.
+

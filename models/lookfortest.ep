@@ -1,0 +1,24 @@
+#  CHK=0xFA5C
+# lookfor_test.ep (needs a modem already attached)
+
+	send 'ate0q1'
+	nap 20
+	flush
+
+	send 'at'
+
+	lookfor 'OK'
+	ifi $i0 == 1 echo '... got false success'; return
+	ifi $i0 <> 0 echo '... got illogical result';set $i0;return
+	echo '... got good result for failure to read'
+
+	send 'ate1q0'
+
+	lookfor -e 'OK'+%chr(0x0D)+%chr(0x0A) 20
+	ifi $i0 == 0 echo '... got false failure'; return
+	ifi $i0 <> 1 echo '... got illogical result';set $i0;return
+	echo '... got good result for read'
+
+
+
+# vi: set tabstop=8:

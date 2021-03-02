@@ -1,0 +1,62 @@
+This is an updated version of old_notes/README.SCOTTY
+which I am *sure* you already read a long time ago, heh heh :)
+
+Last Updated Sun Sep  8 15:31:35 EDT 1996
+
+On SCO before OS5, TTY devices must be named in the style of:
+
+     /dev/ttyNA
+             ^^
+             ||
+             |`------ uppercase letter for modem control
+             |        lowercase for non-modem control
+             `--------digit (1-4 usually, but any digit)
+
+
+tty opened  lock file created
+--------   ------------------
+tty23       LCK..tty23               violates NA
+tty0A00     LCK..tty0A00             violates NA
+tty0a00     LCK..tty0a00             violates NA
+
+tty1a       LCK..tty1a
+tty1A       LCK..tty1A
+
+tty2q       LCK..tty2q
+tty2Q       LCK..tty2q
+
+tty9a       LCK..tty9a
+tty9A       LCK..tty9A
+
+tty231a     LCK..tty231a
+tty231A     LCK..tty231a
+
+tty%%1a     LCK..tty%%1a
+tty%%1A     LCK..tty%%1a
+
+This is the procedure used for any pre-OS5 SCO ECU version.
+
+If you are using FAS or other third-party driver, you may use ecu
+with ports not normally named in the /dev/tty#N style in one of two
+ways under UNIX and one way under XENIX:
+
+     1.  Under XENIX or UNIX, create a link to the port
+         with a compatible name:
+
+               ln /dev/ttyF00 /dev/tty1a
+               ln /dev/ttyFM00 /dev/tty1A
+
+     2.  Under UNIX, add additional lines to the
+         /etc/conf/node.d file and rebuild the kernel
+         environment (this is the recommended approach
+         for UNIX, as documented in FAS 2.08 and 2.09):
+
+     fas ttyF00  c   48
+     fas tty1a   c   48
+     fas ttyF01  c   49
+     fas tty1b   c   49
+     fas ttyFM00 c   208
+     fas tty1A   c   208
+     fas ttyFM01 c   209
+     fas tty1B   c   209
+

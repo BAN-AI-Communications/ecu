@@ -1,0 +1,168 @@
+.*s 1 "Basic Organization"
+
+ECU forks to run as two separate
+processes, a transmitter (XMTR) and a receiver (RCVR).
+The two processes
+communicate via signals and a System V shared memory segment.
+XMTR controls RCVR and terminates it under certain circumstances,
+called here auxiliary operations.  After an auxiliary operation
+completes, XMTR forks again to recreate RCVR.
+
+.*s 2 "Transmitter Process (XMTR)"
+
+XMTR
+accepts user input from the computer keyboard; input is recognized
+as belonging to one of two types: 1) transmit data and 2)
+ECU commands.  Keyboard input
+is passed to the serial line driver until an ECU command
+is detected.  Commands are prefixed with a 
+.B HOME
+key which causes ECU to accept keyboard data up to the next ENTER
+key as command text.  After a command has been processed,
+keyed data is again routed to the serial line.
+
+.*s 3 "Keyboard Interface"
+
+The keyboard driver is set into the raw mode.
+XMTR reads characters one at a time from the driver.
+Normally, characters read from the keyboard are passed directly to
+the serial line driver.  The
+ASCII ESC ("escape") character is handled as a special case.
+When a function key is pressed, the keyboard generates
+to XMTR an ESC character,
+followed by more characters describing which function key has
+been pressed.
+Pressing the ESC key also causes XMTR to see an ESC character,
+but with no subsequent function key "suffix".
+
+When an ESC character is read, XMTR delays transmission of the
+character to the line for a short period to determine whether
+the ESC key has been pressed or a function key has been pressed.
+If no "suffix" is detected, the ESC is passed to the line, having
+suffered an insignificant delay given human typing speeds.
+
+If a function key "suffix" is detected, the function key type
+is decoded.  The
+.B HOME
+key indicates an ECU command follows.  Any
+other function key is passed to the function key mapping feature
+(described later).
+
+.*s 3 "ECU Command Assembly"
+
+After 
+.B HOME
+has been pressed, XMTR presents a reverse video prompt on the
+display, indicating its readiness to accept a command.  During
+input, the command may be edited using the same control keys
+specified with stty(C).  Additonal editing
+using the left and right arrow keys and the
+Ins(ert) key are usually available.
+Command input may be aborted by pressing ESC.
+When a command string has been assembled, it is passed to the
+command processor, which breaks the command arguments into a token
+array similar to the argc/argv array.  When the command handler
+returns, XMTR returns to its normal mode of copying keyboard data to
+the serial line.
+
+Further information on XMTR command line processing may be found in 
+later sections titled Line Editing and Interactive Command History.
+
+.*s 3 "Function Key Mapping"
+
+While in tty-to-line mode, function keys other than 
+.B HOME
+are available to be mapped
+to transmit short keystroke sequences on a connection by
+connection basis.  Under control of the dialing command ("Dial"
+described below)  or the function key control command ("FK"),
+predefined function key maps may be loaded.
+
+Function keys which may be mapped are
+.B F1
+through
+.B F12 ,
+.B PgUp ,
+.B PgDn ,
+.B End ,
+.B Ins ,
+.B Del ,
+and
+the cursor control keys.
+
+The unshifted keypad '5' key is permanently mapped to
+produce a screen snapshot when it is pressed and XMTR is
+reading from the keyboard.
+
+The BackTab (shift Tab) key is permanently mapped to a screen
+redisplay feature.
+
+.*s 3 "Auxiliary Operation Control"
+
+Certain commands cause ECU to perform what is called an
+auxiliary operation, requiring temporary termination of the
+RCVR process.  Such operations are not as useful
+with
+.B cu(C) ,
+because cu does NOT kill its receiver process at any time.
+As a result, it impossible to run a modern file transfer
+protocol since the cu receiver process eats some of the
+characters sent by the remote protocol program.
+
+There are two types of auxiliary operations:
+1) internal interactive command or procedure
+execution and 2) external program execution.
+Certain
+.B internal
+.B commands
+require tight control over the serial line.
+For instance, the
+.B dial
+command requires transmitting modem command
+strings and receiving modem response codes.  Such functions
+are best accomplished by single-process control of the line.
+.B External
+.B program
+execution is of two kinds, file transfer invocation
+and local shell/command execution.
+
+The RCVR process is terminated in any of these cases either to
+avoid the RCVR swallowing characters intended for other
+targets (the modem handler in XMTR or the file transfer protocol)
+or to avoid having remote data interspersed with the output of
+local programs.
+
+.*s 2 "Receiver Process (RCVR)"
+
+The receiver process reads the incoming serial data stream and
+passes it to the user terminal driver through a filter which
+scans for events such as the occurrence of ASCII BEL (bell)
+characters or terminal control sequences.  RCVR also handles
+the session logging and ANSI filter functions.
+
+.*s 3 "ANSI Filter"
+
+Since the term "ANSI" is used to describe
+.B many
+variations on the ANSI X3.64 recommendations for terminal control (read
+"IBM pseudo-ANSI"), the ECU receiver process has an "ANSI filter" which
+attempts to translate incompatible (read "MSDOS") ANSI-like control
+sequences to sequences acceptable to the console terminal in use.
+This includes support for the MS-DOS "save cursor" and "restore cursor"
+sequences.
+More information may be found later in "Supported Terminals."
+
+The ANSI filter can be turned on and off with the
+.B ansif
+interactive and procedure commands.
+
+
+.*s 3 "Session Logging"
+
+When directed by the user, the RCVR process logs incoming serial
+data to a file named on the log command line.  The default operation
+is to filter unprintable characters (other than TAB and NL) from the
+log, but raw logging is available with a command option.  In a like
+manner, the default is for appending to an existing file, but a
+command option may specify scratching any previous contents.
+

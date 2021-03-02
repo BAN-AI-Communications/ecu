@@ -1,0 +1,85 @@
+#  CHK=0x6289
+#--------------------------------------------------------------
+# put_ecu.ep - update remote copy of ecu sources
+#--------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:06-28-1989-19:36-wht-use named variables
+#:06-25-1989-14:28-wht-use rz_update
+
+	$s10 = %rname
+	ifi %instr($s10,'tridom') == 0
+		$s10 = 'tridom'
+
+	ifs $s10 == 'tridom'
+	{
+		$s0 = '/u3/sd/wht/src/ecu'
+		$s1 = '/u1/src/ecu' 
+		$s2 = '`ff \'*.c\' \'*.h\' Makefile \'*.ep\' \'.mi\' \'*.txt\' \'*.man\'` xsel386/*'
+		$s3 = 'wht'
+		goto CALL_SZ_UPDATE
+	}
+	else ifs $s10== 'ki4xo'
+	{
+		$s0 = '/user/wht/src/ecu'
+		$s1 = '/u1/src/ecu' 
+		$s2 = '{.,z}/{Makefile,*.{c,h}} `ff \'*.ep\' \'.mi\' \'*.man\'` xsel386/*'
+		$s3 = 'wht'
+		goto CALL_SZ_UPDATE
+	}
+	else ifs $s10== 'coke-jsm'
+	{
+		$i39=%colors
+		color red; echo '\n\nHAVE YOU MADE A NO-SELECT VERSION???????\n\n'
+		mkvar $s_rpwd(20)
+		echo -n 'root password? ' ; $s_rpwd = %cgets
+		icolor $i39
+		$s0 = '/usr/wht/bin'
+		$s1 = '/u1/src/ecu'
+		$s2 = 'ecu'
+		$s3 = 'wht'
+		do 'sz_update' $s0  $s1 $s2 $s3 %argv(0)
+		lookfor '% ' 40
+		$s0 = '/usr/wht/bin'
+		$s1 = '/usr/wht/bin'
+		$s2 = 'ecusz ecurz ecusea'
+		$s3 = 'wht'
+		do 'sz_update' $s0  $s1 $s2 $s3 %argv(0)
+		lookfor '% ' 40
+		$s0 = '/usr/wht'
+		$s1 = '/u1/src/ecu/doc'
+		$s2 = '*.man'
+		$s3 = 'wht'
+		do 'sz_update' $s0  $s1 $s2 $s3 %argv(0)
+		lookfor '% ' 40
+		$s0 = '/usr/wht/.ecu'
+		$s1 = '/u1/src/ecu/models'
+		$s2 = '*'
+		$s3 = 'wht'
+		do 'sz_update' $s0  $s1 $s2 $s3 %argv(0)
+		lookfor '% ' 40
+		$s0 = '/usr/lib/ecu'
+		$s1 = $s0
+		$s2 = '*'
+		$s3 = ''
+		do 'su-csh' 'root' $s_rpwd
+		do 'sz_update' $s0  $s1 $s2 $s3 %argv(0)
+		send -e 'chmod u+s /usr/lib/ecu/ecuungetty'
+		send %chr(0x04)
+		return
+	}
+	else echo 'not to '+$s10+' you don\'t'
+
+# $s0 = remote directory
+# $s1 = local directory
+# $s2 = file list
+# $s3 = necessary username on remote system
+CALL_SZ_UPDATE
+	do 'sz_update' $s0  $s1 $s2 $s3 %argv(0)

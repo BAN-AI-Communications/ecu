@@ -1,0 +1,12 @@
+
+NOTE TO PRE-REVISION-3.10 USERS:
+
+1. If you have been using the ALT-a through ALT-z single-key procedure
+execution, reread mapkeys/README.
+
+2. Termination of file transfers by SIGINT did not cause termination
+of procedfure execution in pre-3.10 versions.  In this version, it does.
+
+3. Several files that previously had to reside in ~/.ecu now may have
+system wide defaults in the ECU library directory (/usr/local/lib/ecu).
+

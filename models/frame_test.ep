@@ -1,0 +1,27 @@
+#  CHK=0xAB0B
+
+	set $i0 = 10
+LABEL
+	ifi $i0 > 0
+	{
+		set $i0,$i0=$i0-1
+		ifi $i0 = 5
+		{
+			echo 'nesting works!'
+		}
+		else ifi $i0 == 4
+		{
+			echo 'else works!'
+		}
+		goto LABEL
+	}
+
+	set $s0 = ''
+	whiles $s0 != 'aaaaa'
+	{
+		set $s0=$s0+'a'
+		ifs $s0 == 'aaaa' break
+		else echo '$s0=\''+$s0+'\''
+	}
+
+	echo 'done!'

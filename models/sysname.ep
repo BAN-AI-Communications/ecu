@@ -1,0 +1,19 @@
+#-----------------------------------------------------------
+# sysname.ep - procedure to call UNIX-like system 'sysname'
+#
+# CONFIDENTIAL - This function should be chmod 0600 because
+# it contains a password which you probably don't want to be
+# common knowledge.
+#
+# This procedure calls 'unixlogin.ep' to do the hard work.
+#-----------------------------------------------------------
+
+    mkvar $s_pwd(20)    # local variable preserves password
+    $s_pwd = 'password' # security by disappearing when the
+                        # procedure terminates
+
+#   also, by keeping the password text off the following line,
+#   the password will not be displayed if you abort (interrupt)
+#   the procedure
+
+    do 'unixlogin' %argv(0) 'username' $s_pwd 'ansi-or-whatever'

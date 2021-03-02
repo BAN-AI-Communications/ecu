@@ -1,0 +1,554 @@
+#+------------------------------------------------------------------- 
+# Make.src - master Makefile source for ECU and related programs
+# If THIS line is the third in the file you are reading, refer to
+# the files README, INSTALL and Configure.
+# wht@wht.net
+#--------------------------------------------------------------------
+
+ECUSHARNAME=ecu-4.42
+MANSHARNAME=ecuman-4.03
+
+#+:EDITS:
+#:04-26-2000-11:15-wht@bob-RELEASE 4.42
+#:04-26-2000-11:06-wht@bob-release 4.42
+#:12-28-1999-12:22-wht@menlo-4.40-add sockserv.c
+#:09-02-1998-13:51-wht@menlo-4.30-release for linux 2 updates
+#:04-06-1998-17:24-wht@kepler-4.21-add serve, servewire and ptyfork
+#:03-25-1998-20:16-wht@kepler-4.21-linux2 work + fix SCO OS5 uucp dial
+#:02-26-1998-01:45-wht@menlo-port to Linux2
+#:12-18-1997-04:59-wht@sidonia-4.12-port to AIX
+#:12-18-1997-04:59-wht@sidonia-add rule for qmake.c->qmake for dumb AIX make
+#:12-15-1997-20:45-wht@fep-4.11-internal overhaul for portability
+#:12-08-1997-17:07-wht@kepler-4.10-reinforce releaseability
+#:11-10-1997-17:52-wht@kepler-4.08c-reconstruct
+#:11-10-1997-17:52-wht@kepler-4.08b-obscure unlikely memory leak 
+#:11-03-1997-02:35-wht@kepler-4.08a-option cmd reconstruction from damaged 4.08
+#:06-06-1997-15:24-wht@gyro-4.07-open new rev for routine maintenance
+#:05-12-1997-17:44-wht@kepler-4.06-fix bug in wingets_single (jeffl,rll)
+#:03-21-1997-01:59-wht@varykino-4.05 posix date,sco boxes
+#:02-25-1997-14:37-wht@yuriatin-4.04 proc sx/sy bug fix
+#:02-09-1997-19:12-wht@yuriatin-4.03 improve shar.fls contents
+#:02-04-1997-15:27-wht@yuriatin-4.02-bug reported by Robert M. Bailin
+#:01-24-1997-02:36-wht@yuriatin-SOURCE RELEASE 4.00
+#:01-22-1997-16:32-wht@yuriatin-4.00
+#:11-01-1996-18:25-wht@yuriatin-3.56-add new string functions
+#:10-25-1996-17:27-wht@yuriatin-3.55 more minor bug fixes
+#:10-24-1996-05:48-wht@yuriatin-3.54-harden, cleanup
+#:09-24-1996-06:18-wht@yuriatin-3.53 more bug fixes
+#:09-19-1996-02:28-wht@yuriatin-3.52 fix OS5; CFG_HasStrerror optimization
+#:09-18-1996-17:20-wht@yuriatin-3.51-a beta for sure
+#:09-11-1996-19:59-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:09-08-1996-15:13-wht@kepler-3.48-add INSTALL
+#:08-21-1996-16:31-wht@fep-add ecushowcfg.c
+#:08-02-1996-02:47-wht@kepler-3.45 synchronize/cleanup many incremental fixes
+#:04-02-1996-11:06-wht@kepler-apply ache FreeBSD fix: cc switches
+#:04-02-1996-11:03-wht@kepler-3.40-ache fixes for FreeBSD
+#:12-10-1995-09:55-wht@kepler-3.38.06-Chernov FreeBSD patches
+#:12-10-1995-09:55-wht@kepler-3.38.04-tty1A is default on SCO
+#:12-09-1995-12:00-wht@kepler-3.38.03-fix stdin /dev/null operation
+#:12-03-1995-19:19-wht@kepler-3.38.02-work on SunOS version
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-17:44-wht@kepler-3.37.81-more cleanup
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:11-03-1995-16:08-wht@wwtp1-refine port to OS5
+#:10-19-1995-02:14-wht@kepler-add ldserial and ldtelnet
+#:10-18-1995-10:22-wht@kepler-no more obsolete BUGS file
+#:10-14-1995-17:16-wht@kepler-drop SEAlink support
+#:09-04-1995-19:07-wht@n4hgf-install help as part of iecu
+#:08-27-1995-14:22-wht@n4hgf-cpiogz target
+#:06-23-1995-01:01-wht@n4hgf-use ECUOWNER,ECUGROUP,ECUMODE
+#:01-12-1995-15:19-wht@n4hgf-apply Andrey Chernov 8-bit clean+FreeBSD patch
+#:06-16-1994-14:37-wht@kepler-change release name from ecu330 to ecu332
+#:05-04-1994-04:38-wht@n4hgf-ECU release 3.30
+#:04-21-1994-16:26-wht@n4hgf-remove timetest
+#:01-16-1994-15:53-wht@n4hgf-add ecumachdep.h
+#:11-25-1993-15:16-wht@n4hgf-3.281-all: fixed
+#:11-23-1993-10:56-wht@n4hgf-hpux and linux
+#:07-14-1993-02:39-wht@n4hgf-'depecu' entry for make depend ecu alone
+#:03-05-1993-13:24-wht@n4hgf-use mk.cpio to make cpio
+#:09-10-1992-13:58-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:37-wht@n4hgf-ECU release 3.20 BETA
+#:07-17-1992-18:23-wht@n4hgf-new module nap.c
+#:07-07-1992-20:04-wht@n4hgf-new installation mechanism
+#:05-17-1992-18:50-wht@n4hgf-add cpio
+#:02-10-1992-05:47-wht@n4hgf-mcs avail on some systems when non-COFF produced
+#:09-03-1991-23:47-wht@n4hgf2-add timetest directory
+#:09-02-1991-19:25-wht@n4hgf2-ckutio dif and fas.h left out of distribution
+#:09-01-1991-16:22-wht@n4hgf2-generalize HDB config location
+#:08-23-1991-13:35-wht@n4hgf-sun porting (3.13)
+#:07-25-1991-12:55-wht@n4hgf-ECU release 3.10
+#:04-21-1991-12:43-wht@n4hgf-convert to Make.src
+
+PROGRAM = ecu
+INSTALLABLE = $(LBIN)/$(PROGRAM)
+
+LIBFUNCKEYMAP = $(ECULIBDIR)/funckeymap
+
+SHELL = /bin/sh
+
+.SUFFIXES:
+.SUFFIXES: .o .c .h .l
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+
+
+SRC	= \
+	afterlint.c \
+	bamboozle.c \
+	cmdtbl.c \
+	config.c \
+	docxtr.c \
+	dutmp.c \
+	ecu.c \
+	ecuDCE.c \
+	ecuLCK.c \
+	ecuchdir.c \
+	ecudump.c \
+	ecufinsert.c \
+	ecufkey.c \
+	ecufork.c \
+	ecugrabbag.c \
+	ecuicmaux.c \
+	ecuicmd.c \
+	ecuicmhelp.c \
+	ecuicmhist.c \
+	eculine.c \
+	eculock.c \
+	ecunumrev.c \
+	ecupde.c \
+	ecuphdir.c \
+	ecuphrase.c \
+	ecurcvr.c \
+	ecuscrdump.c \
+	ecusetup.c \
+	ecushowcfg.c \
+	ecushm.c \
+	ecusighdl.c \
+	ecutcap.c \
+	ecutermio.c \
+	ecutime.c \
+	ecutty.c \
+	ecuuclc.c \
+	ecuusage.c \
+	ecuutil.c \
+	ecuwinutil.c \
+	ecuxfer.c \
+	edlists.c \
+	esdutil.c \
+	expresp.c \
+	fasiintf.c \
+	feval.c \
+	funckeymap.c \
+	gendiff.c \
+	gint.c \
+	gstr.c \
+	hdbintf.c \
+	kbdtest.c \
+	kbdtest3.c \
+	ldserial.c \
+	ldtelnet.c \
+	logevent.c \
+	lstat.c \
+	makedirs.c \
+	mkdirs.c \
+	nap.c \
+	qmake.c \
+	pcmd.c \
+	pcmdfile.c \
+	pcmdif.c \
+	pcmdserve.c \
+	pcmdtty.c \
+	pcmdwhile.c \
+	pcmdxfer.c \
+	poutput.c \
+	pprintf.c \
+	proc.c \
+	proc_error.c \
+	procframe.c \
+	ptyfork.c \
+	regexp.c \
+	sockserv.c \
+	smap.c \
+	tsz.c \
+	ttynaming.c \
+	ugtext.c \
+	utmpstat.c \
+	var.c
+
+OBJ	= \
+	bamboozle.o\
+	cmdtbl.o\
+	ecu.o\
+	ecuLCK.o\
+	ecudump.o\
+	ecuchdir.o\
+	ecufinsert.o\
+	ecufkey.o\
+	ecufork.o\
+	ecuDCE.o\
+	eculine.o\
+	eculock.o\
+	ecunumrev.o\
+	ecuicmaux.o\
+	ecuicmhelp.o\
+	ecuicmhist.o\
+	ecuicmd.o\
+	ecugrabbag.o\
+	ecupde.o\
+	ecuphdir.o\
+	ecuphrase.o\
+	ecurcvr.o\
+	ecuscrdump.o\
+	ecusetup.o\
+	ecushowcfg.o \
+	ecushm.o\
+	ecusighdl.o\
+	ecutcap.o\
+	ecutermio.o\
+	ecutime.o\
+	ecutty.o\
+	ecuuclc.o\
+	ecuusage.o\
+	ecuutil.o\
+	ecuwinutil.o\
+	ecuxfer.o\
+	esdutil.o\
+	fasiintf.o\
+	expresp.o\
+	feval.o\
+	gint.o\
+	gstr.o\
+	hdbintf.o\
+	ldserial.o\
+	ldtelnet.o \
+	logevent.o\
+	lstat.o\
+	nap.o \
+	mkdirs.o\
+	funckeymap.o\
+	pcmd.o\
+	pcmdif.o\
+	pcmdfile.o\
+	pcmdserve.o \
+	pcmdtty.o\
+	pcmdwhile.o\
+	pcmdxfer.o\
+	poutput.o\
+	pprintf.o\
+	proc.o\
+	proc_error.o\
+	procframe.o\
+	regexp.o\
+	sockserv.o \
+	ttynaming.o\
+	ugtext.o\
+	utmpstat.o\
+	var.o
+
+HDR = \
+	dialprog.h \
+	dlent.h \
+	dvent.h \
+	ecu.h \
+	ecu_config.h \
+	ecu_pwd.h \
+	ecu_stat.h \
+	ecu_time.h \
+	ecu_types.h \
+	ecucmd.h \
+	ecucurses.h \
+	ecuerror.h \
+	ecufkey.h \
+	ecufork.h \
+	ecukey.h \
+	ecupde.h \
+	ecumachdep.h \
+	ecushm.h \
+	ecutermio.h \
+	ecutty.h \
+	ecuungetty.h \
+	ecuxkey.h \
+	esd.h \
+	ldtelnet.h \
+	patchlevel.h \
+	pc_scr.h \
+	procedure.h \
+	relop.h \
+	sockserv.h \
+	smap.h \
+	termecu.h \
+	ttynaming.h \
+	utmpstatus.h \
+	var.h 
+
+SHARFLS = \
+	README* \
+	INSTALL \
+	*.1 \
+	CHANGES \
+	HISTORY \
+	ESOTERIC \
+	Configure \
+	Make.src */Make.src \
+	mk.cpio \
+	mk.cpiogz \
+	mk.tar \
+	mk.targz \
+	$(SRC) $(HDR) \
+	bperr/bperr.c \
+	help/{*.[ch],ecuhelp.src} \
+	ecuungetty/*.[ch] \
+	z/*.[ch] \
+	gendial/{README,install_dialer,*.[ch]} \
+	fasi/{Makefile,Master,Node,PATCHLEVEL} \
+	fasi/{README,README.FASI,RELEASENOTES} \
+	fasi/{Space.c,System,digi-pc8.h,fas.c,fas.h,idfasi} \
+	ecufriend/*.[ch] \
+	mapkey/README mapkey/keys.usa.ecu \
+	old_notes/README.* \
+	doc/{README,Makefile,*.txt,*.man} models/* zgcc mkoldproto.l \
+	unsupported/*/*
+
+MAKEDIRS_OBJ =\
+	makedirs.o\
+	mkdirs.o\
+	lstat.o
+
+all: $(PROGRAM) .make.help .make.ug .make.z kbdtest3 makedirs
+
+$(PROGRAM): $(OBJ)
+	echo 'char *makedate="@(#)'ecu `LC_TIME=C date` $(SYSTEM)'";'  >makedate.c
+	$(CC) -c $(CFLAGS) makedate.c; rm makedate.c
+	rm -f $@ $@~; if [ -f $@ ]; then mv $@ $@~; fi
+	$(BINTIME) $(CC) -o $@ $(LDFLAGS) makedate.o $(OBJ) $(LIBS)
+	rm makedate.o
+
+$(OBJ): Makefile
+
+qmake: qmake.c
+	cc -o qmake $(CFLAGS) qmake.c
+
+q: qmake
+	./qmake $(OBJ) # make objects
+	make ecu # link objects
+
+.make.help:
+	cd help; $(MAKE)
+
+.make.z:
+	cd z; $(MAKE)
+
+.make.ug:
+	if [ $(USEUNGETTY) = yes ]; then \
+		cd ecuungetty; $(MAKE); \
+	fi
+
+bperr/bperr: bperr/bperr.c
+	cd bperr; $(MAKE) bperr
+
+proc_error.c: ecuerror.h
+	$(MAKE) bperr/bperr
+	bperr/bperr
+
+kbdtest3: kbdtest3.c ecutermio.o
+	$(CC) -o $@ $(CFLAGS) kbdtest3.c ecutermio.o
+
+$(OBJ): ecushm.h
+
+ecu.fls: Makefile
+	ls $(SRC) >ecu.fls
+
+# Not recommended
+protos: ecu.fls afterlint mkoldproto
+	echo ' ' > protos.h
+	csh ./zgcc ecu.fls protos.h .
+
+# Not recommended
+allprotos:
+	$(MAKE) protos
+	cd z; $(MAKE) protos
+
+makedirs: $(MAKEDIRS_OBJ)
+	$(CC) -o $@ $(LDFLAGS) $(MAKEDIRS_OBJ) $(LIBS)
+
+# install ecu
+iecu: makedirs ecu
+	@echo Installing ECU in $(LBIN) and $(ECULIBDIR) ... please wait
+	@if [ ! -d $(LBIN) ]; then \
+		echo Attempting to make $(LBIN); \
+		./makedirs -m 755 $(LBIN); \
+		ls -ld $(LBIN); \
+	fi
+	@rm -f $(INSTALLABLE) $(INSTALLABLE)~
+	@if [ -f $(INSTALLABLE) ]; then \
+		echo Cannot remove $(INSTALLABLE) - moving to $(INSTALLABLE)~ \
+		mv $(INSTALLABLE) $(INSTALLABLE)~; \
+	fi
+	@cp $(PROGRAM) $(INSTALLABLE)
+	@strip $(INSTALLABLE)
+	@-if [ -x /usr/bin/mcs ]; then \
+		/usr/bin/mcs -d $(INSTALLABLE) || echo mcs present but not COFF? ; \
+	fi
+	@chown $(ECUOWNER) $(INSTALLABLE)
+	@chgrp $(ECUGROUP) $(INSTALLABLE)
+	@chmod $(ECUMODE) $(INSTALLABLE)
+	@echo Installed
+	@ls -l $(INSTALLABLE)
+	@if [ ! -d $(ECULIBDIR) ]; then \
+		echo Attempting to make $(ECULIBDIR); \
+		./makedirs -m 755 $(ECULIBDIR); \
+		ls -ld $(ECULIBDIR); \
+	fi
+	@-if [ -f $(LIBFUNCKEYMAP) ]; then \
+		echo Saving your old $(LIBFUNCKEYMAP); \
+		for i in  2 1; \
+		do \
+			j=`expr $$i + 1`; \
+			mv $(LIBFUNCKEYMAP)-$$i $(LIBFUNCKEYMAP)-$$j 2>/dev/null; \
+		done; \
+		mv $(LIBFUNCKEYMAP) $(LIBFUNCKEYMAP)-1; \
+		ls -l $(LIBFUNCKEYMAP)*; \
+	fi
+	@cp models/funckeymap $(LIBFUNCKEYMAP)
+	@chown bin $(LIBFUNCKEYMAP)
+	@chgrp bin $(LIBFUNCKEYMAP)
+	@chmod 444 $(LIBFUNCKEYMAP)
+	@echo Installed
+	@ls -l $(LIBFUNCKEYMAP)
+	@cd help; $(MAKE) install
+
+# install everything
+install: all makedirs #run as root
+	@echo Starting full installation of ECU ... please wait
+	@make iecu
+	@if [ $(USEUNGETTY) = yes ]; then \
+		cd ecuungetty; $(MAKE) install; \
+	fi
+	cd z; $(MAKE) install
+	@if [ ! -f $(HDBLIBDIR)/Devices ]; then \
+		cp models/*.mi $(ECULIBDIR); \
+		echo "==> edit $(ECULIBDIR)/*.mi for your tty lines per ecu.man"; \
+	fi
+	@echo Installation complete.  Follow the yellow brick road.
+
+shar.fls: Makefile
+	echo patchlevel.h > shar.fls
+	csh -c 'ls $(SHARFLS) | sed -e "/^patchlevel.h/d" >> shar.fls'
+
+#for the author's laziness
+gendiff:
+	gendiff -f -o ../ecu-3.30 -n Patch01 `cat shar.fls`
+
+# for shar 3.461
+shar: shar.fls
+	echo 'shar -F -c -s "wht@wht.net" -a \
+	-E 'SCO,SCOXENIX,MOTOROLA,HP-UX,LINUX,NetBSD,SUNOS,SYSVR4,SOLARIS2' \
+	-n$(ECUSHARNAME) -L57 -o/tmp/$(ECUSHARNAME) $(SHARFLS)'  > /tmp/ecu.csh.in
+	csh /tmp/ecu.csh.in
+	rm /tmp/ecu.csh.in
+	cd doc;make
+	shar -F -c -s "wht@wht.net" -a \
+	-E 'SCO,SCOXENIX,MOTOROLA,HP-UX,LINUX,NetBSD,SUNOS,SYSVR4,SOLARIS2' \
+	-n$(MANSHARNAME) -L57 -o/tmp/$(MANSHARNAME) doc/ecu.man doc/proc.man
+
+cpio: shar.fls
+	./mk.cpio /tmp/$(ECUSHARNAME).cpio
+
+cpiogz: shar.fls
+	./mk.cpiogz /tmp/$(ECUSHARNAME).cpio
+
+tar: shar.fls
+	./mk.tar /tmp/$(ECUSHARNAME).tar
+
+targz: shar.fls
+	./mk.targz /tmp/$(ECUSHARNAME).tar
+
+# tools for making ecu
+afterlint: afterlint.c
+	cc -O afterlint.c -o $@
+	-if [ -x /usr/bin/mcs ]; then /usr/bin/mcs -d $@; fi
+	strip $@
+
+mkoldproto: mkoldproto.l
+	lex mkoldproto.l
+	cc -O lex.yy.c -ll -o $@
+	-if [ -x /usr/bin/mcs ]; then /usr/bin/mcs -d $@; fi
+	strip $@
+	rm lex.yy.?
+
+neat:
+	rm -f core tags cscope.out makedate.c makedate.o
+	rm -f *~ *# *.orig *.rej make.log a.out *.q
+	rm -f */*~ */*# */*.orig */*.rej
+	rm -f makedirs kbdtest kbdtest3
+	rm -f shar.fls cpio.fls /tmp/ecu.cpio.fls
+	rm -f .make.* depend.tmp eddep.tmp Makefile.new *.bak *.BAK
+	-cd help; $(MAKE) neat
+	-cd z; $(MAKE) neat
+	-cd bperr; $(MAKE) neat
+	-if [ $(USEUNGETTY) = yes ]; then \
+		cd ecuungetty; $(MAKE) neat; \
+	fi
+
+clean: neat
+	rm -f $(OBJ) makedirs.o kbdtest.o kbdtest3.o qmake.o qmake
+	-cd help; $(MAKE) clean
+	-cd z; $(MAKE) clean
+	-cd bperr; $(MAKE) clean
+	-if [ $(USEUNGETTY) = yes ]; then \
+		cd ecuungetty; $(MAKE) clean; \
+	fi
+	-if [ -f gendial/Makefile ]; then \
+		cd gendial; $(MAKE) clean; \
+	fi
+	-if [ -f timetest/Makefile ]; then \
+		cd timetest; $(MAKE) clean; \
+	fi
+
+distclean: clobber
+
+clobber: clean
+	rm -f $(PROGRAM) $(PROGRAM)~
+	rm -f kbdtest3.out
+	rm -f config kbdtest kbdtest3 makedirs afterlint mkoldproto
+	-cd help; $(MAKE) clobber
+	-cd z; $(MAKE) clobber
+	-cd bperr; $(MAKE) clobber
+	-if [ $(USEUNGETTY) = yes ]; then \
+		cd ecuungetty; $(MAKE) clobber; \
+	fi
+
+#regenerate .o:.h dependencies automatically
+depecu:
+	rm -f depend.tmp
+	grep '^#include' $(SRC) \
+	| sed \
+		-e '/</d'\
+		-e 's?:[^"]*"\([^"]*\)".*?: \1?'\
+		-e 's?\(.*\)\.c?\1.o?'\
+	 >> depend.tmp
+
+	echo '/^# DO NOT DELETE THIS LINE' >eddep.tmp
+	echo '.+1,$$d' >>eddep.tmp
+	echo 'r depend.tmp' >> eddep.tmp
+	echo 'w' >> eddep.tmp
+	cp Makefile Makefile.new
+	ed Makefile.new < eddep.tmp
+	rm eddep.tmp depend.tmp
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >>Makefile.new
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY'>>Makefile.new
+	echo '# see make depend above'>>Makefile.new
+	mv Makefile Makefile.bak
+	mv Makefile.new Makefile
+
+depend: depecu
+	cd help; $(MAKE) depend
+	cd z; $(MAKE) depend
+	if [ $(USEUNGETTY) = yes ]; then \
+		cd ecuungetty; $(MAKE) depend; \
+	fi
+
+# DO NOT DELETE THIS LINE
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above
+

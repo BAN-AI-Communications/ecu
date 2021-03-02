@@ -1,0 +1,116 @@
+#+---------------------------------------------------------------
+# Makefile for ecuungetty
+# wht@wht.net
+#
+# must be root to run make install
+#----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:38-wht@n4hgf-ECU release 3.20 BETA
+#:02-10-1992-05:47-wht@n4hgf-mcs avail on some systems when non-COFF produced
+#:07-25-1991-12:57-wht@n4hgf-ECU release 3.10
+#:04-21-1991-12:05-wht@n4hgf-convert to Make.src
+
+SHELL = /bin/sh
+PROGRAM = ecuungetty
+INSTALLABLE = $(ECULIBDIR)/$(PROGRAM)
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h
+
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+
+SRC = \
+	ecuungetty.c
+
+OBJ = \
+	../ecuuclc.o\
+	../ecuLCK.o\
+	../ugtext.o\
+	../utmpstat.o\
+	../bamboozle.o\
+	../ttynaming.o\
+	ecuungetty.o
+
+all: $(PROGRAM)
+
+$(PROGRAM): $(OBJ)
+	$(BINTIME) $(CC) -o $@ $(LDFLAGS) $(OBJ) $(LIBS)
+
+$(OBJ): Makefile
+
+install: $(PROGRAM) ../makedirs
+	../makedirs -m 755 $(ECULIBDIR)
+	rm -f $(INSTALLABLE) $(INSTALLABLE)~ 
+	if [ -f $(INSTALLABLE) ]; then mv $(INSTALLABLE) $(INSTALLABLE)~; fi
+	cp $(PROGRAM) $(INSTALLABLE)
+	strip $(INSTALLABLE)
+	-if [ -x /usr/bin/mcs ]; then /usr/bin/mcs -d $(INSTALLABLE); fi
+	chown root $(INSTALLABLE)
+	chgrp bin $(INSTALLABLE)
+	chmod 4711 $(INSTALLABLE)
+
+../makedirs:
+	cd ..;make makedirs
+
+neat:
+	rm -f .make.* depend.tmp eddep.tmp Makefile.new *.bak *.BAK
+	rm -f core tags cscope.out
+	-rm -f *~ *# *.orig *.rej make.log a.out
+
+clean: neat
+	rm -f $(PROGRAM).o
+
+clobber: clean
+	rm -f $(PROGRAM)
+
+../bamboozle.o: ../bamboozle.c
+	cd ..;make bamboozle.o
+
+../ugtext.o: ../ugtext.c
+	cd ..;make ugtext.o
+
+../utmpstat.o: ../utmpstat.c
+	cd ..;make utmpstat.o
+
+../ecuuclc.o: ../ecuuclc.c
+	cd ..;make ecuuclc.o
+
+../ecuLCK.o: ../ecuLCK.c
+	cd ..;make ecuLCK.o
+
+../ttynaming.o: ../ttynaming.c
+	cd ..;make ttynaming.o
+
+#regenerate .o:.h dependencies automatically
+depend:
+	rm -f depend.tmp
+	grep '^#include' $(SRC) \
+	| sed \
+		-e '/</d'\
+		-e 's?:[^"]*"\([^"]*\)".*?: \1?'\
+		-e 's?\(.*\)\.c?\1.o?'\
+	 >> depend.tmp
+
+	echo '/^# DO NOT DELETE THIS LINE' >eddep.tmp
+	echo '.+1,$$d' >>eddep.tmp
+	echo 'r depend.tmp' >> eddep.tmp
+	echo 'w' >> eddep.tmp
+	cp Makefile Makefile.new
+	ed Makefile.new < eddep.tmp
+	rm eddep.tmp depend.tmp
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >>Makefile.new
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY'>>Makefile.new
+	echo '# see make depend above'>>Makefile.new
+	mv Makefile Makefile.bak
+	mv Makefile.new Makefile
+
+# DO NOT DELETE THIS LINE
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

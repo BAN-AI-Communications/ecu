@@ -1,0 +1,58 @@
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-17-1992-05:33-wht@n4hgf-0xE0 should read 0xE1
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:05-02-1991-01:57-wht@n4hgf-alt-[a-z] range moved from 0x80-0x99 to 0xe0-0xf9
+
+This file contains information necessary to map ALT-A through ALT-Z
+in accordance with ecuxkey.h to produce unique codes so that
+ALT-[a-z] can cause ECU to execute procedures with a single keystroke.
+
+Beginning with ECU 3.23, the key code range changed:
+      128 through 153 (0x80 through 0x99)     to
+      229 through 249 (0xE1 through 0xFA)
+
+Modify your /usr/lib/keyboard/keys value for the ALT values for
+key codes matching keys [a-z] as follows.  If you have made no 
+other changes to your key file, use the supplied keys.usa.ecu
+
+My apologies to those caught by having already done something
+similar for EMACS or CRISP.
+
+These are the necessary differences:
+
+                                ALT-unshifted
+                                     |
+                                     V
+    16  'q'    'Q'    dc1    dc1    0xf1   'Q'    dc1    dc1     C
+    17  'w'    'W'    etb    etb    0xf7   'W'    etb    etb     C
+    18  'e'    'E'    enq    enq    0xe5   'E'    enq    enq     C
+    19  'r'    'R'    dc2    dc2    0xf2   'R'    dc2    dc2     C
+    20  't'    'T'    dc4    dc4    0xf4   'T'    dc4    dc4     C
+    21  'y'    'Y'    em     em     0xf9   'Y'    em     em      C
+    22  'u'    'U'    nak    nak    0xf5   'U'    nak    nak     C
+    23  'i'    'I'    ht     ht     0xe9   'I'    ht     ht      C
+    24  'o'    'O'    si     si     0xef   'O'    si     si      C
+    25  'p'    'P'    dle    dle    0xf0   'P'    dle    dle     C
+    30  'a'    'A'    soh    soh    0xe1   'A'    soh    soh     C
+    31  's'    'S'    dc3    dc3    0xf3   'S'    dc3    dc3     C
+    32  'd'    'D'    eot    eot    0xe4   'D'    eot    eot     C
+    33  'f'    'F'    ack    ack    0xe6   'F'    ack    ack     C
+    34  'g'    'G'    bel    bel    0xe7   'G'    bel    bel     C
+    35  'h'    'H'    bs     bs     0xe8   'H'    bs     bs      C
+    36  'j'    'J'    nl     nl     0xea   'J'    nl     nl      C
+    37  'k'    'K'    vt     vt     0xeb   'K'    vt     vt      C
+    38  'l'    'L'    np     np     0xec   'L'    np     np      C
+    44  'z'    'Z'    sub    sub    0xfa   'Z'    sub    sub     C
+    45  'x'    'X'    can    can    0xf8   'X'    can    can     C
+    46  'c'    'C'    etx    etx    0xe3   'C'    etx    etx     C
+    47  'v'    'V'    syn    syn    0xf6   'V'    syn    syn     C
+    48  'b'    'B'    stx    stx    0xe2   'B'    stx    stx     C
+    49  'n'    'N'    so     so     0xee   'N'    so     so      C
+    50  'm'    'M'    cr     cr     0xed   'M'    cr     cr      C
+

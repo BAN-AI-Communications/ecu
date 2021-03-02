@@ -1,0 +1,9 @@
+#  CHK=0xE67C
+
+	do 'put_mpad1'
+	lookfor '% ' 40
+	do 'put_kdir12'
+	lookfor '% ' 40
+	do 'put_sim'
+	lookfor '% ' 40
+	do 'put_ecu'

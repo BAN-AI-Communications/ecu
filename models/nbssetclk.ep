@@ -1,0 +1,123 @@
+#  CHK=0x1C17
+#+---------------------------------------------------------------
+# nbssetclk - use NBSsetclk to set system time
+#
+# Place this directory entry in your /.ecu/phone file
+# and edit as necessary:
+#
+#  .--[ entry: nbssetclk ]---------------------------------.
+#  |                                                       |
+#  | telephone number  1(202)653-0351                      |
+#  | device            Any                                 |
+#  | bit rate          1200                                |
+#  | parity            N                                   |
+#  | description       Naval Observatory Time              |
+#  | debug level       0  (dialer -x value 0-9)            |
+#  | DCD watch         n                                   |
+#  | RTS/CTS flow ctl  n  (0=off,7=best,n=no change)       |
+#  |                                                       |
+#  | Enter telephone number                                |
+#  | ESC: exit  END: accept  ^U: erase ^B: back  TAB: fwd  |
+#  `-------------------------------------------------------'
+#
+# Run some command like this out of root crontab:
+# 30 3 * * 5 /usr/local/bin/ecu -p nbssetclk -D
+# which directs this script to run on Friday mornings at 3AM.
+# (If you use this, PLEASE CHOOSE A TIME TO CALL OTHER
+# THAN SHOWN IN THE EXAMPLE; I'd hate to be responsible for
+# a big spike in usage at some given minute. :> )
+#
+# The script makes $i_retries attempts to connect to NBS DC,
+# waiting $i_wait secs between each retry. Upon successful
+# connection,
+#
+# 1. NBSsetclk is invoked to get the time from NBS and set
+#    the clock.
+#
+# 2. If tts can be found at the path in $s_tts, then my
+#    TTS ("Tucker Time System") protocol hack broadcasts the
+#    new time of day to all listeners on the attached subnet.
+#
+# 3. If usemorse can be found at the path in $s_morse,
+#    my morse driver announces successful time capture.
+#
+#----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-15-1996-06:04-wht@n4hgf-clean up for 4.00
+#:09-13-1992-01:26-wht@n4hgf-creation
+
+    # early reinforcement for interactive users
+    echo 'Call NBS: ecu pid is '+%itos(%pid)
+
+    # configuration
+    $i_retries=10                         # allow this many retries
+    $i_wait=7                             # seconds between retries
+    $s_tts = '/etc/tts'                   # path to tts
+    $s_morse = '/usr/local/bin/usemorse'  # path to usemorse
+
+    # make several attempts to connect
+    $i_try = 1                  # first attempt
+    $i0 = 1                     # make loop below run 1st time
+    whilei $i0 != 0
+    {
+        echo '--> Dialing attempt '+%itos($i_try)
+        dial 'nbssetclk'        # make the call
+
+        # be nice to an interactive user (allow loop abort)
+        ifi $i0 == 2            # dial result of 2 says keyboard interrupt
+            echo 'SIGINT: calling aborted'; goto SORRY
+
+        # if the call fails otherwise, maybe retry
+        ifi $i0 != 0
+        {
+            $i_try=$i_try+1
+            ifi $i_try > $i_retries
+                echo '--> Retries exhausted'; goto SORRY
+            echo '--> Waiting '+%itos($i_wait)+' seconds ... '
+            nap -m $i_wait*1000
+            echo '\n'
+        }
+        # dial returned $i0==0, indicating success
+    }
+
+    echo '--> Connected to NBS'
+
+    # update the time of day and the CMOS RAM from NBS-supplied time
+    # (NBSsetclk -f switch gets the UNIX file descriptor of our NBS line,
+    # reads the time from NBS and sets the clock with stime())
+    $s10 = '/etc/NBSsetclk -f '+%itos(%conn)
+    gosub EXEC_S10             # execute the command with sexy verbosity
+    hangup                     # hangup immediately to save $$$
+
+    # my time protocol hack has a special "one-time master" option
+    # to spray the time of day all over the local subnet
+    ifnz %isreg($s_tts)        # if the program exists
+    {
+        $s10 = $s_tts+' -o -m -vvv'
+        gosub EXEC_S10
+    }
+
+    # my morse driver announces success to anyone in the shack
+    ifnz %isreg($s_morse)   # if the program exists
+    {
+        $s10 = $s_morse+' -f 880 -t 5 nbs'  # 880Hz, .05 sec/baud
+        gosub EXEC_S10
+    }
+
+    echo '--> SUCCESS!'
+    return  # job well done ..............................
+
+# error bailout
+SORRY
+    echo 'Sorry ... time capture failed '
+    return 1 # non-zero return terminates any chain of proc executions
+
+#---------------------------------------------------------------------
+
+# subroutine to execute a shell command with verbosity
+EXEC_S10
+    echo '--> '+$s10
+    system -s $s10
+    echo ''
+    return # from subroutine

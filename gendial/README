@@ -1,0 +1,12 @@
+I have done at least rudimentary testing of each of these
+dialers in an SCO XENIX or UNIX.  I have good faith in
+the HA24, USR24, MPAD, T2500 and MC9624 dialers.
+Some many things and ROMs have been called Trailblazer Plus
+that I juust dunno.
+
+dialgHA24       Hayes 2400
+dialgMC9624     Microcom AX/9624c
+dialgMPAD       AT&T Tridom VSAT modem emulation PAD
+dialgT2500      Telebit T2500
+dialgTBPlus     Telebit Trailblazer rom version 5.01
+dialgUSR24      US Robotic Courier 2400

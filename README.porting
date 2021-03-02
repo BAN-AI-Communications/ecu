@@ -1,0 +1,84 @@
+Last updated, Thu Jun 15 18:32:31 EDT 1995
+
+Anyway you do it,
+
+PPPPPP  L       EEEEEEE    A     SSSSS  EEEEEEE
+P     P L       E         A A   S     S E
+P     P L       E        A   A  S       E
+PPPPPP  L       EEEEE   A     A  SSSSS  EEEEE
+P       L       E       AAAAAAA       S E
+P       L       E       A     A S     S E
+P       LLLLLLL EEEEEEE A     A  SSSSS  EEEEEEE
+
+
+1. READ THIS DIATRIBE
+2. TALK TO US IN DETAIL BEFORE EMBARKING ON EPIC HACK-A_THONS
+3. USE CONTEXT DIFFS WHEN COMMUNICATING CHANGES
+4. UPDATE THE DOC TOO!
+5. FOLLOW THE YELLOW BRICK ROAD AND HAVE FUN!!!
+
+Generally, you'll HAVE to have (or construct a replacement for)
+
+1. nap() or -DUSE_SELECT if you have a working select()
+2. ftime() or -DUSE_GETTIMEOFDAY if you have gettimeofday()
+3. SVR3 termio or -DUSE_TERMIOS if you have POSIX/SVR4 termios
+4. termcap- or terminfo-based curses (ecu_curses.h and
+   Make.src/Makefile LDLIBS hackery)
+5. HDB ASCII-style lock file conventions or -DUSE_DECIMAL_PIDS
+   if int-sized values are to be used.
+
+Configure, config.c and Make.src conspire to pass these
+configuration #defines to ECU:
+
+#define identifier       defined if
+---------------------    ----------------------------------------------
+CFG_BinaryUucpPids       UUCP lock files have int pids not ASCII
+CFG_FionrdRdchk          If you lack rdchk() but have ioctl(FIONREAD)
+CFG_GettodFtime          If you lack ftime() but have gettimeofday()
+CFG_MmapSHM              If you lack SYSV shm, but have mmap()
+CFG_SelectNap            If you lack nap() but have select()
+CFG_TermiosLineio        If you lack termio but have POSIX termios
+CFG_UngettyChown         If want ecuungetty to manage tty ownership
+CFG_UseUngetty           If you want and have ported ecuungetty
+
+CFG_ScreenLinesMax       maximum number of screen rows (config.c default=50)
+CFG_ScreenColsMax        maximum number of screen columns (config.c default=80)
+
+CFG_SemWithShm           DO NOT TURN THIS ON
+
+There are more (this list is incomplete).
+
+There are other dragons not so easily compartmentalised.  Study config.c.
+
+Again,
+
+PPPPPP  L       EEEEEEE    A     SSSSS  EEEEEEE
+P     P L       E         A A   S     S E
+P     P L       E        A   A  S       E
+PPPPPP  L       EEEEE   A     A  SSSSS  EEEEE
+P       L       E       AAAAAAA       S E
+P       L       E       A     A S     S E
+P       LLLLLLL EEEEEEE A     A  SSSSS  EEEEEEE
+
+TTTTTTT    A    L       K    K
+   T      A A   L       K   K
+   T     A   A  L       K  K
+   T    A     A L       KKK
+   T    AAAAAAA L       K  K
+   T    A     A L       K   K
+   T    A     A LLLLLLL K    K
+
+TTTTTTT OOOOOOO         U     U  SSSSS
+   T    O     O         U     U S     S
+   T    O     O         U     U S
+   T    O     O         U     U  SSSSS
+   T    O     O         U     U       S
+   T    O     O         U     U S     S
+   T    OOOOOOO          UUUUU   SSSSS
+
+
+BEFORE EMBARKING ON EPIC HACK-A_THONS
+
+--
+Warren Tucker                          wht@wht.net   n4hgf!wht
+The velocity of history is increasing exponentially. -- Henry Gonzales

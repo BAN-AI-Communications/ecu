@@ -1,0 +1,20 @@
+
+
+AGAIN
+	echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+	ptrace 1
+	sockserve 6996 SOCKET_ERROR
+	ifi $i0 <> 0
+		echo 'sockserve error = '+%itos($i0);return
+	echo 'CONNECTED'
+
+	whilei 1==1
+	{
+		send -n 'Hello '+%chr(0xF6)+' '+%chr(0xD6)+'-> '
+		$itimeout=25000
+		lgets $s0 $itimeout 1 '\n' #get a line
+		send -c $s0
+	}
+SOCKET_ERROR
+	echo 'LOST CONNECTION'
+	goto AGAIN

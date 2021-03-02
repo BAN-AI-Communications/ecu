@@ -1,0 +1,19 @@
+#+-----------------------------------------------------------------
+#  tty.equiv -- NOT YET IMPLEMENTED
+#
+On many systems, physical tty devices are known by several
+/dev/names.  By opening different names (which selects different
+magic numbers), you get different driver characteristics.
+In many instances only one of the names is suitable for
+dialout use.  In other cases, one name is better than the other
+for reasons purely dependent on the particular kernel and/or
+serial driver that ECU or other cu/tip/uucico rests upon.
+
+The file /usr/local/lib/ecu/tty.equiv describes the relationship
+between ttys.  Using tty.equiv, you can instruct ECU which 
+tty to use when another (analogous) tty is specified.
+#------------------------------------------------------------------
+tty1A: tty1a
+tty2B: tty2b
+
+shay-na may-da-la sweet, pretty little girl

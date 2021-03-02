@@ -1,0 +1,813 @@
+#+------------------------------------------------------------------------
+# ECU 4.20 funckeymap
+#
+# This file contains mapping information to convert non-ANSI
+# keyboard function keys to an internal ECU function key
+# representation.
+# 
+# The format of an entry is shown below in the 'ansilike' example (used
+# to ansilike ECU from the console by defining an ansi terminal type
+# nevertheless equivalent to ansi).
+# 
+# The first line(s) in a terminal keyboard description begin in
+# column 1 and contain the terminal types (a la $TERM) for which
+# the keyboard description are valid.  The example entry contains
+# several references to terminal types containing the substring
+# 'ansi'.  These are included only as an example of one keyboard
+# description servicing multiple terminal types.
+# 
+# ECU determines whether a terminal meets the ansi vs.  ANSI
+# distinction by searching for 'ansi' in the $TERM environment
+# variable (without regard to case: 'AnSi' will match as well as
+# 'ansi').  If your keyboard matches the ANSI specification even
+# though your $TERM environment variable does not contain 'ansi'
+# (such as 'sun'), then you may add the terminal type to the 'ansilike'
+# entry rather than create a separate entry.
+# 
+# Following the "first lines" are key definition entries, each
+# preceded by at least one tab or space.  Each entry is composed of
+# three fields delimited by commas.  The first field of an entry is
+# the internal ECU function key name and must be chosen from the
+# following strings (with no regard to case): "F1", "F2", "F3",
+# "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Home",
+# "End", "PgUp", "PgDn", "CUP", "CUL", "CU5", "CUR" and "CUD" The
+# second field contains the name of the key as it appears on the
+# non-ANSI keyboard (such as "Send" for End on the Wyse 60).  The
+# third field is a description of the character sequence generated
+# by the non-ANSI keyboard when the chosen key is pressed; it is a
+# string of one or more tokens separated by spaces or tabs.
+# The tokens are described in full in the ECU manual sections titled
+# "Function Key Recognition" and "Function Key Mapping."
+#
+# << LOOK >> NOTE:
+# Compile and run 'kbdtest3.c' (see the source file for information)
+# to build a file containing the emitted sequences for each supported
+# function key.  Looking at the file, you will see it is a funckeymap
+# formatted keyboard description complete with the TERM terminal type.
+# I would appreciate your mailing me any files you
+# create describing non-SCO/non-ISC main console keyboards.
+#
+# If you like, compile the older 'kbdtest.c' module released with 3.0
+# and run it. Press any key you like and hex for the emitted
+# sequence will appear on the screen.  Press ^D to exit the program.
+#
+#-------------------------------------------------------------------------
+#+:EDITS:
+#:04-26-2000-11:15-wht@bob-add 'scoansi'
+#:02-28-1998-17:20-root@menlo-add 'linux-m'
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-23-1995-11:00-wht@kepler-update F11/F12 and con types for Linux
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:04-02-1995-04:58-wht@n4hgf-add con80x25 for later Linux
+#:03-21-1995-17:46-wht@n4hgf-add vt100 for old rterms which use ttype 'vt100'
+#:01-12-1995-15:18-wht@n4hgf-apply Andrew Chernov 8-bit clean+FreeBSD patch
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:04-24-1994-05:17-wht@n4hgf-clean up+add entries for release 3.30
+#:03-13-1994-18:38-root@fep-add rterm entry
+#:11-22-1993-23:46-wht@n4hgf-hpux
+#:11-12-1993-10:51-wht@n4hgf-add Linux diffs
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:05-14-1992-02:07-wht@n4hgf-make note of Metro Link R5 compatibility
+#:04-19-1992-01:37-wht@n4hgf-add ESIX SVR4 console
+#:10-03-1991-04:56-wht@n4hgf-add X386 1.1b Roell X11R4 xterm entry
+#:08-26-1991-05:06-wht@n4hgf2-add sun console and xterm entry
+#:08-10-1991-16:07-wht@n4hgf-add new Metro Link server entry
+#:05-06-1991-02:31-wht@n4hgf-add tandem terminal "ansi-terminal"
+#:05-05-1991-17:37-root@n4hgf-add ISC at386 tnx to dug@kd4nc
+#:05-02-1991-04:53-wht@n4hgf-document kbdtest3
+#:03-26-1991-00:00-wht@n4hgf-more Metro Link work
+#:03-19-1991-21:04-root@n4hgf-add Metro Link MetroX X11R4 xterm
+#:12-20-1990-23:50-wht@n4hgf-"correct" wyse entry
+#:12-18-1990-19:43-wht@n4hgf-add xterm and wy60
+#:12-02-1990-13:34-wht@n4hgf-creation
+
+#+-------------------------------------------------------------------
+#   SCO multiscreen (and other ANSI for F1-F10, cursor keys)
+#--------------------------------------------------------------------
+sco
+scoansi
+ansi
+ansi43
+msdos
+dos
+dosansi
+test
+cons25w
+ansiw
+cons25
+ansis
+cons25-m
+ansis-mono
+cons50
+ansil
+cons50-m
+ansil-mono
+cons25r
+pc3r
+ibmpc3r
+cons25r-m
+pc3r-m
+ibmpc3r-mono
+cons50r
+cons50r-m
+cons25l1
+cons25l1-m
+cons50l1
+cons50l1-m
+cons30
+cons30-m
+cons30r
+cons30r-m
+cons30l1
+cons30l1-m
+cons60
+cons60-m
+cons60r
+cons60r-m
+cons60l1
+cons60l1-m
+    F1:F1:          esc [ M 
+    F2:F2:          esc [ N 
+    F3:F3:          esc [ O 
+    F4:F4:          esc [ P 
+    F5:F5:          esc [ Q 
+    F6:F6:          esc [ R 
+    F7:F7:          esc [ S 
+    F8:F8:          esc [ T 
+    F9:F9:          esc [ U 
+    F10:F10:        esc [ V 
+    F11:F11:        esc [ W 
+    F12:F12:        esc [ X 
+    Home:Home:      esc [ H 
+    End:End:        esc [ F 
+    PgUp:PgUp:      esc [ I 
+    PgDn:PgDn:      esc [ G 
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+    CU5:CU5:        esc [ E 
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ L
+    BkTab:BackTab:  esc [ Z
+
+#+-------------------------------------------------------------------
+# ~wht/.Xdefaults on a networked SCO and Sun boxes
+# has these xterm translations: allows
+# me to be able to run ECU on n4hgf from 
+#
+#  a local xterm with the Roell X386 1.1b, Metro Link X11R4 and X11R5
+#    or SCO ODT servers or
+#  a remote Sparc IPX MIT X11R4 xterm running under
+#    news/open windows 2.0 or the MIT X11R4 server
+#
+# and vice versa on the Sun box
+#
+# This translation set demonstrates two different servers'
+# keyboard-to-keysym mappings being accommodated by one 'xterm'
+# funckey entry
+#
+#XTerm*VT100*Translations: #override\
+#     Shift <Key>Tab:  string(0x1b) string("[Z") \n \
+#     <Key>Insert:     string(0x1b) string("[L") \n \
+#     <Key>Home:       string(0x1b) string("[H") \n \
+#     <Key>End:        string(0x1b) string("[F") \n \
+#     <Key>Begin:      string(0x1b) string("[E") \n \
+#     <Key>F27:        string(0x1b) string("[H") \n \
+#     <Key>R13:        string(0x1b) string("[F") \n \
+#     <Key>F29:        string(0x1b) string("[I") \n \
+#     <Key>F31:        string(0x1b) string("[E") \n \
+#     <Key>F35:        string(0x1b) string("[G") \n
+#
+#--------------------------------------------------------------------
+xterm
+    BkTab:BkTab:    esc [ Z
+    CU5:CU5:        esc [ E
+    F1:F1:          esc [ 1 1 ~
+    F2:F2:          esc [ 1 2 ~
+    F3:F3:          esc [ 1 3 ~
+    F4:F4:          esc [ 1 4 ~
+    F5:F5:          esc [ 1 5 ~
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+    F11:F11:        esc [ 2 3 ~
+    F12:F12:        esc [ 2 4 ~
+    Ins:Ins:        esc [ 2 ~
+    Home:Home:      esc [ H
+    End:End:        esc [ F
+    PgUp:PgUp:      esc [ 5 ~
+    PgDn:PgDn:      esc [ 6 ~
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-------------------------------------------------------------------
+#   Sun Sparc xterm using MIT X11R4 server (pl18)
+#
+# Place in .Xdefaults or whatever:
+#
+# XTerm*VT100*Translations: #override\
+#     Shift <Key>Tab:   string(0x1b) string("[Z") \n \
+#     <Key>F27:         string(0x1b) string("[H") \n \
+#     <Key>R13:         string(0x1b) string("[F") \n \
+#     <Key>F29:         string(0x1b) string("[I") \n \
+#     <Key>F31:         string(0x1b) string("[E") \n \
+#     <Key>F35:         string(0x1b) string("[G") \n \
+#     <Key>Insert:      string(0x1b) string("[L") \n \
+#
+# funckeymap for 'xterm' under SunOS
+# built by kbdtest3 1.02 Mon Aug 26 04:55:24 1991
+# keyboard parity required = even
+#--------------------------------------------------------------------
+xterm
+    BkTab:BkTab:    esc [ Z
+    CU5:CU5:        esc [ E
+    F1:F1:          esc [ 1 1 ~
+    F2:F2:          esc [ 1 2 ~
+    F3:F3:          esc [ 1 3 ~
+    F4:F4:          esc [ 1 4 ~
+    F5:F5:          esc [ 1 5 ~
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+    F11:F11:        esc [ 2 3 ~
+    F12:F12:        esc [ 2 4 ~
+    Ins:Ins:        esc [ L     # Ins generates Insert
+    Home:Home:      esc [ H     # Home generates F27
+    End:End:        esc [ F     # End generates R13
+    PgUp:PgUp:      esc [ I     # PgUp generates F29
+    PgDn:PgDn:      esc [ G     # PgDn generates F35
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-------------------------------------------------------------------
+#   SCO ODT 2.0 console xterm (with translations shown below)
+#
+#XTerm*VT100*Translations: #override\
+#     Shift <Key>Tab:  string(0x1b) string("[Z") \n \
+#     <Key>KP_Insert:  string(0x1b) string("[L") \n \
+#     <Key>KP_Home:    string(0x1b) string("[H") \n \
+#     <Key>KP_End:     string(0x1b) string("[F") \n \
+#     <Key>KP_Prior:   string(0x1b) string("[I") \n \
+#     <Key>KP_Next:    string(0x1b) string("[G") \n \
+#     <Key>KP_Begin:   string(0x1b) string("[E") \n \
+#
+#--------------------------------------------------------------------
+xterm
+    BkTab:BkTab:    esc [ Z
+    CU5:CU5:        esc [ E
+    F1:F1:          esc [ 1 1 ~
+    F2:F2:          esc [ 1 2 ~
+    F3:F3:          esc [ 1 3 ~
+    F4:F4:          esc [ 1 4 ~
+    F5:F5:          esc [ 1 5 ~
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+    F11:F11:        esc [ 2 3 ~
+    F12:F12:        esc [ 2 4 ~
+    Ins:Ins:        esc [ L
+    Home:Home:      esc [ H
+    End:End:        esc [ F
+    PgUp:PgUp:      esc [ I
+    PgDn:PgDn:      esc [ G
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-------------------------------------------------------------------
+#    Sun Console
+#
+# funckeymap for 'sun' (native console) under SunOS 4.1
+# built by kbdtest3 1.02 Mon Aug 26 16:21:57 1991
+# keyboard parity required = even
+#--------------------------------------------------------------------
+sun
+#   BkTab:BkTab:    ht                   # does not work
+    CU5:CU5:        esc [ 2 1 8 z
+    F1:F1:          esc [ 2 2 4 z
+    F2:F2:          esc [ 2 2 5 z
+    F3:F3:          esc [ 2 2 6 z
+    F4:F4:          esc [ 2 2 7 z
+    F5:F5:          esc [ 2 2 8 z
+    F6:F6:          esc [ 2 2 9 z
+    F7:F7:          esc [ 2 3 0 z
+    F8:F8:          esc [ 2 3 1 z
+    F9:F9:          esc [ 2 3 2 z
+    F10:F10:        esc [ 2 3 3 z
+    F11:F11:        esc [ 2 3 4 z
+    F12:F12:        esc [ 2 3 5 z
+    Ins:Ins:        esc [ 2 4 7 z
+    Home:Home:      esc [ 2 1 4 z
+    End:End:        esc [ 2 2 0 z
+    PgUp:PgUp:      esc [ 2 1 6 z
+    PgDn:PgDn:      esc [ 2 2 2 z
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-------------------------------------------------------------------
+#   ISC 'AT386' keyboard
+#--------------------------------------------------------------------
+AT386
+at386
+    F1:F1:          esc O P 
+    F2:F2:          esc O Q 
+    F3:F3:          esc O R 
+    F4:F4:          esc O S 
+    F5:F5:          esc O T 
+    F6:F6:          esc O U 
+    F7:F7:          esc O V 
+    F8:F8:          esc O W 
+    F9:F9:          esc O X 
+    F10:F10:        esc O Y 
+    F11:F11:        esc O Z 
+    F12:F12:        esc O A 
+    Home:Home:      esc [ H 
+    End:End:        esc [ Y 
+    PgUp:PgUp:      esc [ V 
+    PgDn:PgDn:      esc [ U 
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+    CU5:CU5:        esc [ G 
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ @
+    BkTab:BackTab:  gs
+
+#+-------------------------------------------------------------------
+#       ESIX SVR4 console
+#
+# funckeymap for 'AT386-M' under ESIX SVR4
+# built by kbdtest3 3.20 Thu Apr 16 23:16:22 1992
+# keyboard parity required = none
+# stty -a at kbdtest3 execution time:
+# speed 9600 baud; 
+# intr = DEL; quit = ^|; erase = ^h; kill = @;
+# eof = ^d; eol = <undef>; eol2 = <undef>; swtch = <undef>;
+# start = <undef>; stop = <undef>; susp = ^z; dsusp = <undef>;
+# rprnt = ^r; flush = ^o; werase = ^w; lnext = ^v;
+# -parenb -parodd cs8 -cstopb -hupcl cread -clocal -loblk -parext 
+# -ignbrk brkint ignpar -parmrk -inpck istrip -inlcr -igncr icrnl -iuclc 
+# ixon ixany -ixoff -imaxbel 
+# isig icanon -xcase echo echoe echok -echonl -noflsh 
+# -tostop -echoctl -echoprt -echoke -defecho -flusho -pendin -iexten 
+# opost -olcuc onlcr -ocrnl -onocr -onlret -ofill -ofdel tab3 
+#
+# supplied by Joseph H Buehler <jhpb@sarto.budd-lake.nj.us>
+#+-------------------------------------------------------------------
+AT386-M
+    BkTab:BkTab:    gs 
+    CU5:CU5:        esc [ G
+    F1:F1:          esc O P
+    F2:F2:          esc O Q
+    F3:F3:          esc O R
+    F4:F4:          esc O S
+    F5:F5:          esc O T
+    F6:F6:          esc O U
+    F7:F7:          esc O V
+    F8:F8:          esc O W
+    F9:F9:          esc O X
+    F10:F10:        esc O Y
+    F11:F11:        esc O Z
+    F12:F12:        esc O A
+    Ins:Ins:        esc [ @
+    Home:Home:      esc [ H
+    End:End:        esc [ Y
+    PgUp:PgUp:      esc [ V
+    PgDn:PgDn:      esc [ U
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-------------------------------------------------------------------
+#    Wyse 60 Native Mode (no reprogrammed function keys)
+#    (matching the keyboard tops I have, anyway)
+#
+# The following is for native mode Wyse 60 with no function keys
+# programmed for emitting alternate sequences.  This is such a
+# nice terminal in so many ways.  Too bad they cocked up the left
+# and down function keys by making them indistinguishable from
+# backspace and newline. You may wish to study the SCO /etc/termcap
+# 'wy60ak' entry for a way around this.
+#
+# Note there is a kludge in the terminal initialization code
+# to force a Wyse 60's *arrow keys* to use ANSI sequences.
+# This entry as shipped counts on this.  If you don't have SCO, try
+# the termcap entry in README.WY60
+#
+# If you really want to avoid this, comment out the IS strings below.
+#--------------------------------------------------------------------
+wy60
+wyse60
+wy60ak
+wyse60ak
+wy60-43
+wyse60-43
+wyse60ak-43
+wy60ak-43
+    IS:1:           esc Z 1 + esc [ A del
+    IS:2:           esc Z 1 , esc [ B del
+    IS:3:           esc Z 1 - esc [ D del
+    IS:4:           esc Z 1 . esc [ C del
+    IS:5:           esc Z 1 \ esc [ F del
+    IS:6:           esc Z 1 q esc [ L del 
+    F1:F1:          soh @ cr
+    F2:F1:          soh A cr
+    F3:F1:          soh B cr
+    F4:F1:          soh C cr
+    F5:F1:          soh D cr
+    F6:F1:          soh E cr
+    F7:F1:          soh F cr
+    F8:F1:          soh G cr
+    F9:F1:          soh H cr
+    F10:F10:        soh I cr
+    F11:F11:        soh J cr
+    F12:F12:        soh K cr
+    Home:Home:      rs
+    PgUp:PrevPg:    esc J
+    PgDn:NextPg:    esc K
+    BkTab:F14:      soh M cr
+    Ins:InsChar:    esc Q
+    End:Send:       esc 7
+#comment these out if you DO comment the IS strings
+   CUU:CUU:        esc [ A 
+   CUL:CUL:        esc [ D 
+   CU5:CU5:        esc [ E 
+   CUR:CUR:        esc [ C 
+   CUD:CUD:        esc [ B 
+#   Home:Home:      esc [ H 
+#   End:End:        esc [ F 
+#uncomment the if you DO NOT comment the IS strings
+#    CUU:CUU:        vt
+#    CUR:CUR:        ff
+
+#+-------------------------------------------------------------------
+#    Tandem Integrity S2
+#
+# From: rootk@tdmsou (Admin) [John Dashner]
+# Date: Mon, 6 May 91 2:23:56 EDT
+# funckeymap definition for TERM='ansi-tandem'
+# built by kbdtest3.c Mon May  6 02:17:13 1991
+#--------------------------------------------------------------------
+ansi-tandem
+    BkTab:BkTab:    esc [ Z
+    CU5:CU5:        esc [ T
+    F1:F1:          soh @ cr 
+    F2:F2:          soh A cr 
+    F3:F3:          soh B cr 
+    F4:F4:          soh C cr 
+    F5:F5:          soh D cr 
+    F6:F6:          soh E cr 
+    F7:F7:          soh F cr 
+    F8:F8:          soh G cr 
+    F9:F9:          soh H cr 
+    F10:F10:        soh I cr 
+    F11:F11:        soh J cr 
+    F12:F12:        soh K cr 
+    Ins:Ins:        esc [ @
+    Home:Home:      esc [ H
+    End:End:        esc [ 2 4 H
+    PgUp:PgUp:      esc [ V
+    PgDn:PgDn:      esc [ U
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-----------------------------------------------------------------------------
+#  "versatile"  xterm - an example (works for me) -- wht
+#------------------------------------------------------------------------------
+# funckeymap definition for TERM='xterm' 
+# ODT 2.0 + Roell x386 1.1b + Sun OW2 + Sun MIT combined
+# built by kbdtest3 3.21 Wed Sep 16 12:58:06 1992
+# keyboard parity required = even
+# stty -a at kbdtest3 execution time:
+# speed 9600 baud;   ispeed 9600 baud;   ospeed 9600 baud; 
+# line = 0; intr = ^C; quit = ^\; erase = ^H; kill = ^U; eof = ^D; eol = ^@; 
+# swtch = ^@;susp = ^Z;start = ^Q;stop = ^S;
+# parenb -parodd cs8 -cstopb hupcl cread -clocal -loblk -crtsfl -ctsflow -rtsflow 
+# -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl -iuclc 
+# ixon -ixany -ixoff 
+# isig icanon -xcase echo echoe echok -echonl -noflsh -iexten -tostop -xclude 
+# opost -olcuc onlcr -ocrnl -onocr -onlret -ofill -ofdel 
+# -isscancode 
+#------------------------------------------------------------------------------
+# stock OW2/nEwS doesn't include F11 or F12; xev for both:
+# state 0x0, keycode 16 (keysym 0x1005ff10, (no name)), same_screen YES,
+# XLookupString gives 0 characters:  ""
+# (keycode 16 for F11, 18 for F12)
+#------------------------------------------------------------------------------
+# XTerm*VT100*Translations: #override\
+#      <Key>Home:       string(0x1b) string("[H") \n \
+#      <Key>KP_Home:    string(0x1b) string("[H") \n \
+#      <Key>F27:        string(0x1b) string("[H") \n \
+#      <Key>End:        string(0x1b) string("[F") \n \
+#      <Key>KP_End:     string(0x1b) string("[F") \n \
+#      <Key>R13:        string(0x1b) string("[F") \n \
+#      <Key>Prior:      string(0x1b) string("[I") \n \
+#      <Key>F29:        string(0x1b) string("[I") \n \
+#      <Key>Next:       string(0x1b) string("[G") \n \
+#      <Key>KP_Next:    string(0x1b) string("[G") \n \
+#      <Key>F35:        string(0x1b) string("[G") \n \
+#      <Key>KP_Begin:   string(0x1b) string("[E") \n \
+#      <Key>Begin:      string(0x1b) string("[E") \n \
+#      <Key>F31:        string(0x1b) string("[E") \n \
+#      <Key>KP_Insert:  string(0x1b) string("[L") \n \
+#      <Key>Insert:     string(0x1b) string("[L") \n \
+#      Shift <Key>Tab:  string(0x1b) string("[Z") \n 
+#
+#--------------------------------------------------------------------
+xterm
+    BkTab:BkTab:    esc [ Z
+    CU5:CU5:        esc [ E
+    F1:F1:          esc [ 1 1 ~
+    F2:F2:          esc [ 1 2 ~
+    F3:F3:          esc [ 1 3 ~
+    F4:F4:          esc [ 1 4 ~
+    F5:F5:          esc [ 1 5 ~
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+    F11:F11:        esc [ 2 3 ~
+    F12:F12:        esc [ 2 4 ~
+    Ins:Ins:        esc [ L
+    Home:Home:      esc [ H
+    End:End:        esc [ F
+    PgUp:PgUp:      esc [ I
+    PgDn:PgDn:      esc [ G
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+---------------------------------------------------------------------
+#    Linux console
+#
+# F11 and F12 change from release to release
+#----------------------------------------------------------------------
+linux
+linux-m
+console
+con80x25
+con80x29
+con80x30
+con80x32
+con80x34
+con80x43
+con80x44
+con80x50
+con80x60
+con80x66
+    F1:F1:          esc [ [ A
+    F2:F2:          esc [ [ B
+    F3:F3:          esc [ [ C
+    F4:F4:          esc [ [ D
+    F5:F5:          esc [ [ E
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+    F11:F11:        esc [ 2 3 ~
+#   F12:F12:        esc [ 2 4 ~ used for BkTab since Shift-Tab yields 0x09
+    Home:Home:      esc [ 1 ~
+    End:End:        esc [ 4 ~
+    PgUp:PgUp:      esc [ 5 ~
+    PgDn:PgDn:      esc [ 6 ~
+    CUU:CUU:        esc [ A
+    CUL:CUL:        esc [ D
+    CU5:CU5:        esc [ G
+    CUR:CUR:        esc [ C
+    CUD:CUD:        esc [ B
+    Ins:Ins:        esc [ 2 ~
+	BkTab:BkTab:    esc [ 2 4 ~
+
+#+-----------------------------------------------------------------------------
+#  H P - U X  hpterm
+#------------------------------------------------------------------------------
+# Date: Mon, 29 Nov 1993 14:09:53 -0800 (PST)
+# From: "Robert E. Laughlin" <bel@nosc.mil>
+# funckeymap for 'hpterm' under HP-UX
+# built by kbdtest3 3.21 Wed Nov 24 10:26:29 1993
+# keyboard parity required = even
+# stty -a at kbdtest3 execution time:
+# speed 9600 baud; line = 0; susp = ^Z; dsusp = ^@
+# rows = 25; columns = 80
+# intr = ^C; quit = ^\; erase = ^H; kill = ^U; swtch = ^@
+# eof = ^D; eol = ^@; min = 4; time = 0; stop = ^S; start = ^Q
+# parenb -parodd cs8 -cstopb hupcl cread -clocal -loblk -crts 
+# -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl -iuclc 
+# ixon -ixany ixoff -rtsxoff -ctsxon -ienqak 
+# isig icanon iexten -xcase echo echoe echok -echonl -noflsh 
+# opost -olcuc onlcr -ocrnl -onocr -onlret -ofill -ofdel -tostop 
+hpterm
+# BkTab: dead key and no reasonable alternate
+#    CU5:CU5:        5
+# the above entry is suspect
+    F1:F1:          esc p cr 
+    F2:F2:          esc q cr 
+    F3:F3:          esc r cr 
+    F4:F4:          esc s cr 
+    F5:F5:          esc t cr 
+    F6:F6:          esc u cr 
+    F7:F7:          esc v cr 
+    F8:F8:          esc w cr 
+# F9: dead key and no reasonable alternate
+# F10: dead key and no reasonable alternate
+# F11: dead key and no reasonable alternate
+# F12: dead key and no reasonable alternate
+# Ins: dead key and no reasonable alternate
+    Home:Home:      soh
+    End:End:        enq
+# PgUp: dead key and no reasonable alternate
+# PgDn: dead key and no reasonable alternate
+# CUU: dead key and no reasonable alternate
+# CUD: dead key and no reasonable alternate
+# CUL: dead key and no reasonable alternate
+# CUR: dead key and no reasonable alternate
+
+#+-----------------------------------------------------------------------------
+# funckeymap for 'rterm' for WHT
+#------------------------------------------------------------------------------
+rterm
+vt100 # not really -- still for wht, but a start
+    F1:F1:          esc O q
+    F2:F2:          esc O r 
+    F3:F3:          esc O s 
+    F4:F4:          esc O t 
+    F5:F5:          esc O u 
+    F6:F6:          esc O v 
+    F7:F7:          esc O w 
+    F8:F8:          esc O x 
+    F9:F9:          esc O y 
+    F10:F10:        esc O z 
+#   F11:F11:
+#   F12:F12:
+    Home:Home:      esc [ H 
+    End:End:        esc [ F 
+    PgUp:PgUp:      esc [ I 
+    PgDn:PgDn:      esc [ G 
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+    CU5:CU5:        esc [ E 
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ L
+    BkTab:BackTab:  esc [ Z
+
+#+-----------------------------------------------------------------------------
+#   N e t B S D  console (pc3)
+#------------------------------------------------------------------------------
+# From: Daniel Harris <daniel@reubio.apana.org.au>
+# Date: Fri, 8 Apr 1994 23:18:27 +1000 (EST)
+# 
+# Here's the funckeymap entries for the NetBSD console,
+# and an arbitrary xterm.
+#------------------------------------------------------------------------------
+# funckeymap for 'pc3' under NetBSD OS
+# From: Daniel Harris <daniel@reubio.apana.org.au>
+# built by kbdtest3 3.30 Sun Mar 20 14:56:43 1994
+# keyboard parity required = even
+# stty -a at kbdtest3 execution time:
+# speed 1200 baud; 0 rows; 0 columns;
+# lflags: icanon isig iexten echo echoe -echok echoke -echonl echoctl
+# 	-echoprt -altwerase -noflsh -tostop -mdmbuf -flusho pendin
+# 	-nokerninfo -extproc
+# iflags: istrip icrnl -inlcr -igncr ixon -ixoff ixany imaxbel -ignbrk
+# 	brkint -inpck -ignpar -parmrk
+# oflags: opost onlcr oxtabs
+# cflags: cread cs7 parenb -parodd hupcl -clocal -cstopb -crtscts
+# cchars: discard = ^O; dsusp = ^Y; eof = ^D; eol = <undef>;
+# 	eol2 = <undef>; erase = ^?; intr = ^C; kill = ^U; lnext = ^V;
+# 	quit = ^\; reprint = ^R; start = ^Q; status = <undef>; stop = ^S;
+# 	susp = ^Z; werase = ^W;
+pc3
+#    BkTab:BkTab:    del
+    CU5:CU5:        esc [ E
+    F1:F1:          esc [ M
+    F2:F2:          esc [ N
+    F3:F3:          esc [ O
+    F4:F4:          esc [ P
+    F5:F5:          esc [ Q
+    F6:F6:          esc [ R
+    F7:F7:          esc [ S
+    F8:F8:          esc [ T
+    F9:F9:          esc [ U
+    F10:F10:        esc [ V
+    F11:F11:        esc [ W
+    F12:F12:        esc [ X
+    Ins:Ins:        esc [ L
+    Home:Home:      esc [ H
+    End:End:        esc [ F
+    PgUp:PgUp:      esc [ I
+    PgDn:PgDn:      esc [ G
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#------------------------------------------------------------------------------
+#   N e t B S D xterm -- experimental
+#------------------------------------------------------------------------------
+# funckeymap for 'xterm' under NetBSD OS
+# From: Daniel Harris <daniel@reubio.apana.org.au>
+# built by kbdtest3 3.30 Sun Mar 20 15:06:20 1994
+# keyboard parity required = even
+# stty -a at kbdtest3 execution time:
+# speed 9600 baud; 55 rows; 80 columns;
+# lflags: icanon isig iexten echo echoe -echok echoke -echonl echoctl
+# 	-echoprt -altwerase -noflsh -tostop -mdmbuf -flusho pendin
+# 	-nokerninfo -extproc
+# iflags: istrip icrnl -inlcr -igncr ixon -ixoff ixany imaxbel -ignbrk
+# 	brkint -inpck -ignpar -parmrk
+# oflags: opost onlcr -oxtabs
+# cflags: cread cs7 parenb -parodd hupcl -clocal -cstopb -crtscts
+# cchars: discard = ^O; dsusp = ^Y; eof = ^D; eol = <undef>;
+# 	eol2 = <undef>; erase = ^?; intr = ^C; kill = ^U; lnext = ^V;
+# 	quit = ^\; reprint = ^R; start = ^Q; status = <undef>; stop = ^S;
+# 	susp = ^Z; werase = ^W;
+#------------------------------------------------------------------------------
+# "The translations required for ECU in xterms to work are provided 
+# at the end of the file.  (Of course, X support won't work with
+# stock 0.9!)" -- Daniel Harris <daniel@reubio.apana.org.au>
+#- required X resources -------------------------------------------------------
+#XTerm*VT100*Translations: #override\
+#        Shift <Key>Tab:  string(0x1b) string("[Z") \n \
+#        <Key>Home:    string(0x1b) string("[H") \n \
+#        <Key>End:     string(0x1b) string("[F") \n \
+#------------------------------------------------------------------------------
+netbsd-xterm
+    BkTab:BkTab:    esc [ Z
+    CU5:CU5:        esc [ nul
+    F1:F1:          esc [ 1 1 ~
+    F2:F2:          esc [ 1 2 ~
+    F3:F3:          esc [ 1 3 ~
+    F4:F4:          esc [ 1 4 ~
+    F5:F5:          esc [ 1 5 ~
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+    F11:F11:        esc [ 2 3 ~
+    F12:F12:        esc [ 2 4 ~
+    Ins:Ins:        esc [ 2 ~
+    Home:Home:      esc [ H
+    End:End:        esc [ F
+    PgUp:PgUp:      esc [ 5 ~
+    PgDn:PgDn:      esc [ 6 ~
+    CUU:CUU:        esc [ A
+    CUD:CUD:        esc [ B
+    CUL:CUL:        esc [ D
+    CUR:CUR:        esc [ C
+
+#+-------------------------------------------------------------------
+#   SCO ODT 1.0/1.1 console xterm (as released, unmodified)
+#--------------------------------------------------------------------
+xterm
+    F1:F1:          esc [ 1 1 ~
+    F2:F2:          esc [ 1 2 ~
+    F3:F3:          esc [ 1 3 ~
+    F4:F4:          esc [ 1 4 ~
+    F5:F5:          esc [ 1 5 ~
+    F6:F6:          esc [ 1 7 ~
+    F7:F7:          esc [ 1 8 ~
+    F8:F8:          esc [ 1 9 ~
+    F9:F9:          esc [ 2 0 ~
+    F10:F10:        esc [ 2 1 ~
+#   F11:F11:        esc [ 2 3 ~   # decommitted to provide a CU5
+#   F12:F12:        esc [ 2 4 ~   # decommitted to provide a BkTab
+    Home:Home:      esc [ 8 ~
+    End:End:        esc [ 7 ~
+    PgUp:PgUp:      esc [ 5 ~
+    PgDn:PgDn:      esc [ 6 ~
+    CUU:CUU:        esc [ A 
+    CUL:CUL:        esc [ D 
+#   CU5:CU5:        esc [ 8 ~     # same as HOME unfortunately
+    CU5:F11:        esc [ 2 3 ~
+    CUR:CUR:        esc [ C 
+    CUD:CUD:        esc [ B 
+    Ins:Ins:        esc [ 2 ~
+#   BkTab:BackTab:  tab           # same as TAB unfortunately
+    BkTab:F12:      esc [ 2 4 ~
+
+
+

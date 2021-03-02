@@ -1,0 +1,192 @@
+#  CHK=0x3514
+#--------------------------------------------------------------
+# rz_update.ep - update local directory
+#
+# parameters:
+# %argv(1) = remote directory to copy from
+# %argv(2) = local directory to copy to
+# %argv(3) = file list to get
+# %argv(4) = remote username needed, if any, else null
+#            if %argv(4) not null, 'su_'+%argv(4)+".ep" must
+#            exist to su to remote
+# %argv(5)   name of superior procedure
+#
+#--------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:05-10-1992-09:22-wht@n4hgf-%conn can be -1 now
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:06-28-1989-19:36-wht-use named variables
+#:06-25-1989-13:56-wht-new do command syntax
+#:06-25-1989-12:33-wht-new if/while syntax
+#:06-22-1989-13:30-wht-creation
+
+# variable usage
+	mkvar $i_csave			# color settings at entry to procedure
+	mkvar $i_rtnval			# return code
+	mkvar $i_suflag			# true if su occurred
+	mkvar $s_origdir(128)	# original working directory
+	mkvar $s_rdir(128)		# remote directory we started with
+	mkvar $s_ruser(16)		# remote username we started with before su
+	mkvar $s_xtitle(64)		# title for xfer
+
+	$i_csave=%colors # get colors at entry
+
+	$s_xtitle = 'Connected to '+%rname
+	ifs %argv(5) != ''
+		$s_xtitle = $s_xtitle+' - procedure '+%argv(5)
+
+# check to make sure we are connected
+	ifi %conn <= 0
+	{
+		color red; echo 'not connected to anyone!'
+		goto SORRY
+	}
+	color lt_blue;  echo 'Connected to '+%rname
+
+# save local current directory and change to target
+	$s_origdir=%dir
+	color brown
+	ifs $s_origdir == %argv(2)
+		echo -n 'local directory already '
+	else 
+	{
+		cd %argv(2)
+		echo -n 'local directory set to '
+	}
+	color yellow; echo %dir
+
+# make sure remote username ok
+	ifs %argv(4) == '' goto REMOTE_CD # if any remote username
+	do 'bsd_uname'			# get $s0=username
+	ifi $i0 == 0 goto SORRY	# test failure
+	$s_ruser = $s0			# save original remote username
+	ifs $s0 != %argv(4)
+	{						# need to su
+		color brown
+		echo -n 'remote username '
+		color yellow
+		echo -n $s0
+		color brown
+		echo ' ... su to '+%argv(4)+' now'
+		color gray
+		do 'su_'+%argv(4)	# call proc, which calls su.ep
+		lookfor '% ' 50		# su leaves prompt in buffer: swallow
+		do 'bsd_uname'		# make sure we su'd
+		ifi $i0 == 0 goto SORRY
+		ifs $s0 != %argv(4)	# failed to su?
+		{
+			color red;echo 'su to '+%argv(4)+' failed'
+			goto SORRY
+		}
+		$i_suflag = 1		# remember we su'd
+	}	# now we are proper username on remote
+
+# establish proper remote working directory
+REMOTE_CD
+	color gray
+	$s0 = 'pwd';do 'oneline'	# save old remote ...
+	$s_rdir = $s0				# ... directory in $s_rdir
+	ifs $s_rdir != %argv(1)		# if cd needed, do it
+	{
+		send 'cd '+%argv(1)		# remote cd
+		lookfor -e '\n' 50		# echo command
+		lookfor '% ' 50			# swallow prompt
+		$s0 = 'pwd'
+		do 'oneline'			# make sure we got there
+		ifs $s0 != %argv(1)		# dir change failed
+		{
+			color red;echo 'remote cd failed'
+			goto SORRY;
+		}
+	}
+	color brown;  echo -n 'remote directory '
+	color yellow; echo -n %argv(1)
+	color brown;  echo    ' ... starting transfer now'
+
+# transfer files
+	color lt_blue
+	send 'sz -n -f '+%argv(3)
+	lookfor -e '\n' 50	# echo remote command
+	ifi $i0 == 0		# command failed?
+	{
+		color red; echo 'sz command failed or garbled echo'
+		goto SORRY
+	}
+	color brown
+	echo 'waiting for sz to start'
+	nap 10
+	color gray
+#	$s5 = '**'+%chr(0x18)+'B'	# ZMODEM header
+	lgets $s0 150 10 '\n'		# wait 15 secs for start
+	ifi %instr($s0,'rz') < 0	# check for 'rz' startup from remote
+	{
+		color white;
+		echo '\n'+$s0+'\n'
+		color red
+		echo 'sz protocol failure or trigger garbled'
+		goto SORRY
+	}
+	icolor $i_csave				# restore colors at entry
+	rz -l $s_xtitle
+	ifi $i0 != 0	# whoops
+	{
+		color red; echo -n '\nTRANSFER FAILED ... '
+		ifi $i0 == 0x100 echo 'interrupt'
+		ifi $i0 != 0x100 echo 'termination status '+%itos($i0,04d)
+		goto SORRY
+	}
+	lookfor '% ' 50				# swallow prompt
+	goto RETURN
+
+SORRY # whoops
+	color red;echo 'rz_update failed ... sorry'
+	$i_rtnval = 1				# return error
+
+RETURN
+	echo ''
+	color brown;  echo -n 'remote user name '
+	color yellow
+	ifi $i_suflag != 0			# we su'd
+	{
+		send -n %chr(0x04)  	# will force a new prompt from remote
+		echo -n $s_ruser
+		color brown;  echo ' restored (sent ^D to '+%argv(4)+' shell)'
+		lookfor '% ' 50			# swallow prompt
+	}
+	else
+		color brown;  echo 'unchanged'
+
+	ifs $s_rdir != %argv(1)		# if we did a remote cd
+	{
+		send 'cd '+$s_rdir		# restore original
+		lookfor '\n'
+		color brown;  echo -n 'remote working directory '
+		color yellow; echo -n $s_rdir
+		color brown;  echo    ' restored'
+	}
+	else
+	{
+		send ''				# spark a prompt
+		color brown;  echo -n 'remote working directory '
+		color yellow; echo -n $s_rdir
+		color brown;  echo    ' unchanged'
+	}
+
+	ifs $s_origdir != %dir	# restore original directory
+	{
+		cd $s_origdir
+		color brown;  echo -n 'local working directory '
+		color yellow; echo -n $s_origdir
+		color brown;  echo    ' restored'
+	}
+
+	icolor $i_csave		# restore colors at entry
+	echo ''
+	return $i_rtnval	# return selected error code (bomb procedure if error)

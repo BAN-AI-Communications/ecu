@@ -1,0 +1,517 @@
+.*s 1 "String Functions"
+
+.*s 2 "%argv"
+
+usage: %argv(int0)
+
+This function returns the string value of an argument passed
+to the procedure by the 'do' command.  Argument 0 is the
+name of the procedure itself.
+The integer function %argc may be used to determine the
+number of arguments passed to the procedure.  Specifying
+an argument number greater than the number of arguments
+passed returns a null string (if procedure tracing is enabled
+with the 'ptrace' comand, a warning will be displayed
+in this case).
+.DS I
+Example:
+    invocation from shell:
+    ecu -p test Quick Brown Fox
+
+    invocation from interactive command line:
+    do test Quick Brown Fox
+
+    invocation from procedure:
+    do 'test' 'Quick' 'Brown' 'Fox'
+    
+    results in:
+    %argv(0) = 'test'
+    %argv(1) = 'Quick'
+    %argv(2) = 'Brown'
+    %argv(3) = 'Fox'
+    %argv(4) = ''
+.DE
+
+.B NOTE:
+The interactive
+.B dial
+command, the dialing directory menu and the initial setup menu
+all can automatically execute a procedure which matches
+a dialed
+.B
+logical telephone number.
+.R
+There are two arguments passed to these procedures, %argv(0) being
+the procedure name as always.  %argv(1) is set according to the following
+table:
+.DS I
+ invoker              %argv(1)
+-------------------  -------------
+initial setup menu   !INITIAL
+interactive dial     !INTERACTIVE
+dialing menu         !MENU
+.DE
+Thus it is possible for the invoked procedure
+to determine that it has been automatically executed
+by testing %argv(1) for an exclamation point, or possibly
+the entire argument.
+
+.*s 2 "%basename"
+
+Usage: %basename(str0,str1)
+
+This function is similar to the UNIX basename(1) utility in
+that it returns a filename minus a supplied suffix, if it is present.
+Unlike the UNIX basename(C) program, %basename does not remove
+the directory part of the filename.
+See also
+.B %dirpart
+and
+.B %filepart .
+
+.DS L
+Examples:
+
+    %basename('/u1/src/ecu/ecu.c','.c') = /u1/src/ecu/ecu
+    %basename('ecu.c','.c') = ecu
+    %basename('ecu.c','.x') = ecu.c
+.DE
+
+.*s 2 "%cgetc"
+
+usage: %cgetc
+
+This  function reads one character from the console keyboard
+and returns it.  The character is not echoed.
+
+.*s 2 "%cgets"
+
+usage: %cgets
+
+This function reads a string from the console keyboard
+and returns it.  Each character is echoed as it is typed
+and the user's normal erase and kill character is available
+to edit the input before terminating the read with ENTER.
+
+.*s 2 "%chr"
+
+usage: %chr(int0)
+
+This function returns the character value whose ASCII value
+is supplied in int0.
+
+.DS L
+Example:
+
+    set $s0 = %chr(4)  places a ^D (EOT) character into $s0
+.DE
+
+.*s 2 "%date"
+
+usage: %date
+
+This function returns the current date in the form 'mm-dd-yyyy'
+in the local time zone (daylight time if it applies).
+
+.*s 2 "%dates"
+
+usage: %dates
+
+This function returns the current date in the form 'mm-dd'
+in the local time zone (daylight time if it applies).
+
+.*s 2 "%datez"
+
+usage: %datez
+
+This function returns the current date in the form 'mm-dd-yyyy'
+in the UTC (Z) time zone.
+
+.*s 2 "%day"
+
+usage: %day
+
+This function returns the current day of the week as a three character
+abbreviation: 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
+in the local time zone (daylight time if it applies).
+
+.*s 2 "%dayz"
+
+usage: %dayz
+
+This function returns the current day of the week as a three character
+abbreviation: 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
+in the UTC (Z) time zone.
+
+.*s 2 "%dir"
+
+usage: %dir
+
+This function returns the
+full pathname of the current working directory.
+
+.*s 2 "%dirpart"
+
+usage: %dirpart(str0)
+
+This function returns the
+directory portion of the pathname supplied in str0.
+See also
+.B %basename
+and
+.B %filepart .
+
+
+.DS L
+Examples:
+
+%dirpart('/u1/src/src/foo.c') = "/u1/src/src"
+%dirpart('foo.c') = "foo.c"
+%dirpart('/usr') = ""
+.DE
+
+.*s 2 "%edate"
+
+usage: %edate(int0)
+
+The value in int0 is expected to be a number of seconds since January 1,
+1970 00:00 UTC (Universal Coordinated Time) as returned by
+the integer functions %fatime and %fmtime.
+This function converts the value into a string representing the
+equivalent local time in the form 'mm-dd-yyyy hh:mm:ss'.
+.DS L
+Example:
+
+set $i0=%fmtime('/xenix')
+$i00 = 601178971 (0x23d5435b,04365241533)
+
+set $s0=%edate($i0)
+$s00 = '01-18-1989 21:09:31'
+.DE
+
+.*s 2 "%envvar"
+
+usage: %envvar()
+
+This function returns the string value of an environment
+variable.
+
+.DS L
+Example:
+
+    set $s0=%envvar('HOME') might set $s0 '/usr/user'
+.DE
+.DF L
+Typical Environment Variables:
+
+    HOME          pathname of home directory
+    EDITOR        user's preferred editor
+    PATH          program execution searchlist
+    TERM          terminal type
+    SHELL         user's preferred shell
+    MAIL          user's mail box file
+    ECUPROMPT     ECU interactive command prompt
+                  at beginning of execution
+.DE
+
+.*s 2 "%errstr"
+
+usage: %errstr(int0)
+
+This function returns the system error message, given int0 as an
+.B errno
+as returned by a file-related command.
+.B fopen.
+
+.DS L
+Example:
+
+    echo %errstr(1)
+    Not owner
+.DE
+
+.*s 2 "%etime"
+
+usage: %etime(int0)
+
+This function returns a string representation of elapsed time
+in the format 'hh:mm:ss'
+for the integer parameter int0, a number of seconds.
+
+.DS L
+Example:
+
+    echo %etime(62)
+    00:01:02
+.DE
+
+.*s 2 "%filepart"
+
+usage: %filepart(str0)
+
+This function returns the
+filename portion of the pathname supplied in str0.
+See also
+.B %basename
+and
+.B %dirpart .
+
+.DS L
+Examples:
+
+%filepart('/u1/src/src/foo.c') = "foo.c"
+%filepart('foo.c') = "foo.c"
+.DE
+
+.*s 2 "%fmodestr"
+
+usage: %fmodestr(int0)
+
+This function returns a string representation of the
+familiar file mode string given the file mode integer int0.
+
+.DS L
+Example:
+
+    echo %fmodestr(0100755)
+    -rwxr-xr-x
+
+    echo %fmodestr(%fmode('/usr/lib'))
+    drwxr-xr-x
+.DE
+
+.*s 2 "%itos"
+
+usage: %itos(int0[,format])
+
+This function converts integer int0 to a string, optionally
+controlling the format of the conversion.
+
+If the format parameter is missing, the conversion is to
+a minimum number of decimal characters necessary to
+hold the result.
+
+If the format parameter is present, it must consist of
+a non-null string made of one or both optional parts:
+.DS L
+    decimal number of digits to be part of result string
+    (a leading zero indicates leading zeroes are to
+    appear in the string; no leading zero pads with
+    leading spaces
+
+    a lower case letter from the following list:
+        d - decimal conversion
+        x - hexadecimal conversion
+        o - octal conversion
+.DE
+.DS L
+Example:
+
+    %itos(33)           '33'
+    %itos(33,d)         '33'
+    %itos(33,x)         '21'
+    %itos(33,5d)        '   33'
+    %itos(33,010d)      '0000000033'
+    %itos(33,10d)       '        33'
+    %itos(33,x)         '21'
+    %itos(33,04x)       '0021'
+    %itos(33,4x)        '  21'
+    %itos(33,o)         '41'
+    %itos(33,4o)        '    41'
+.DE
+
+.*s 2 "%left"
+
+usage: %left(str0,int0)
+
+This function returns the leftmost int0 characters of str0.
+If the length of the string is less than int0,
+the entire str0 is returned.
+.DS L
+Example:
+
+    if $s0 == 'abcdefg'
+    %left($s0,3) returns 'abc'
+.DE
+
+.*s 2 "%line"
+
+usage: %line
+
+This function returns the name of the attached communications
+line in the form "/dev/ttyxx".  If no line is currently
+attached, the function returns null.
+
+.*s 2 "%logname"
+
+usage: %logname
+
+This function returns the login name of the user executing
+ECU.  Note: the name returned is the name supplied to a login
+prompt, not any current su(C) username that may be in effect.
+
+.*s 2 "%mid"
+
+usage: %mid(str0,int0[,int1])
+
+This function returns the middle portion of a string str0
+beginning with the character at position int0 and for a length
+of int1 characters.
+If int0 is greater than or equal to the length of
+stro, a null string is returned.
+If the optional argument int1 is not supplied, or
+if the length of the string is less than int1,
+the entire str0 is returned.
+.DS L
+Example:
+
+    if $s0 == '0123456789abc'
+    %mid($s0,3,4)  returns '3456'
+    %mid($s0,3)    returns '3456789abc'
+    %mid($s0,10,2) returns 'ab'
+    %mid($s0,10,5) returns 'abc'
+.DE
+
+.*s 2 "%month"
+
+usage: %month
+
+This function returns the current month as a three character
+abbreviation: 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'.
+
+.*s 2 "%rdesc"
+
+usage: %rdesc
+
+This function returns the
+description
+portion of the
+dialing directory entry for the currently connected remote.
+If no connection exists, the function returns null.
+
+.*s 2 "%right"
+
+usage: %right(str0,int0)
+
+This function returns the rightmost int0 characters of str0.
+If the length of the string is less than int0,
+the entire str0 is returned.
+.DS L
+Example:
+
+    if $s0 == 'abcdefg'
+    %right($s0,3) returns 'efg'
+.DE
+
+.*s 2 "%rname"
+
+usage: %rname
+
+This function returns the
+logical name
+portion of the
+dialing directory entry for the currently connected remote.
+If the remote was dialed directly, as in dial 5551212, the
+returned value is the phone number.
+If no connection exists, the function returns null.
+
+The value returned by this command may be overridden by use of the
+.B rname
+procedure command.
+
+.*s 2 "%rtelno"
+usage: %rtelno
+
+This function returns the
+telephone number (or hostname, if telnet connection)
+portion of the
+dialing directory entry for the currently connected remote.
+If no connection exists, the function returns null.
+
+.*s 2 "%screen"
+
+usage: %screen(int0,int1,int2)
+
+This function returns the character contents of a selected
+piece of screen memory. This feature requires that the ANSI
+filter has been on long enough to capture an accurate
+internal representation of the display contents.
+
+int0 and int1 receive the display y and x coordinates,
+respectively. int2 gets the length.
+
+.DS L
+Example:
+    $s10 = %screen(0,0,80) #top line of an 80-character screen
+    $s11 = %screen(0,0,%cols) #top line of actual display screen
+.DE
+
+.*s 2 "%sysname"
+
+usage: %sysname
+
+This function returns the system name you are executing ECU on as
+reported by uname(2)/uname(S) in the ``utsname.sysname'' field. 
+the name from uname.
+The %uname function returns the name found in ``utsname.nodename''.
+
+.*s 2 "%time"
+
+usage: %time
+
+This function returns the current time in the form 'hh:mm'
+in the local time zone (daylight time if it applies).
+
+.*s 2 "%times"
+
+usage: %times
+
+This function returns the current time in the form 'hh:mm:ss'
+in the local time zone (daylight time if it applies).
+
+.*s 2 "%timesm"
+
+usage: %timesm
+
+This function returns the current time in the form 'hh:mm:ss.MMM'
+(milliseconds added)
+in the local time zone (daylight time if it applies).
+
+.*s 2 "%timesmz"
+
+usage: %timesmz
+
+This function returns the current time in the form 'hh:mm:ss.mmmZ'
+(milliseconds added)
+in the UTC (Z) time zone.
+
+.*s 2 "%timez"
+
+usage: %timez
+
+This function returns the current time in the form 'hh:mmZ'
+in the UTC (Z) time zone.
+
+.*s 2 "%timezs"
+
+usage: %timezs
+
+This function returns the current time in the form 'hh:mm:ssZ'
+in the UTC (Z) time zone.
+
+.*s 2 "%tty"
+
+usage: %tty
+
+This function returns the console tty name in the form "/dev/ttynn".
+
+.*s 2 "%uname"
+
+usage: %uname
+
+This function returns the node name you are executing ECU on as
+reported by uname(2)/uname(S) in the ``utsname.nodename'' field. 
+On SCO systems, if /etc/systemid
+exists and is readable, the name in that file is used in place of
+the name from uname.
+The %sysname function returns the name found in ``utsname.sysname''.

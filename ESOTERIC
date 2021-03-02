@@ -1,0 +1,23 @@
+This interesting article appeared last summer:  much of the wisdom
+applys to the ECU procedure language :-)
+
+> From: guy@auspex.auspex.com (Guy Harris)
+> Newsgroups: comp.unix.questions
+> Subject: Re: Funny kill -9 behaviour
+> Message-ID: <3920@auspex.auspex.com>
+> Date: 18 Aug 90 21:27:07 GMT
+> References: <909@sagpd1.UUCP>
+> Organization: Auspex Systems, Santa Clara
+> Lines: 16
+> 
+> >What I want to know is why in the hay does this happen?
+> 
+> Because the C shell is flakier than a snowstorm.  To quote the BUGS
+> section of the SunOS 4.0.3 manual page (this quote is also in the S5R4
+> "csh" manual page):
+> 
+>      Although robust enough for general use, adventures into  the
+>      esoteric  periphery  of  the  C  shell may reveal unexpected
+>      quirks.
+> 
+> which translates as "the C shell is flakier than a snowstorm."

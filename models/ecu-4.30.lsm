@@ -1,0 +1,23 @@
+Begin3
+Title:          ECU (Extended Communications Utility)
+Version:        4.30
+Entered-date:   Wed Sep  2 14:05:12 EDT 1998
+Description:    Exceptionally rich asynchronous/telnet communications
+Keywords:       tty serial async script telnet terminal emulation
+Author:         wht@wht.net (Warren H. Tucker N4HGF)
+Maintained-by:  wht@wht.net (Warren H. Tucker N4HGF)
+Primary-site:   tsx-11.mit.edu /pub/linux/sources/usr.bin/Communications/ecu-4.30.tar.gz
+Alternate-site: 
+Original-site:  
+Platform:       Linux,SCO,SVR4,Motorola,HPUX,FreeBSD,NetBSD,SunOS,Solaris,AIX
+Copying-policy: unlimited
+End
+
+The procedure language has been hardened.
+
+Numerous non-Linux bugs were fixed and a tentative port
+to AIX has been attempted.
+
+Compilation problems for some versions were fixed.
+
+Linux 2/Redhat 5 checked out.

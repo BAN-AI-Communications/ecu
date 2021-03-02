@@ -1,0 +1,53 @@
+#+-------------------------------------------------------
+#  serve42.ep -- allow access to ttyS42 to LAN
+#--------------------------------------------------------
+#+:EDITS:
+#:04-01-1998-16:26-wht@kepler-creation
+
+	$i_EADDRINUSE = 98
+	$s_line = 'ttyS42'
+	$i_port = 44553
+	dial $s_line
+	ifnz $i0
+		echo 'Could not connect to '+$s_line;return
+
+AGAIN
+	hangup
+	echo 'serving port '+%itos($i_port)
+	serve $i_port # may set $i0 - $i6 and $s0
+	ifnz $i0
+	{
+		echo 'serve error '+%itos($i0)+': '+%errstr($i0)
+		ifi $i0 == $i_EADDRINUSE
+		{
+			nap -m 1000
+			goto AGAIN
+		}
+		return
+	}
+	# if we get this far,
+	# $s0 is set to IP address of calling host as a string
+	# $i1,$i2,$i3,$i4 are set to each individual byte of the IP address
+	# $i5 is the calling port number
+	# $i6 is the ecu file number for the socket
+	echo 'Connect from host '+$s0+' port '+%itos($i5)
+	echo -n 'Integer variable address breakout: '
+	echo %itos($i1)+'.'+%itos($i2)+'.'+%itos($i3)+'.'+%itos($i4)+'.'
+	#set $i0,$s0,$i1,$i2,$i3,$i4,$i5,$i6
+
+	ifs $s0 != '127.0.0.1'
+	{
+		$i10 = 0
+		ifi $i1 != 207 $i10++
+		ifi $i2 != 120 $i10++
+		ifi $i3 != 207 $i10++
+		ifnz $i10
+			echo 'illegal host'; goto AGAIN
+	}
+
+	echo 'servewire begin'
+	servewire $i6
+	ifnz $i0
+		echo 'servewire error '+%itos($i0)+': '+%errstr($i0) ; return
+	echo 'servewire exit'
+	goto AGAIN

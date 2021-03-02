@@ -1,0 +1,8 @@
+
+ECU implements the SEAlink protocol (by System Enhancement Associates)
+by means of a modified source provided by SEA.  I got the original source 
+from an early distribution of the fine XBBS by alphacm!sandy.
+
+NOTE: SEAlink is provided as-is. I haven't used it since I
+tested it in 1989.  It is still reported to work.
+

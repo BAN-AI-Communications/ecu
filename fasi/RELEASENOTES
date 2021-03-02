@@ -1,0 +1,522 @@
+This is the original RELEASENOTES from FAS 2.08 for reference only.
+Read README.FASI. DO NOT CONTACT UWE DOERING REGARDING THIS HACKED VERSION
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+     release 1.1a Sat Nov 11, 1989
+
+     This is an unofficial release as I'm not the original author
+     of this async driver.
+
+     Uwe Doering             INET : gemini@geminix.in-berlin.de
+     Billstedter Pfad 17 b   UUCP : ...!unido!fub!geminix.in-berlin.de!gemini
+     1000 Berlin 20
+     Germany
+
+     New Features:
+
+          Added a third minor tty device number for every physical
+          port. See description preceding the asyopen function in
+          asy.c. Changed the behavior of ttyxx, too.
+
+          Added output hardware handshake support for DSR. Now you
+          can do handshake with CTS, DSR or both. Input hardware
+          handshake is on if you use at least one of the output
+          handshake signals.
+
+          More flexible support of additional interrupt registers
+          on mux boards. This is fully configurable now.
+
+          Added support for the CREAD flag. If not set, receiver
+          interrupts are still serviced, but the received characters
+          are simply thrown away. This is not as elegant as disabeling
+          the interrupts themselves, but with the already existing
+          driver it was the easiest way, and the most new-bugs-preventing,
+          too.
+
+          Added a lot of comments to the source so that the curious
+          user can understand why and how things are done.
+
+
+     Bug Fixes:
+
+          The hang-up-on-last-close flag (HUPCL) was ignored. DTR
+          was asserted regardless of this flag.
+
+          Made the detection of CTS and DCD more bullet-proof.
+          Especially because between a close and the next open of
+          a line, where interrupts are ignored, the software copys of
+          CTS and DCD must be set up propperly in the asyopen function
+          or the tty line would be blocked under certain circum-
+          stances. For similar reasons, there is also a setup in the
+          asyparam function.
+
+          Rewrote the input character processing function to work
+          according to the TERMIO(7) man page.
+
+          Changed the behavior of BREAK generation to let the
+          transmitter drain before TX is set to low.
+
+          Changed line hangup procedure so that the closing
+          process returns immediately and doesn't sleep during
+          the hangup delay/time. Instead, if an other process tries
+          to open the line while hangup is still in progress, this
+          process will sleep until hangup is competed.
+
+          With DOS Merge, on MicroPort V/386 3.0e the linker was
+          missing the function `init8250'. Reengineered this from
+          a disassembler listing of MicroPort's original driver and
+          modified it to work with the NS16550A 16-byte FIFO. This
+          funktion was added simply to be able to link the kernel.
+          DOS Merge's virtual COM ports are still unusable with this
+          release, though. To include this function, add a `-DMERGE'
+          to the CFLAGS line in your makefile.
+
+          Made a lot of other corrections and enhancements in both
+          speed and functionallity. As a result of all my effords
+          I think this driver is slightly faster, more versatile
+          and much more stable than the original release.
+
+     ------------------------------------------------------------
+          
+     release 1.1b Sat Nov 25, 1989
+
+     New Features:
+
+          Changed the minor device number scheme again.
+          There are now two main groups: The unblocked open
+          and the blocked open. Every group has four sub-modes
+          and an additional hardware handshake flag. All this
+          is coded in the higher four bits of the minor device
+          number. Because of this, the maximum of 32 ports was
+          reduced to 16 ports so that the port number fits into
+          the remaining lower four bits of the minor device number.
+          32 dumb ports in a single machine would have been overkill
+          anyway. For more details refer to the description in the
+          README file.
+
+     ------------------------------------------------------------
+          
+     release 2.00 Mon Nov 27, 1989
+
+     As this release differs so much from the original version I got,
+     I now declare this as independant from the original author
+     Jim Murray. This allows me to introduce new release levels
+     without wondering whether they will collide with Jim's releases.
+     Of course many credits to Jim for writing this software in the
+     first place. Without his driver as a base I never would have
+     been able to do such kernel driver development.
+
+     Bug Fixes:
+
+          If there were glitches on the hardware handshake lines
+          and the DCD line a getty on this port would sometimes
+          hang and become an immortal process. I think this was
+          because the output buffer wasn't flushed properly
+          on carrier loss. I hope I fixed this now. We'll see.
+
+     ------------------------------------------------------------
+          
+     release 2.01 Tue Nov 28, 1989
+
+     Did some cleanup in the source code.
+
+     I splitted the driver into two parts: The driver itself and
+     the file `space.c'.
+     `space.c' contains all data structures necessary to configure
+     the driver and is compiled at kernel link time. Therefore if you
+     change your serial card configuration you simply change `space.c'
+     directly in the link kit directory and relink the kernel. No
+     driver recompilation or installation is necessary for this.
+     But note that whenever you use `make install' your setup in
+     the link kit directory is overwritten by the original `space.c'
+     file. Therefore you should copy your new `space.c' back to
+     the source directory when you are finished with the configuration.
+
+     Renamed the package to `FAS Final Async Solution'. The following
+     files have been renamed:
+          asy.c          -> fas.c
+          asy.h          -> fas.h
+          asy_conf-xxxxx -> space-xxxxx
+
+     ISC 386/ix is supported now. There are separate makefiles
+     for uPort and ISC to cope with the differences in link kit
+     installation.
+
+     Bug Fixes:
+
+          `getty' still hung sometimes on a line with hardware
+          handshake. Tried to fix it this time.
+
+     ------------------------------------------------------------
+          
+     release 2.02 Thu Nov 30, 1989
+
+     Abandoned the distinction between space-xxxxx files with
+     and without hardware flow control because this is selected
+     by the minor device number now.
+
+     Bug Fixes:
+
+          Set the high and low water marks for hardware input flow
+          control to higher values than software flow control. This
+          gives precedence to software flow control if both methods
+          are used. These marks are self-adjusting and don't need to
+          be changed if some flavor of UNIX has a different buffer
+          size than the standard 256 characters. Before this change
+          concurrent use of both flow controls could cause trouble
+          with some high-speed modems. This is fixed now.
+
+          A flush read or write buffer request now also clears the
+          receiver or transmitter FIFO, respectively. An ioctl
+          call with a TCSETA* command clears the FIFOs, too.
+
+     ------------------------------------------------------------
+          
+     release 2.03 Fri Dec 01, 1989
+
+     Wrote an installation guide. The driver should be quite
+     easy to install now.
+
+     Added tty node configuration files for ISC.
+
+     Hardware input flow control is bound now to the level of the
+     receiver ring buffer instead of the UNIX input buffer. This
+     has the advantage that buffer size and trigger levels are
+     defined in the driver and therefore can be varied as needed.
+
+     New Features:
+
+          Added a boot time status message that shows the init
+          state of each port. This tells you immediately what
+          ports are found and initted by the driver. Useful to
+          determine hardware configuration problems. Look at
+          the description in the README file. Thanks to
+          Kritt Gierlewsen (kritt@einoed.UUCP) for this proposal.
+
+     ------------------------------------------------------------
+          
+     release 2.04 Thu Dec 07, 1989
+
+     Did some cleanup in the source.
+
+     Removed the FIFO clear from the ioctl function. We don't want
+     to do things there that aren't in the book.
+
+     An ioctl call that switches off the CLOCAL flag will create
+     a SIGHUP signal if the carrier is actually missing at this
+     time.
+
+     Every device is tested now quite thoroughly during initialization.
+     If the test fails the corresponding device keeps unconfigured.
+
+     ------------------------------------------------------------
+          
+     release 2.05 Sat Jan 13, 1990
+
+     This is the first public release of the FAS driver.
+
+     Special thanks to the sysops of my test sites, Axel Fischer
+     (fischer@utower.UUCP) and Kritt Gierlewsen (kritt@einoed.UUCP).
+
+     FAS is now an independant driver with its own driver name (`fas'),
+     major device number, link kit directory and other things necessary
+     for a driver. The original asy driver may or may not be linked
+     with the kernel. You only need it if you want to access some
+     serial devices via the virtual COM ports of the DOS emulator
+     (DosMerge or VP/ix) because the FAS driver doesn't have this
+     (really vendor dependant) feature.
+
+     The default prefix for tty device node names is `ttyF' now.
+     This prevents mix-ups with the device names of the original
+     asy driver.
+
+     Dropped the SYSV/AT support. I couldn't test the driver
+     for several release generations on uPort SYSV/AT, and because
+     there are not very much systems left with that flavor of UNIX
+     it doesn't make sense to try to maintain compatibility with it.
+     If someone really wants to use this driver on a 286 he has
+     to port it himself.
+
+     Improved the transmitter FIFO fill procedure. Now it will try
+     harder to fill the FIFO as much as possible to cut down on
+     transmitter interrupts.
+
+     Software input flow control (XON/XOFF) is controlled by the driver now.
+     It is bound to the level of the receiver ring buffer (as is hardware
+     flow control). As usual, it can be switched on and off by the
+     IXOFF flag in the termio(7) structure.
+
+     Changed and speeded up the ring buffer -> unix buffer processing.
+
+     For ISC, the getty lines for the inittab file are installed
+     by the makefile now.
+
+     The conditional compilation of the function `init8250' (for
+     DosMerge) is now controlled by a define in `fas.h'. The compiler
+     switch `-DMERGE' is not used any more.
+
+     Improved the documentation.
+
+     The signals used for modem control and hardware flow control are
+     fully configurable in the `space.c' file now. Look at `fas.h' for
+     possible macros and combinations.
+
+     There are some new modes for hardware flow control, for instance
+     HO_CTS_ON_DSR. This means that CTS is only looked at if DSR is on.
+     If DSR is off output is possible regardless of CTS. The underlying
+     assumption here is that we can expect proper handshake handling
+     only from devices that are in the ready state (indicated by DSR).
+     As a spin-off the problem with the hanging getty on lines with
+     turned-off terminals (mentioned in earlier releases) should be
+     gone if you use this new mode.
+
+     If the XCLUDE-Flag is availabe (SYSV 3.2 because of Xenix
+     compatibility) exclusive open of a device is possible.
+
+     The default size of the input ring buffer is now 5000 bytes.
+     This makes streaming input more likely even on loaded systems.
+
+     Bug Fixes:
+
+          The task state busy flag wasn't reset in some rare cases.
+          This could cause processes to become immortal while waiting
+          for the busy flag.
+
+          Under some special conditions an ioctl call with a TCSETA?
+          command could corrupt the last character in the transmitter
+          shift register. This is fixed now.
+
+          More fixing of the busy flag handling was necessary.
+          Co-ordinating several delayed tasks controlling this flag
+          is kind of tricky.
+
+          After a TCSETA* ioctl command we disable the transmitter
+          for 2 sec (measured from the last transmitted character)
+          if the character format and/or speed has changed. This
+          gives the receiving side some time to do the same changes.
+          This is kind of experimental. There may be applications that
+          suffer from this delay. You may change the #define ADAPT_TIME
+          in `fas.h' to a smaller value.
+
+     ------------------------------------------------------------
+          
+     release 2.06 Fri Mar 16, 1990
+
+     This should have been patch #3 for release 2.05, but there are
+     so many changes now that I decided to make it a new release.
+     Therefor some of the changes are described in the 2.05 release
+     notes above but were never released to the public.
+
+     New Features:
+
+          There is a transmitter ring buffer now to make the output
+          less system load dependent. This really speeds things up
+          because the transmitter FIFO gets filled with more characters
+          at once. The buffer size depends on the actual baud rate to
+          prevent long output buffer drains at low speeds.
+
+          There are also bigger input buffers to make FAS more competitive
+          against "intelligent" cards.
+
+          Lots of speed improvements and many small changes.
+
+     Bug Fixes:
+
+          Fixed input/output buffer flush on carrier loss while close
+          is waiting for the output to drain.
+
+     ------------------------------------------------------------
+          
+     release 2.07 Tue Sep 18, 1990
+
+     This is a major redesign of the previous release. I put most of the
+     time consuming tasks in one function that is invoked asynchronously
+     by timeout calls. Inside this function most of the code runs at
+     a lower system priority level (spl5) than the interrupts. That
+     means that during character processing tty interrupts are allowed.
+     This is the main key to operation at 38400 bps on multiple ports
+     at the same time which is possible now with this release.
+
+     New Features:
+
+          FAS supports the VP/ix DOS emulator!
+          Now you can throw out the vendor's original driver even
+          if you like to have a serial mouse or modem access in DOS.
+          Read the paragraph about VP/ix in the README file.
+
+          The Intel i82510 port chip is supported. It has separate
+          4-character FIFOs for input and output. Although the
+          NS16550A is much better this chip is your second choice
+          if you can't get your hands on the National chips.
+          Thanks to Christian Seyb (cs@gold.UUCP) for sending me
+          patches and the necessary documentation for the Intel
+          chips.
+
+          There is an init sequence in `space.c'. You can put any
+          number of address-data pairs in a null terminated array
+          to program your serial card or other hardware before
+          FAS makes the first access to the ports. AST 4-port cards,
+          for instance, have an additional port that needs to be
+          written to with a certain bit pattern to allow shared
+          interrupts. If you need to read a port to achieve the
+          setting or resetting of flags as a side effect, this
+          is possible, too.
+
+          ESIX is officially supported now.
+
+          SCO UNIX is officially supported, too. FAS needs to be
+          compiled with the command line flag `-DSCO'. The makefile
+          for SCO takes care of that. Thanks to Walter Mecky
+          (walter@mecky.systemware.de) and Frank Simon
+          (terra@sol.north.de) for helping me in making the necessary
+          changes for SCO UNIX.
+
+          SCO Xenix 386 is also officially supported. FAS needs to be
+          compiled with the command line flag `-DXENIX'. The makefile
+          for SCO Xenix takes care of that. Thanks to Andreas
+          Steinmetzler (andreas@oil.UUCP) for doing the port.
+
+          If you have the RTSFLOW and CTSFLOW termio(7) flags,
+          hardware handshake can be controlled by them.
+          Note that enabling handware flow control via the
+          minor device number overrides these flags. If you
+          like to use them you need to create tty device nodes
+          with minor device numbers in which the bit for hardware
+          handshake is set to 0. Look at the description in the
+          README file for more details.
+          Note also that if you choose to use RTSFLOW and CTSFLOW
+          all your programs that do initial access to tty devices
+          (getty, uucico, cu, SLIP dialup program etc.) need to know
+          about these flags or hardware handshake will not be used.
+
+          The `O_EXCL' flag for the open(2) call is honored now.
+          This allowes exclusive access to an FAS device without
+          suffering from race conditions which could occure with
+          the termio(7) XCLUDE flag method.
+
+          The `fas_test_device' function returns a digit now that
+          indicates at which phase the test exited due to an error.
+          This error digit is displayed in the boot message. Thanks
+          to Brian Beattie (beattie@visenix.UUCP) for sending me
+          the necessary patches.
+
+     Bug Fixes:
+
+          Automatic input FIFO flush after unblocking the getty
+          open by the carrier or the unblock signal. This makes sure
+          that there is no chance that there are characters in the
+          FIFO that were received before the open got unblocked.
+
+          The sdevice entry for the AST 4-port card had a wrong
+          I/O address range (`s_fas-mux4'). This didn't affect FAS
+          but is checked by the kernel config program.
+
+          The gcc (GNU cc) support was removed because gcc's object
+          file wants to link in some "helpful" functions that aren't
+          contained in the kernel. But anyway, FAS is tuned so carefully
+          and depends on the optimization behaviour of the AT&T
+          standard C compiler that gcc won't have any advantages.
+
+          I changed the method with which the `fas_test_device' function
+          waits for certain events. The `delay' function was used
+          for that purpose but it turned out that with some flavors
+          of UNIX it is prohibited to use this function during the
+          xxinit phase of the boot process. Now a simple timeout loop
+          is used instead.
+
+          Removed the ADAPT_TIME mechanismn introduced in release 2.05.
+
+          The open() call now returns an `EBUSY' error number if the
+          device is already open and can't be opened in the desired
+          mode at this time.
+
+          The handling of the RING signal needed fixing. Unlike the other
+          three modem status lines RING generates an interrupt only at
+          the trailing edge.
+
+          No SIGHUP signal is sent any more if an ioctl call clears
+          the CLOCAL termio(7) flag while there is no carrier present.
+          SIGHUP is only sent if the actual DCD modem line drops.
+
+          The files *-mux4 were renamed to *-ast4 because this type of
+          card was originally developed by AST (AST 4-port card).
+
+     ------------------------------------------------------------
+          
+     release 2.08 Sun Jan 13, 1991
+
+     New Features:
+
+          Bell Tech/Intel UNIX 3.2 is supported.
+
+          SCO Xenix 286 is also supported now. Thanks to Nickolay Saukh
+          (nms@saukh.rd.jvd.su) for providing the patches.
+
+          The Bell Tech HUB-6 card can be used with FAS. Thanks to
+          Keith Walker (kew@cims2.UUCP) for the patches.
+
+          For AT&T derived flavors of UNIX there is a line automatically
+          added to the kernel description file that makes the adding
+          and removing of FAS possible via the `kconfig' program. Thanks
+          to John Adams (johna@grumpy.boston.ma.us) for this idea.
+
+          There is a mechanismn now that prevents excessive modem status
+          interrupts caused by crosstalking between wires or by a loose
+          cable.
+
+          You can disable the FIFOs in a UART by "oring" the macro
+          `NO_FIFO' to the base port address of this device. This is
+          useful for mouse devices where you need immediate response
+          to the mouse movement.
+
+          The meaning of the bit mapped part of the minor device
+          numbers has changed. Some rather useless functions were
+          removed in favor of more control over the hardware handshake
+          modes. Even systems where the SCO RTSFLOW/CTSFLOW termio(7)
+          flags are not available can now use half duplex hardware
+          flow control (selected via the minor device number).
+
+          The assignment of RS232C lines to certain FAS functions
+          is even more flexible now. This allows to connect two
+          UNIX systems (with FAS) via a null modem cable, running
+          a getty at both ends. For more details, read the paragraph
+          about CABLING in the README file.
+
+          A special handling of the NS16550A input FIFO was introduced.
+          This causes multiple receiver interrupts (on the same IRQ
+          line) to be synchronized so that only one interrupt is
+          necessary to process all receiving ports. This reduces the
+          interrupt handling overhead and therefor results in lower
+          CPU load for concurrent serial input at high speeds.
+
+          The `fas_event' function processes all scheduled events
+          for all units with one single call. Previously, every unit
+          launched its own timeout() call if there was work to
+          do. This could lead to up to 16 timeouts at the same time,
+          resulting in some timeout handling overhead. This overhead
+          is minimized now.
+
+     Bug Fixes:
+
+          There were two bugs that could cause a port to lock up,
+          resulting in an immortal process.
+
+          Almost any kernel sleep is killable now (at least with one or
+          two `kill -9'). Therefor, there should be no more immortal
+          processes. Even killing a process that is hanging in a
+          close-on-exit call is possible.
+
+          The meaning of the RTSFLOW/CTSFLOW termio(7) flags was converted
+          to what SCO had in mind (half duplex flow control). This is for
+          compatibility reasons. Full duplex RTS/CTS hardware flow control
+          is still possible via the minor device number method. Thanks to
+          Dmitry V. Volodin (dvv@hq.demos.su) for providing me with the
+          necessary knowledge.
+
+          If a process is already sleeping in a getty open it will only
+          unblock on DCD low->high. In particular, if in the meantime
+          the device was open for dialout and DCD is still present if
+          the getty open takes over again this won't unblock the getty
+          open any more.
+
+          And there were, as usual, a number of other small bug fixes.

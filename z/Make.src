@@ -1,0 +1,148 @@
+#  CHK=0xC8A5
+#+-------------------------------------------------------------------
+# Makefile for ecurz/ecusz (ecu file transfer)
+# wht@wht.net
+#--------------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:38-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:01-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:09-11-1996-01:14-wht@yuriatin-drop putrid obsolete zdebug.c
+#:01-26-1996-05:13-wht@kepler-no more need for READCHECK
+#:12-28-1995-12:54-wht@kepler-Andrey Chernov FreeBSD fixes
+#:11-28-1995-17:26-wht@kepler-add ecudump.o
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:40-wht@n4hgf-ECU release 3.30
+#:09-10-1992-14:00-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:08-21-1992-15:04-wht@n4hgf-executables goes to lib dir
+#:07-17-1992-18:26-wht@n4hgf-use ../nap.o
+#:02-10-1992-05:47-wht@n4hgf-mcs avail on some systems when non-COFF produced
+#:08-06-1991-15:28-wht@n4hgf-neat used wrong rm args
+#:07-25-1991-12:59-wht@n4hgf-ECU release 3.10
+#:04-21-1991-12:05-wht@n4hgf-convert to Make.src
+
+SHELL = /bin/sh
+INSTALLED_SZ = $(ECULIBDIR)/ecusz
+INSTALLED_RZ = $(ECULIBDIR)/ecurz
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h
+
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+CFLAGS_EXTRA = -DMD
+
+
+COM_SRC = \
+	baudtest.c\
+	zcommon.c\
+	zcurses.c\
+	zmodem.c
+
+COM_OBJ = \
+	baudtest.o\
+	zcommon.o\
+	zcurses.o\
+	zmodem.o\
+	../ecutermio.o\
+	../ecudump.o\
+	../logevent.o\
+	../nap.o
+
+all: ecusz ecurz
+
+ecusz: ecusz.o $(COM_OBJ)
+	echo 'char *makedate="@(#)ecusz '`LC_TIME= date` $(SYSTEM)'";'  >ecuszmake.c
+	$(CC) -c $(CFLAGS) ecuszmake.c ; rm ecuszmake.c
+	$(BINTIME) $(CC) -o $@ $(LDFLAGS) ecusz.o ecuszmake.o $(COM_OBJ) $(LIBS)
+	rm -f ecuszmake.o
+
+ecurz: ecurz.o $(COM_OBJ)
+	echo 'char *makedate="@(#)ecurz '`LC_TIME= date` $(SYSTEM)'";'  >ecurzmake.c
+	$(CC) -c $(CFLAGS) ecurzmake.c ; rm ecurzmake.c
+	$(BINTIME) $(CC) -o $@ $(LDFLAGS) ecurz.o ecurzmake.o $(COM_OBJ) $(LIBS) 
+	rm -f ecurzmake.o
+
+ecusz.o ecurz.o $(COM_OBJ): Makefile
+
+../makedirs:
+	cd ..;make makedirs
+
+install: ../makedirs ecusz ecurz
+	../makedirs -m 755 $(ECULIBDIR)
+	rm -f $(INSTALLED_SZ) $(INSTALLED_SZ)~
+	if [ -f $(INSTALLED_SZ) ]; then mv $(INSTALLED_SZ) $(INSTALLED_SZ)~; fi
+	cp ecusz $(INSTALLED_SZ)
+	strip $(INSTALLED_SZ)
+	-if [ -x /usr/bin/mcs ]; then /usr/bin/mcs -d $(INSTALLED_SZ); fi
+	chown bin $(INSTALLED_SZ)
+	chgrp bin $(INSTALLED_SZ)
+	chmod 711 $(INSTALLED_SZ)
+	rm -f $(INSTALLED_RZ) $(INSTALLED_RZ)~
+	if [ -f $(INSTALLED_RZ) ]; then mv $(INSTALLED_RZ) $(INSTALLED_RZ)~; fi
+	cp ecurz $(INSTALLED_RZ)
+	strip $(INSTALLED_RZ)
+	-if [ -x /usr/bin/mcs ]; then /usr/bin/mcs -d $(INSTALLED_RZ); fi
+	chown bin $(INSTALLED_RZ)
+	chgrp bin $(INSTALLED_RZ)
+	chmod 711 $(INSTALLED_RZ)
+
+neat:
+	rm -f .make.* depend.tmp eddep.tmp Makefile.new *.bak *.BAK
+	rm -f core tags cscope.out
+	rm -f ecuszmake.c ecuszmake.o ecurzmake.c ecurzmake.o
+	-rm -f *~ *# *.orig *.rej make.log a.out
+
+clean: neat
+	rm -f *.o
+
+clobber: clean
+	rm -f ecusz ecurz
+
+comsrc.fls: Makefile
+	ls $(COM_SRC) > comsrc.fls
+
+protos: comsrc.fls
+	echo ' ' > protos.h
+	csh ../zgcc comsrc.fls protos.h ..
+
+../ecutermio.o:
+	cd ..;make ecutermio.o
+
+../ecudump.o:
+	cd ..;make ecudump.o
+
+../logevent.o:
+	cd ..;make logevent.o
+
+../nap.o:
+	cd ..;make nap.o
+
+#
+# MAKE DEPEND: regenerate .c:.h, .ol:.c, .ol:.asm dependencies automatically
+#
+depend:
+	rm -f depend.tmp
+	grep '^#include' $(COM_SRC) \
+	| sed \
+		-e '/</d'\
+		-e 's?:[^"]*"\([^"]*\)".*?: \1?'\
+		-e 's?\(.*\)\.c?\1.o?'\
+	 >> depend.tmp
+
+	echo '/^# DO NOT DELETE THIS LINE' >eddep.tmp
+	echo '.+1,$$d' >>eddep.tmp
+	echo 'r depend.tmp' >> eddep.tmp
+	echo 'w' >> eddep.tmp
+	cp Makefile Makefile.new
+	ed Makefile.new < eddep.tmp
+	rm eddep.tmp depend.tmp
+	echo '# DEPENDENCIES MUST END AT END OF FILE' >>Makefile.new
+	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY'>>Makefile.new
+	echo '# see make depend above'>>Makefile.new
+	mv Makefile Makefile.bak
+	mv Makefile.new Makefile
+
+# DO NOT DELETE THIS LINE
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

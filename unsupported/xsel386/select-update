@@ -1,0 +1,71 @@
+Subject: Re: Select(S) in Xenix 386 2.3.2
+Newsgroups: comp.unix.xenix
+Keywords: select, serial, pipes
+References: <117@accsys.acc.uu.no> <172@prmmbx.UUCP>
+
+In article <172@prmmbx.UUCP>, csch@netcs.UUCP (Clemens Schrimpe) writes:
+> ivar@acc.uu.no (Ivar Hosteng) writes:
+> <> I have experienced some problems using the select call in Xenix 386 V2.3.2.
+> <> It does not seems to detect when a pipe gets ready to been read from.
+> This is, because there is no provision to select on pipes!
+> Why? The stuff is almost totally ported 1:1 from the Berkeley code and
+> in BSD pipes should consist of AF_UNIX sockets, on which you can naturally
+> select.
+> I was very angry, when I found this out after hours of digging with adb in
+> the kernel. But I also tried the same on a SUN under SunOS 4.0 and it doesn't
+> work either ... seems to be a common illness ???
+> (I wonder, because the code for that is very simple ... ??? ...)
+> 
+> <> I also 
+> <> have trouble using select on a serial port.  When I do that the input
+> <> turns into garbage.  This does not occur when I use select on the
+> <> multiscreen ttys (tty01-tty12).
+> Hehe - we had just the same!
+> Here is the solution (thanks to my colleague Stefan Koehler, who took one
+> look at my screen, into which I had starred for hours, to find it ...)
+> 
+> Select is implemented by an undocumented ioctl
+> 	(0xFFFF == IOC_SELECT -> [sys/slect.h])
+> which is handled by ttiocom() for all devices using the standard
+> SYS-V linediscipline!
+> 
+> The ioctl-routine for the serial devices [sioioctl()] just calls 
+> ttiocom() [after some undefinable VPIX stuff ???] and
+> if it returns NON-ZERO it calls sioparam(), which adjusts certain
+> parameters and garbles the output!
+> OK so far. Now: The Bug lies in the ttiocom-code within the check
+> for IOC_SELECT. After detecting the IOC_SELECT, the ttiocom calls
+> the select-code and returns NOTHING, which means that if EAX is
+> non-zero (randomly) sioparam() is called and garbles the output.
+> 
+> The Fix: (quick and dirty)
+> Write a routine called "ttiocom", which might look like this:
+> 
+> ttiocom(ttyp, com, arg, flag)
+> struct tty *ttyp;
+> int com, arg, flag;	/* there should be better types for this :-) */
+> {
+> 	if (com == IOC_SELECT)
+> 	{
+> 		ttselect(ttyp, flag);
+> 		return(0);	/*** THIS IS IMPORTANT ***/
+> 	}
+> 	return(Ttiocom(ttyp, com ,arg, flag));
+> }
+> 
+> Compile something like this, then use whatever you have (GNU-Emacs is
+> great in patching strings in binaries) to patch /usr/sys/sys/libsys.a
+> to change the original ttiocom into Ttiocom !
+> Link in your code and -by some magic reason- experience a full blown
+> select on your System V / Xenix machine!!!
+> 
+> Have fun playing around with it -
+> 
+> 	Clemens Schrimpe, netCS Informationstechnik GmbH Berlin
+> --
+> UUCP:		csch@netcs		BITNET:	csch@db0tui6.BITNET
+> ARPA/NSF:	csch@garp.mit.edu	PSI: PSI%45300033047::CSCH
+> PHONE:		+49-30-24 42 37		FAX: +49-30-24 38 00
+> BTX:		0303325016-0003		TELEX: 186672 net d
+
+

@@ -1,0 +1,100 @@
+#  CHK=0xE753
+#+-----------------------------------------------------------------
+#  opuslogin.ep - ecu OPUS BBS login procedure
+#  wht%n4hgf@gatech.edu
+#
+# %argv(1) = remote name
+# %argv(2) = first name
+# %argv(3) = last name
+# %argv(4) = password
+#+-----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:05-10-1992-09:22-wht@n4hgf-%conn can be -1 now
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:06-28-1989-19:36-wht-use named variables
+#:06-25-1989-13:56-wht-new do command syntax
+#:06-25-1989-12:33-wht-new if/while syntax
+#:06-23-1989-19:46-wht-improved hayes dialer reduces need to report dial fail
+#:06-19-1989-22:50-wht-use while and if statements
+#:06-14-1989-15:58-wht-add login capability when already connected
+#:06-11-1989-23:37-wht-creation
+
+	mkvar $i_csave,$i_ltimeout,$i_retries
+
+	$i_csave = %colors
+	$i_retries=3
+
+	color red;    echo -n '\nauto-logon to '
+	color yellow; echo -n %argv(1)
+	color red;    echo    ' on '+%date+' at '+%time+'\n'
+
+	ifi %argc != 5	# not enough args
+	{
+		color red
+		echo %argv(0)+' needs 5 arguments (got '+%itos(%argc)+')'
+		goto SORRY1
+	}
+
+	ifi %conn <= 0 goto DIAL
+
+	ifs %rname == %argv(1)
+	{
+		color brown;  echo -n 'already connected to '
+		color yellow; echo    %rname
+		goto GET_LOGIN_PROMPT_RETRY
+	}
+
+HANGUP
+	ifi %conn <> 0 echo 'hanging up on '+%rname; hangup
+
+DIAL
+	color green
+	dial %argv(1); set $i1=$i0 #save dial result in $i1
+	ifi $i1 == 2 color red; echo 'interrupted'; goto SORRY
+	ifi $i1 != 0 goto SORRY
+
+TEST_MODEM_RESULT
+	ifs $s0 != 'CONNECT '+%itos(%baud)
+		color yellow; echo 'baud rate mismatch ... retrying'; goto HANGUP
+
+# give name to remote
+	lookfor -e 'FIRST name: ' 150
+	send %argv(2)
+	lookfor -e 'LAST name: ' 150
+	send %argv(3)
+
+	lookfor -e '[Y,n]? ' 40
+	send 'Y'
+
+	lookfor -e 'Password: ' 80
+	send %argv(4)
+	lookfor -e '\n'
+	set $i0=0
+	goto SETCOLOR_AND_RETURN_STATUS
+
+# procedure failed
+SORRY
+	echo ''
+	color red
+	echo '....... sorry'
+	set $i0=0
+	goto SETCOLOR_AND_RETURN_STATUS
+
+SORRY1
+	echo ''
+	color red
+	echo '....... sorry'
+	set $i0=1
+
+SETCOLOR_AND_RETURN_STATUS
+	icolor $i_csave
+	return $i0
+
+# vi:set tabstop=4 shiftwidth=4:

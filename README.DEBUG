@@ -1,0 +1,65 @@
+If you are interested in very verbose debugging help when porting
+ecu or diagnosing a problem with line selection, locking, utmp or
+ecuungetty, try compiling with debug code by creating a file
+named config.local (or adding to your already existing one):
+
+LOCAL_CFLAGS = -DECUUNGETTY_DEBUG \
+        -DCHOOSE_DEBUG \
+        -DDEBUG_CURSOR \
+        -DLOCK_DEBUG \
+        -DSHARE_DEBUG \
+        -DUTMP_DEBUG
+
+
+(For reference purposes only ... the example is Quite dated)
+
+05-10-1992-08:48-26728-hdb_choose_Any baud=9600 current line=''
+05-10-1992-08:48-26728-must pick new line utmpst=0 lerr=0
+05-10-1992-08:48-26728-getdvbaud looking for 9600 baud
+05-10-1992-08:48-26728-getdvbaud returning tty2b
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=2
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=2
+05-10-1992-08:48-26728-UTMP uugetty:u2B:tty2B:26692:101
+05-10-1992-08:48-26728-CHOOSEANY chose tty2b
+05-10-1992-08:48-26728-copy_pde trial=0 Lline='/dev/tty2b' pdetty='2b'
+05-10-1992-08:48-26728-choose_tty_for_pde '2b' 9600
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=2
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=2
+05-10-1992-08:48-26728-UTMP uugetty:u2B:tty2B:26692:101
+ECUUNGET-26728-(26739) ISLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=2
+ECUUNGET-26728-(26739) ISLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=2
+ECUUNGET-26728-(26739) UTMP uugetty:u2B:tty2B:26692
+ECUUNGET-26728-(26739) -g utmp status=101
+ECUUNGET-26728-(26739) /dev/tty2b b000021382a exit code 1
+05-10-1992-08:48-26728-UNGETTY acquired /dev/tty2b
+05-10-1992-08:48-26728-UTMPCHK /dev/tty2b st=0 ut=101
+05-10-1992-08:48-26728-CRLOCK /usr/spool/uucp/LCK..tty2b status=0 errno=Error 0
+05-10-1992-08:48-26728-LOCKTTY /dev/tty2b status 0 errno=Error 0
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+05-10-1992-08:48-26728-UTMP uugetty:u2B:tty2B:26692:104
+05-10-1992-08:48-26728-UTMPCHK /dev/tty2b st=-11 ut=104
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+05-10-1992-08:48-26728-lclose Liofd=-1 Lline=/dev/tty2b line_lock_status=-11
+05-10-1992-08:48-26728-choose_tty_for_pde rtn=1 line='/dev/tty2b' errmsg='' itmp=-11
+05-10-1992-08:48-26728-copy_pde 2  Lline='/dev/tty2b' reopen=1
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+05-10-1992-08:48-26728-lopen Liofd=-1 Lline=/dev/tty2b line_lock_status=-11
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+05-10-1992-08:48-26728-UTMP uugetty:u2B:tty2B:26692:104
+05-10-1992-08:48-26728-UTMPCHK /dev/tty2b st=-11 ut=104
+05-10-1992-08:48-26728-LOCKTTY /dev/tty2b status 0 errno=Permission denied
+05-10-1992-08:48-26728-getdvline looking for tty2b
+05-10-1992-08:48-26728-getdvline tty2b found
+05-10-1992-08:48-26728-UUCPDIAL /usr/lib/uucp/dialgT2500 4269068P exit status0x8200
+05-10-1992-08:48-26728-ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+05-10-1992-08:48-26728-lclose Liofd=3 Lline=/dev/tty2b line_lock_status=-11
+ECUUNGET-26728-(26742) ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+ECUUNGET-26728-(26742) UTMP uugetty:u2B:tty2B:26692
+ECUUNGET-26728-(26742) -t utmp status=104
+ECUUNGET-26728-(26742) -t /dev/tty2b b000021382a exit code 1
+05-10-1992-08:48-26728-UNGETTY -t /dev/tty2b status 0100
+ECUUNGET-26728-(26743) ISLOCK /usr/spool/uucp/LCK..tty2b status=-11 errno=0
+ECUUNGET-26728-(26743) UTMP uugetty:u2B:tty2B:26692
+ECUUNGET-26728-(26743) -r utmp status=104
+ECUUNGET-26728-(26743) -r /dev/tty2b b000021382a exit code 0
+05-10-1992-08:48-26728-UNGETTY returned /dev/tty2b

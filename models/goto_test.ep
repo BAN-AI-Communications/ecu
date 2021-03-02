@@ -1,0 +1,32 @@
+#  CHK=0xE30F
+# goto_test.ep
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:06-07-1989-22:31-wht-creation
+	echo '... TRY1 goto test'; goto TRY1
+	echo '... TRY1 goto failed'
+	return
+
+BACK1	echo '... gotob succeeded'
+	gotob COMP
+
+TRY1	echo '... TRY1 goto succeeded'
+	gotob BACK1
+
+COMP	echo '... COMPuted goto test'; set $s0='COMP'+'UTED',$s0
+	goto $s0
+	echo '... COMP failed'
+	return
+
+COMPUTED
+	echo '... computed goto worked'
+	echo '... test complete'
+	return
+
+# vi:set tabstop=8:

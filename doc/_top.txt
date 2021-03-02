@@ -1,0 +1,66 @@
+.de *s
+.H "\\$1" "\\$2" \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+.br
+..
+.po 4
+.ll 7.2i
+.ls 1
+.nh
+.tp
+.sp 1.0i
+.ft B
+.ce 10
+ECU
+
+(Extended Call Utility)
+.ce 0
+.sp 1i
+.ce 100
+Research and Engineering
+Asynchronous Communications Package
+for SCO UNIX, XENIX System V and UnixWare,
+HP-UX, Motorola Delta SVR32 and SVR41, Linux,
+NetBSD, FreeBSD, SunOS 4.1, Solaris 2.x,
+ISC 386/ix, ISC System V Release 4,
+and ESIX System V Release 4
+.ce 0
+.ft P
+.sp 1i
+.lp
+.ce 1
+Warren H. Tucker, III <wht@tridom.com>
+.sp .5i
+.ce 100
+Technical Description
+Revision 4.03
+February 21, 1997
+.ce 0
+.sp 1i
+.ls 1
+NOTE: Many sections of the manual are likely to be inaccurate or
+obsolete at any given time until the writer get lots of free
+time.  Much of it was written when the program was supported only
+on SCO XENIX and UNIX.  Usually, I took the extra time to throw
+-something- in the manual and online help.  I did not always go
+back and indicate which features are not supported by a later`
+port.
+
+Many of the features of ECU were written under extreme time
+pressure.  While the program code is usually reliable, the manual
+is a joke from many points of view, organization, consistency,
+content -- you name it.  You'll see comma splices, incomplete
+sentences or even incorrect information.  You may find the
+correct information in a README or in another part of the manual.
+Of course, there is the code!  If you find information that seems
+incorrect, PLEASE mail a report to the author.
+
+.PH "'ECU Technical Description''%'"
+.PF "'wht@tridom.com''\n(mo/\n(dy/\n(yr'"
+.nr si 2n
+.nr Cl 9
+.nr Ej 1
+.nr U 1
+.SA 0
+.ul
+.bp 2
+

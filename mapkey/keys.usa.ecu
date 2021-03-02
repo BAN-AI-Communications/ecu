@@ -1,0 +1,157 @@
+#+----------------------------------------------------------------------------
+# keys.usa.ecu
+# SCO keys file for ECU alt-[a-z] support
+#-----------------------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:05-02-1991-01:57-wht@n4hgf-alt-[a-z] range moved from 0x80-0x99 to 0xe0-0xf9
+
+# scan                      cntrl          alt    alt   cntrl  lock
+# code  base  shift  cntrl  shift   alt   shift  cntrl  shift  state
+     0  nop    nop    nop    nop    nop    nop    nop    nop     O
+     1  esc    esc    esc    esc    esc    esc    esc    esc     O
+     2  '1'    '!'    nop    nop    '1'    '!'    nop    nop     O
+     3  '2'    '@'    nul    nul    '2'    '@'    nul    nul     O
+     4  '3'    '#'    nop    nop    '3'    '#'    nop    nop     O
+     5  '4'    '$'    nop    nop    '4'    '$'    nop    nop     O
+     6  '5'    '%'    nop    nop    '5'    '%'    nop    nop     O
+     7  '6'    '^'    rs     rs     '6'    '^'    rs     rs      O
+     8  '7'    '&'    nop    nop    '7'    '&'    nop    nop     O
+     9  '8'    '*'    nop    nop    '8'    '*'    nop    nop     O
+    10  '9'    '('    nop    nop    '9'    '('    nop    nop     O
+    11  '0'    ')'    nop    nop    '0'    ')'    nop    nop     O
+    12  '-'    '_'    ns     ns     '-'    '_'    ns     ns      O
+    13  '='    '+'    nop    nop    '='    '+'    nop    nop     O
+    14  bs     bs     del    del    bs     bs     del    del     O
+    15  ht     btab   nop    nop    ht     btab   nop    nop     O
+    16  'q'    'Q'    dc1    dc1    0xf1   'Q'    dc1    dc1     C
+    17  'w'    'W'    etb    etb    0xf7   'W'    etb    etb     C
+    18  'e'    'E'    enq    enq    0xe5   'E'    enq    enq     C
+    19  'r'    'R'    dc2    dc2    0xf2   'R'    dc2    dc2     C
+    20  't'    'T'    dc4    dc4    0xf4   'T'    dc4    dc4     C
+    21  'y'    'Y'    em     em     0xf9   'Y'    em     em      C
+    22  'u'    'U'    nak    nak    0xf5   'U'    nak    nak     C
+    23  'i'    'I'    ht     ht     0xe9   'I'    ht     ht      C
+    24  'o'    'O'    si     si     0xef   'O'    si     si      C
+    25  'p'    'P'    dle    dle    0xf0   'P'    dle    dle     C
+    26  '['    '{'    esc    esc    '['    '{'    esc    esc     O
+    27  ']'    '}'    gs     gs     ']'    '}'    gs     gs      O
+    28  cr     cr     nl     nl     cr     cr     nl     nl      O
+    29  lctrl  lctrl  lctrl  lctrl  lctrl  lctrl  lctrl  lctrl   O
+    30  'a'    'A'    soh    soh    0xe1   'A'    soh    soh     C
+    31  's'    'S'    dc3    dc3    0xf3   'S'    dc3    dc3     C
+    32  'd'    'D'    eot    eot    0xe4   'D'    eot    eot     C
+    33  'f'    'F'    ack    ack    0xe6   'F'    ack    ack     C
+    34  'g'    'G'    bel    bel    0xe7   'G'    bel    bel     C
+    35  'h'    'H'    bs     bs     0xe8   'H'    bs     bs      C
+    36  'j'    'J'    nl     nl     0xea   'J'    nl     nl      C
+    37  'k'    'K'    vt     vt     0xeb   'K'    vt     vt      C
+    38  'l'    'L'    np     np     0xec   'L'    np     np      C
+    39  ';'    ':'    nop    nop    ';'    ':'    nop    nop     O
+    40  '\''   '"'    nop    nop    '\''   '"'    nop    nop     O
+    41  '`'    '~'    nop    nop    '`'    '~'    nop    nop     O
+    42  lshift lshift lshift lshift lshift lshift lshift lshift  O
+    43  '\\'   '|'    fs     fs     '\\'   '|'    fs     fs      O
+    44  'z'    'Z'    sub    sub    0xfa   'Z'    sub    sub     C
+    45  'x'    'X'    can    can    0xf8   'X'    can    can     C
+    46  'c'    'C'    etx    etx    0xe3   'C'    etx    etx     C
+    47  'v'    'V'    syn    syn    0xf6   'V'    syn    syn     C
+    48  'b'    'B'    stx    stx    0xe2   'B'    stx    stx     C
+    49  'n'    'N'    so     so     0xee   'N'    so     so      C
+    50  'm'    'M'    cr     cr     0xed   'M'    cr     cr      C
+    51  ','    '<'    nop    nop    ','    '<'    nop    nop     O
+    52  '.'    '>'    nop    nop    '.'    '>'    nop    nop     O
+    53  '/'    '?'    nop    nop    '/'    '?'    nop    nop     O
+    54  rshift rshift rshift rshift rshift rshift rshift rshift  O
+    55  '*'    '*'    nscr   nscr   '*'    '*'    nscr   nscr    O
+    56  lalt   lalt   lalt   lalt   lalt   lalt   lalt   lalt    O
+    57  ' '    ' '    ' '    ' '    ' '    ' '    ' '    ' '     O
+    58  clock  clock  clock  clock  clock  clock  clock  clock   O
+    59  fkey1  fkey13 fkey25 fkey37 scr1   scr11  scr1   scr11   O
+    60  fkey2  fkey14 fkey26 fkey38 scr2   scr12  scr2   scr12   O
+    61  fkey3  fkey15 fkey27 fkey39 scr3   scr13  scr3   scr13   O
+    62  fkey4  fkey16 fkey28 fkey40 scr4   scr14  scr4   scr14   O
+    63  fkey5  fkey17 fkey29 fkey41 scr5   scr15  scr5   scr15   O
+    64  fkey6  fkey18 fkey30 fkey42 scr6   scr16  scr6   scr16   O
+    65  fkey7  fkey19 fkey31 fkey43 scr7   scr7   scr7   scr7    O
+    66  fkey8  fkey20 fkey32 fkey44 scr8   scr8   scr8   scr8    O
+    67  fkey9  fkey21 fkey33 fkey45 scr9   scr9   scr9   scr9    O
+    68  fkey10 fkey22 fkey34 fkey46 scr10  scr10  scr10  scr10   O
+    69  nlock  nlock  dc3    dc3    nlock  nlock  dc3    dc3     O
+    70  slock  slock  del    del    slock  slock  del    del     O
+    71  fkey49 '7'    '7'    '7'    '7'    '7'    '7'    '7'     N
+    72  fkey50 '8'    '8'    '8'    '8'    '8'    '8'    '8'     N
+    73  fkey51 '9'    '9'    '9'    '9'    '9'    '9'    '9'     N
+    74  fkey52 '-'    '-'    '-'    '-'    '-'    '-'    '-'     N
+    75  fkey53 '4'    '4'    '4'    '4'    '4'    '4'    '4'     N
+    76  fkey54 '5'    '5'    '5'    '5'    '5'    '5'    '5'     N
+    77  fkey55 '6'    '6'    '6'    '6'    '6'    '6'    '6'     N
+    78  fkey56 '+'    '+'    '+'    '+'    '+'    '+'    '+'     N
+    79  fkey57 '1'    '1'    '1'    '1'    '1'    '1'    '1'     N
+    80  fkey58 '2'    '2'    '2'    '2'    '2'    '2'    '2'     N
+    81  fkey59 '3'    '3'    '3'    '3'    '3'    '3'    '3'     N
+    82  fkey60 '0'    '0'    '0'    '0'    '0'    '0'    '0'     N
+    83  del    '.'    del    del    del    del    del    del     N
+    84  0x1f   0x1f   0x1f   0x1f   0x1f   0x1f   0x1f   0x1f    O
+    85  nop    nop    nop    nop    nop    nop    nop    nop     O
+    86  nop    nop    nop    nop    nop    nop    nop    nop     O
+    87  fkey11 fkey23 fkey35 fkey47 scr11  scr11  scr11  scr11   O
+    88  fkey12 fkey24 fkey36 fkey48 scr12  scr12  scr12  scr12   O
+    89  nop    nop    nop    nop    nop    nop    nop    nop     O
+    90  nop    nop    nop    nop    nop    nop    nop    nop     O
+    91  nop    nop    nop    nop    nop    nop    nop    nop     O
+    92  nop    nop    nop    nop    nop    nop    nop    nop     O
+    93  nop    nop    nop    nop    nop    nop    nop    nop     O
+    94  nop    nop    nop    nop    nop    nop    nop    nop     O
+    95  nop    nop    nop    nop    nop    nop    nop    nop     O
+    96  fkey50 fkey50 fkey50 fkey50 fkey50 fkey50 fkey50 fkey50  O
+    97  fkey53 fkey53 fkey53 fkey53 fkey53 fkey53 fkey53 fkey53  O
+    98  fkey58 fkey58 fkey58 fkey58 fkey58 fkey58 fkey58 fkey58  O
+    99  fkey55 fkey55 fkey55 fkey55 fkey55 fkey55 fkey55 fkey55  O
+   100  fkey49 fkey49 fkey49 fkey49 fkey49 fkey49 fkey49 fkey49  O
+   102  fkey57 fkey57 fkey57 fkey57 fkey57 fkey57 fkey57 fkey57  O
+   103  fkey59 fkey59 fkey59 fkey59 fkey59 fkey59 fkey59 fkey59  O
+   104  fkey60 fkey60 fkey60 fkey60 fkey60 fkey60 fkey60 fkey60  O
+   105  del    del    del    del    del    del    del    del     N
+   106  fkey54 fkey54 fkey54 fkey54 fkey54 fkey54 fkey54 fkey54  O
+   107  nop    nop    nop    nop    nop    nop    nop    nop     O
+   108  nop    nop    nop    nop    nop    nop    nop    nop     O
+   109  nop    nop    nop    nop    nop    nop    nop    nop     O
+   110  nop    nop    nop    nop    nop    nop    nop    nop     O
+   111  fkey51 fkey51 fkey51 fkey51 fkey51 fkey51 fkey51 fkey51  O
+   111  nop    nop    nop    nop    nop    nop    nop    nop     O
+   112  nop    nop    nop    nop    nop    nop    nop    nop     O
+   113  nop    nop    nop    nop    nop    nop    nop    nop     O
+   114  nop    nop    nop    nop    nop    nop    nop    nop     O
+   116  nop    nop    nop    nop    nop    nop    nop    nop     O
+   117  nop    nop    nop    nop    nop    nop    nop    nop     O
+   118  nop    nop    nop    nop    nop    nop    nop    nop     O
+   119  nop    nop    nop    nop    nop    nop    nop    nop     O
+   120  nop    nop    nop    nop    nop    nop    nop    nop     O
+   121  nop    nop    nop    nop    nop    nop    nop    nop     O
+   122  nop    nop    nop    nop    nop    nop    nop    nop     O
+   123  nop    nop    nop    nop    nop    nop    nop    nop     O
+   124  nop    nop    nop    nop    nop    nop    nop    nop     O
+   125  nop    nop    nop    nop    nop    nop    nop    nop     O
+   126  nop    nop    nop    nop    nop    nop    nop    nop     O
+   127  nop    nop    nop    nop    nop    nop    nop    nop     O
+   128  rctrl  rctrl  rctrl  rctrl  rctrl  rctrl  rctrl  rctrl   O
+   129  ralt   ralt   ralt   ralt   ralt   ralt   ralt   ralt    O
+   130  fkey60 fkey60 fkey60 fkey60 fkey60 fkey60 fkey60 fkey60  O
+   131  del    del    del    del    del    del    del    del     N
+   132  fkey49 fkey49 fkey49 fkey49 fkey49 fkey49 fkey49 fkey49  O
+   133  fkey57 fkey57 fkey57 fkey57 fkey57 fkey57 fkey57 fkey57  O
+   134  fkey51 fkey51 fkey51 fkey51 fkey51 fkey51 fkey51 fkey51  O
+   135  fkey59 fkey59 fkey59 fkey59 fkey59 fkey59 fkey59 fkey59  O
+   136  fkey55 fkey55 fkey55 fkey55 fkey55 fkey55 fkey55 fkey55  O
+   137  fkey53 fkey53 fkey53 fkey53 fkey53 fkey53 fkey53 fkey53  O
+   138  fkey50 fkey50 fkey50 fkey50 fkey50 fkey50 fkey50 fkey50  O
+   139  fkey58 fkey58 fkey58 fkey58 fkey58 fkey58 fkey58 fkey58  O
+   140  '/'    nop    nop    nop    '/'    nop    nop    nop     O
+   141  cr     cr     nl     nl     cr     cr     nl     nl      O

@@ -1,0 +1,56 @@
+
+	ifz 0
+		echo 'ifz works'
+	else
+		echo 'ifz broken'
+
+	ifnz 1
+		echo 'ifnz works'
+	else
+		echo 'ifnz broken'
+
+	iflt -5
+		echo 'iflt works'
+	else
+		echo 'iflt broken'
+
+	ifgt 50
+		echo 'ifgt works'
+	else
+		echo 'ifgt broken'
+
+
+	ifz 34
+		echo 'bad news 1'
+	else ifgt -5
+		echo 'bad news 2'
+	else ifge -5
+		echo 'bad news 3'
+	else iflt 5
+		echo 'bad news 4'
+	else ifle 5
+		echo 'bad news 5'
+	else
+		echo 'compound if 1 works'
+
+	$s0 = '123'
+	ifi %len($s0) == 0
+		echo 'bad news 20'
+	else
+	{
+		ifs $s0 == '123'
+			echo 'compound if 2 works'
+		else ifs $s0 == 'def'
+			echo 'bad news 21'
+		else
+			echo 'bad news 22'
+	}
+
+	$s0 = '123'
+	ifs $s0 == 'def'
+		echo 'bad news 31'
+	else ifs $s0 == '123'
+		echo 'compound if 3 works'
+	else
+		echo 'bad news 32'
+

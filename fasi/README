@@ -1,0 +1,602 @@
+This is the original README from FAS 2.08 for reference only.
+Read README.FASI. DO NOT CONTACT UWE DOERING REGARDING THIS HACKED VERSION
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+README file for the FAS Final Async Solution driver
+---------------------------------------------------
+
+What is this package:
+
+     This is an async driver for 286/386 based unix systems that adds
+     several features that are not supported by vendors drivers.
+     It supports
+
+        1.  the NS16550A and i82510 UART chips in full FIFO mode.
+        2.  modem sharing for input and output.
+        3.  shared interrupts.
+        4.  multiplexed UART registers (HUB-6 card etc.).
+        5.  full and half duplex hardware flow control.
+        6.  VP/ix, the ISC DOS emulator.
+
+
+     FAS was successfully tested under the following operating systems:
+
+     Microport UNIX SYSV 3.0
+     ISC 386/ix 2.0.2 & 2.2
+     ESIX Rev. C & D
+     Bell Tech/Intel UNIX 3.2
+     SCO UNIX 386
+     SCO XENIX 386 2.3.2
+     SCO XENIX 286 2.3.2
+
+     This driver should work with most of the UNIX SYS V/386 3.X ports
+     currently available. You can have both this and the original
+     vendor driver in the same kernel (if you really like to, but I
+     wouldn't know why). Each driver controls its own separate set of
+     serial ports. The only restriction here is that any int vector must
+     not be used by more than one of the drivers. The kernel config
+     program will complain otherwise.
+
+------------------------------------------------------------------------
+     
+How it works:
+
+     DIALIN/DIALOUT ON THE SAME PORT
+     -------------------------------
+
+     This driver supports shared line usage by having two logical
+     devices sharing one physical line. Each logical device has its
+     own name. For example for the first line the names are ttyF00
+     (minor device 0) and ttyFM00 (minor device 192). The ttyF00
+     is used for cu, kermit, and other programs that want to dial
+     out. It ignores the modem signals and just goes to it. The
+     ttyFM00 line is strictly for getty. When getty calls open on
+     ttyFM00 the driver hangs the open until the modem asserts the
+     carrier detect signal and then lets the open complete. If cu
+     opens ttyF00 while getty is waiting for the open to complete
+     the device is given to cu and the getty open must wait for cu
+     to finish and then will again wait for the carrier. If cu
+     tries to open the ttyF00 line while getty has ttyFM00 open cu
+     will get an error. If getty tries to open ttyFM00 while cu has
+     ttyF00 open the getty open will just hang and wait for cu to
+     close the line and then wait for the carrier. To put it simply
+     you should put up a getty on ttyFM00 with a -t 60 and use ttyF00
+     for cu and uucico.
+
+     In the example above ttyF00 had a minor device number of 0 and
+     ttyFM00 one of 192. But there are several other possible minor
+     device numbers for each port.
+
+     The higher bits of the minor device number control the operating
+     mode of the device. The port can't be opened by two or more
+     different minor devices at the same time.
+
+     Minor device numbers are built according to the following
+     description:
+
+        Bitmap:   m m f f x x x x
+
+           `m m' are the mode bits as follows:
+
+            0 0   The carrier signal is totally ignored. With carrier high->low
+                  *no* SIGHUP signal is generated. The device does *not* block
+                  on open if there is no carrier.
+            0 1   After an initial open, the carrier signal is ignored.
+                  Although, carrier high->low generates a SIGHUP signal. From
+                  thereon the device is carrier controlled until the last
+                  process has closed the device. An ioctl call with a TCSETA*
+                  command resets the device to ignore carrier again until the
+                  next carrier high->low. The device does *not* block on open
+                  if there is no carrier.
+            1 0   The device is carrier controlled. It blocks on open if
+                  there is no carrier.
+            1 1   Same as mode `1 0', but a parallel non-blocking open
+                  is possible while waiting for carrier.
+
+           `f f' are the hardware flow control bits as follows:
+
+            0 0   The RTSFLOW/CTSFLOW termio(7) flags (if available) enable
+                  half duplex hardware flow control (for output direction,
+                  only) according to SCO's specifications. If these flags
+                  are not available no hardware flow control is used by
+                  this device.
+            0 1   The device uses full duplex hardware flow control (for
+                  input and output direction).
+            1 0   The device uses half duplex hardware flow control (for
+                  output direction, only).
+            1 1   Same as mode `1 0', but additionally the output buffer
+                  state is signaled to the connected device.
+
+                  Refer to the `space.c' file to determine which port
+                  signals are actually used for that purpose.
+
+           `x x x x'
+                  This is the physical port number. This driver supports
+                  up to 16 ports. If you need more, you should use an
+                  intelligent serial card because more than 16 devices
+                  will eat up to much CPU time with this dumb-port approach.
+
+     - Note: If a device is carrier controlled, this implies the generation
+             of a SIGHUP signal with every carrier high->low. This is of
+             course only true if the CLOCAL flag is *not* set.
+
+             On my own system I prefer a minor device number of `0101xxxx'
+             (80 + device #) for the non-blocking tty node and `1101xxxx'
+             (208 + device #) for the blocking tty node. This gives me
+             the SIGHUP signal on carrier loss and full duplex hardware
+             flow control with both logical devices. Dialout while a dialin
+             open is waiting for the carrier is also possible with this
+             setup.
+
+
+     WHICH SERIAL CARDS ARE SUPPORTED ?
+     ----------------------------------
+
+     The driver supports and has been tested on many serial async
+     dumb port cards. It supports most combinations of shared
+     interrupts. The current driver supports NS16450, NS16550A,
+     um82450 and i82510. 8250 chips are not supported due to various
+     bugs and speed problems in these parts. They have no place in any
+     286/386 or other high performance system. Replace them with one of
+     the supported chips. They are pin-to-pin compatible.
+     
+     Take a look at the various samples of space-xxxx for details
+     of how to set up for various devices.
+
+     At boot time you will see a status message on the screen with
+     symbols that show the init state of each port. The symbols
+     are as follows:
+
+        -     not defined in the fas_port array
+        >     int vector greater than limit
+        ?     can't initialize port
+        1-6   error during test phase indicated by number
+        *     port is initialized (NS16450)
+        +     port is initialized and has FIFOs forced off
+        f     port is initialized and has FIFOs (i82510)
+        F     port is initialized and has FIFOs (NS16550)
+
+     This is convenient to check whether you have entered the proper port
+     base addresses in `space.c'.
+
+
+     WHICH CARD WILL SUPPORT SHARED INTERRUPTS ?
+     -------------------------------------------
+
+     Many multi-port cards have jumpers or dip switches that let you
+     assign more than one port to the same interrupt (IRQ) line. This alone
+     is _no_ guaranty that they really support shared interrupts! These
+     cards may be designed for the DOS world where you may want two or more
+     serial ports but don't need to run them concurrently, that is, no more
+     than one of those ports assigned to the same IRQ line is allowed to be
+     in use at a time. For DOS this is sufficient as DOS is no multitasking
+     operating system. For UNIX this won't work because in the worst case
+     all serial ports may be in use at the same time.
+
+     The basic problem is that the PC (and AT) I/O bus can't handle shared
+     interrupts itself. This is due to a brain-dead hardware design. Therefor,
+     there must be some special logic on the serial card to provide shared
+     interrupts. And those cards are quite rare (and usually more expensive).
+
+     Therefor, you have the choice to give every port on the card its own
+     IRQ line or to buy a multi-port card that really has shared interrupts.
+     But in the latter case you better ask your vendor twice to make shure
+     that it has this functionality because from the card's manuals it often
+     isn't obvious which type of card it is. One well-known shared interrupts
+     card is the AST 4-port card. There are many compatible clones available
+     that are usually much cheaper than the original. You can even buy
+     AST compatible 8-port cards where two AST 4-port blocks are on the
+     same board.
+
+
+     A WORD ABOUT CHARACTER LOSSES
+     -----------------------------
+
+     If you've experienced character losses with your vendor async
+     driver at high baud rates you shouldn't blame the vendor for
+     that. The real reason for this problem lies in the ancient port
+     devices used in most 286/386 systems: The 8250 (not supported by
+     FAS) and the NS16450.
+
+     They have only one receiver character buffer. This implies that
+     the operating system must read a character from this buffer before
+     the next one arrives from the port's shift register. For the old
+     IBM PC with DOS this was sufficient. But for UNIX and with baud
+     rates up to 38400 this is simply a joke.
+
+     UNIX is not a real-time operating system. That means that it's
+     kernel isn't optimized for fast interrupt responses. With the
+     proper hardware this is no problem. But because the vendors have
+     to adapt UNIX to the standard hardware found in 286/386 systems they
+     also have to cope with the NS16450 ports which are in there simply
+     to be compatible with IBM PCs, XTs and ATs.
+
+     It is impossible to make it work at high baud rates without a
+     major redesign of the AT&T supplied UNIX kernel. But then it
+     wouldn't be UNIX SYSV any more.
+
+     Luckily, there is a pin-to-pin replacement available from
+     National Semiconductors: The NS16550A.
+
+     This device has separate 16 character FIFOs for the receiver and
+     the transmitter. With these FIFOs the interrupt latency of the
+     kernel can be quiet high without losing any characters.
+     Additionally, because with most interrupts many characters are
+     processed at once the system is loaded much less.
+
+     As you see, the necessary hardware is available. Therefor, if you
+     have to blame the UNIX vendor then blame him for not telling you
+     that you should buy some NS16550A and/or for not supplying you
+     with a serial driver that supports these port devices.
+
+     But as you have the FAS driver now and if you use the NS16550A
+     devices you shouldn't have this kind of trouble any more. This is
+     the philosophy behind the driver's name `Final Async Solution'.
+
+     Enjoy!
+
+     PS: If for some reason you can't get the NS16550A chips you
+         could use the i82510 chips from Intel. Although they are
+         much less efficient they are still better than the NS16450.
+
+     PPS: Some kernel functions may disable interrupts long enough
+          that even the input FIFO can't prevent character loss.
+          One culprit is the disk cache flush function. If you
+          configure your kernel with too many cache buffers (NBUF
+          parameter for AT&T derived UNIX) you may still lose
+          characters (at least at 38400 bps).
+
+          An other candidate is VP/ix, or rather the kernel functions
+          to support VP/ix. This may also lead to lost characters
+          at very high input speed.
+
+
+     HARDWARE FLOW CONTROL
+     ---------------------
+
+     FAS supports both full and half duplex hardware flow control, using
+     the RS232C RTS/CTS control lines (by default).
+
+     Full duplex flow control is a method to control character flow in
+     both input and output directions while in half duplex flow control
+     mode only the output direction is controlled.
+
+     You can select between full and half duplex flow control via the
+     minor device number of the device. In full duplex mode the RTS line
+     controls the input direction and the CTS line is responsible for the
+     output direction. In half duplex mode RTS tells the connected device
+     whether there is data in the output buffer (optional), and the CTS
+     line has the same function as in full duplex mode.
+
+     Full duplex mode:
+
+          As long as the FAS input buffer hasn't reached a certain
+          threshold the RTS line is set high to signal the connected
+          device that it may send characters. If the input buffer level
+          rises beyond this threshold RTS will go low and the device
+          is supposed to stop sending characters. As soon as there is
+          sufficient space in the input buffer RTS will go high again
+          and the character flow may continue.
+
+          The CTS line works the other way round. If the connected device
+          sets CTS to high the FAS character output is enabled. If CTS is
+          low, the output is stopped. There is a special feature for the
+          CTS part of the handshake. CTS is only looked at if the DSR
+          line is high. If DSR is low or not connected hardware output
+          handshake is disabled, that is, FAS sends characters
+          regardless of the state of CTS.
+
+          This has two advantages. At first, if you switch off a serial
+          device connected to an FAS port with hardware flow control
+          CTS will go low and therefor the output gets blocked. If at
+          this time there are still characters in the output buffer the
+          last process closing this port can't terminate until the
+          buffer has drained.
+
+          But as DSR will also go low if you switch off the device
+          this blocking of the output will be prevented. In short:
+          Hardware output handshake is only used if the connected
+          device sets DSR high, that is, the device is switched on
+          and is ready. So make sure that you keep this in mind when
+          you make serial cables and when you configure your serial
+          devices. DSR must be on if you want CTS handshake.
+
+          The other advantage of this CTS/DSR mechanismn is that you
+          can still connect dumb serial devices to an FAS hardware
+          handshake port using a minimal 3-wire cable. As an unconnected
+          DSR line is automatically low hardware output handshake is
+          disabled, which is just what you wanted in this case.
+
+     Half duplex mode:
+
+          There are actually three half duplex modes selected by
+          the minor device number:
+
+          First mode:
+             If the RTSFLOW termio(7) flag is set _and_ the CLOCAL
+             flag is _not_ set the RTS line is used to signal the
+             connected device that there is data in the output buffer.
+             As long as there is output data to come the RTS line stays
+             high. If the output buffer has drained RTS drops to low
+             until there is more data to be sent to the connected device.
+
+             If the CTSFLOW termio(7) flag is set _and_ the CLOCAL
+             flag is _not_ set the CTS line used to control the output
+             character flow. This works as in full duplex mode.
+
+          Second mode:
+             This mode overrides the RTSFLOW/CTSFLOW flags and works
+             as if the CTSFLOW flag is set permanently. The CLOCAL flag
+             doesn't affect this mode.
+
+          Third mode:
+             This mode overrides the RTSFLOW/CTSFLOW flags and works
+             as if both the RTSFLOW and CTSFLOW flags are set permanently.
+             The CLOCAL flag doesn't affect this mode.
+
+
+     CABLING
+     -------
+
+     Don't leave unused input lines (CTS, DCD, DSR, RING) open! Due
+     to crosstalking from other lines these input lines might change
+     their logic level rapidly, resulting in excessive modem status
+     interrupts that could bring your machine down to its knees.
+     Therefor you should connect any unused input line to GND (pin 7
+     on the D-Sub 25 RS232C connector).
+
+     To prevent the machine from locking up in a case like described
+     above the port causing the modem status interrupts will be shut
+     down for 30 seconds after the last close on that port. Any attempt
+     to use an open(), read(), write() or ioctl() call to this port
+     during the time until the last close and then 30 seconds from
+     there will result in an ENXIO error.
+
+     The port shutdown will be indicated on the system console by a
+     warning message containing the unit number of the offending port.
+
+     But even if this protection mechanismn isn't triggered on your
+     computer you might have this problem. This is usually indicated
+     by a bad system performance during high speed serial data transfers.
+     Use your system's performance measurement tools to check the
+     number of modem interrupts. If it is unusual high, or even
+     higher than the number of transmit/receive interrupts, you
+     certainly have a problem with your cabling. Of course, another
+     reason could be a bad port chip.
+
+     ATTENTION: If you want to connect two UNIX systems (both using
+     FAS) via a null modem cable, and if you want to run a getty
+     on both ends you need to modify the `space.c' file to prevent
+     both gettys talking to each other, wasting valuable CPU time.
+     Remove the `EI_DTR' (or `EI_RTS', depending on your setup) macro
+     for the desired port from the initializer part of the `fas_modem'
+     array. This will cause DTR (or RTS) to be asserted only on
+     dialout. Therefor, the getty at the other end will become alive
+     only if a dialout is in progress.
+
+
+     VP/ix SUPPORT
+     -------------
+
+     FAS allows DOS programs running under VP/ix to access serial
+     ports. You simply need to modify your personal VP/ix configuration
+     file (`vpix.cnf') to tell the DOS emulator which FAS devices to
+     use for COM1 (or COM1MOUSE) and COM2. Note that VP/ix opens
+     these devices at startup time, so you better make sure that
+     the desired devices aren't used by other processes when you
+     start VP/ix as VP/ix wants to use them exclusively.
+
+     There are some special features with the handling of the RTS and
+     DTR lines you should know about. If your DOS program asserts
+     the DTR line this will actually cause action on the modem
+     enable line you configured in `space.c'. Likewise, RTS asserts
+     the half duplex hardware handshake line configured in `space.c'.
+
+     If the used FAS device has full duplex hardware handshake enabled,
+     asserting RTS from DOS actually stops the character flow from FAS
+     to VP/ix. This prevents input buffers of interrupt driven DOS
+     programs from overflowing. FAS, on the other hand, uses its hardware
+     handshake to prevent an overflow of its own input buffer. Therefor
+     you can use DOS telecommunication programs even at high baud rates
+     without losing characters, provided your DOS programs are
+     configured to use full duplex RTS/CTS flow control.
+
+     All this virtual handling has the advantage that the DOS program
+     doesn't need to know certain details about your actual port setup.
+     Reading the modem status register, on the other hand, doesn't cause
+     any translation of the register value.
+
+     To enable VP/ix support, you have to uncomment the `HAVE_VPIX'
+     define in `fas.h'.
+
+
+     DEVICE LOCKUPS
+     --------------
+
+     There are certain conditions under which a device can lock up,
+     that is, at least one process that uses this device waits for
+     a tty I/O related event that obviously doesn't occure.
+
+     The most common case is that there are still characters in the
+     output buffer, but the output is disabled for some reason. Then
+     the last process that closes the tty device hangs in the close()
+     function until the output buffer has drained.
+
+     Tty output may be stopped by the software (XON/XOFF) or hardware
+     (RTS/CTS, by default) flow control. In this case something
+     seems to be wrong with the cabling or the connected device.
+     Please check this first out before you blame FAS. Sometimes
+     it helps to switch the device off and on a few times to unblock
+     the tty output.
+
+     Another reason could be a lost transmitter interrupt. This usually
+     indicates a hardware problem in your computer which should be fixed
+     as soon as possible. Otherwise, you can't run this system unattended
+     because it is too unreliable.
+
+     In the cases described above the last resort is entering `kill -9 <pid>'
+     once or twice. This should unblock and terminate the hanging process.
+
+     And there is a rare case which has to do with the number of available
+     CLISTs in the UNIX kernel. The CLIST output and input buffers are
+     256 bytes each (by default). If for some reason the output of a
+     tty device is stopped but a process continues to send data one
+     character at a time this uses up one CLIST for every charcacter.
+     If the number of CLISTs in the kernel is less than 256 all CLISTs
+     will be busy eventually.
+
+     The dangerous part here is that the pool of CLISTs is used by all
+     tty devices. Therefor, if one single tty device manages to eat up
+     all available CLISTs all tty in- and output comes to a halt. If this
+     happens you can't access your machine any more, not even from the
+     operator console. Although, the system is still alive internally.
+
+     Unfortunately, many UNIX vendors have put a dangerously low number-of-
+     CLISTs parameter into their kernel tune files. You should increase
+     it to a value that makes it impossible that one device alone can
+     occupy all CLISTs (it's the NCLIST parameter under AT&T derived
+     UNIX SysVr3.x). A value of 400 should be sufficient.
+
+------------------------------------------------------------------------
+
+What's in this package:
+
+     README         This file.
+
+     INSTALLATION   A description about how to install the driver
+                    on your system.
+
+     PATCHLEVEL     Just a reference file for future updates.
+
+     RELEASENOTES   Notes about the present FAS releases.
+                    
+     fas.h          The header file for the driver.
+
+     fas.c          The driver itself.
+
+     space-xxxxx    These are samples of what `space.c' must look
+                    like.  You can either copy one of these to
+                    `space.c' or use it as a template to create your
+                    own `space.c'.
+
+          space-c1-2     For com1 and com2.
+
+          space-c1-3     For com1, com2 and com3.
+
+          space-ast4     For the AST 4-port card.
+
+          space-hub6     For the Bell Tech HUB-6 card.
+
+     config-xxxxx   This is for uPort SYS V/386 only.
+                    Kernel configuaration file.  You should pick the one
+                    that matches your configuration and copy it to `config'.
+
+          config-c1-2    For com1 and com2.
+
+          config-c1-3    For com1, com2 and com3.
+
+          config-ast4    For the AST 4-port card.
+
+          config-hub6    For the Bell Tech HUB-6 card.
+
+     s_fas-xxxxx    This is for ISC 386/ix, ESIX, Bell Tech/Intel UNIX 3.2
+                    and SCO UNIX 386.
+                    Kernel configuration file.  You should pick the one
+                    that matches your configuration and copy it to `s_fas'.
+
+          s_fas-c1-2     For com1 and com2.
+
+          s_fas-c1-3     For com1, com2 and com3.
+
+          s_fas-ast4     For the AST 4-port card.
+
+          s_fas-hub6     For the Bell Tech HUB-6 card.
+
+     n_fas-xxxxx    This is for ISC 386/ix, ESIX, Bell Tech/Intel UNIX 3.2
+                    and SCO UNIX 386.
+                    Tty device nodes file.  You should pick the one
+                    that matches your configuration and copy it to `n_fas'.
+
+          n_fas-c1-2     For com1 and com2.
+
+          n_fas-c1-3     For com1, com2 and com3.
+
+          n_fas-ast4     For the AST 4-port card.
+
+          n_fas-hub6     For the Bell Tech HUB-6 card.
+
+     i_fas-xxxxx    This is for ISC 386/ix, ESIX, Bell Tech/Intel UNIX 3.2
+                    and SCO UNIX 386.
+                    Inittab getty lines file.  You should pick the one
+                    that matches your configuration and copy it to `i_fas'.
+
+          i_fas-c1-2     For com1 and com2.
+
+          i_fas-c1-3     For com1, com2 and com3.
+
+          i_fas-ast4     For the AST 4-port card.
+
+          i_fas-hub6     For the Bell Tech HUB-6 card.
+
+     Makefile.uPort A makefile for uPort SYS V/386 systems. This is generic
+                    and should work for all configurations of lines
+                    and interrupts.
+
+     Makefile.ISC   A makefile for ISC 386/ix systems.  This is generic
+                    and should work for all configurations of lines
+                    and interrupts.
+
+     Makefile.ESIX  A makefile for ESIX systems.  This is generic
+                    and should work for all configurations of lines
+                    and interrupts.
+
+     Makefile.BELL  A makefile for Bell Tech/Intel UNIX 3.2 systems.  This
+                    is generic and should work for all configurations of
+                    lines and interrupts.
+
+     Makefile.SCO   A makefile for SCO UNIX 386 systems.  This is generic
+                    and should work for all configurations of lines
+                    and interrupts.
+
+     Makefile.X386  A makefile for SCO Xenix 386 systems.  This is generic
+                    and should work for all configurations of lines
+                    and interrupts.
+
+     Makefile.X286  A makefile for SCO Xenix 286 systems.  This is generic
+                    and should work for all configurations of lines
+                    and interrupts.
+
+------------------------------------------------------------------------
+
+What you will need to use this package:
+
+     You will need one of the above mentioned UNIX systems with the
+     kernel link kit and the software development package.
+
+------------------------------------------------------------------------
+
+The original asy replacement driver for Microport UNIX/386 (FAS' predecessor)
+was developed by
+
+Jim Murray              INET            jjm%jjmhome@m2c.m2c.org
+2 Mohawk Circle         UUCP            harvard!m2c!jjmhome!jjm
+Westboro Mass 01581     
+USA                                     voice (508) 366-2813
+
+Credits to him for releasing this great driver to the Usenet community.
+But if you have problems with FAS please don't contact him because he
+wasn't involved in the developement of FAS.
+
+FAS was developed by [BUT DON'T BOTHER HIM ABOUT FAS/i]
+
+Uwe Doering             INET : gemini@geminix.in-berlin.de
+Billstedter Pfad 17 b   UUCP : ...!unido!fub!geminix.in-berlin.de!gemini
+1000 Berlin 20
+Germany
+
+------------------------------------------------------------------------------
+For FAS/i inquiries:
+   Warren Tucker wht@n4hgf.GA.US, emory!n4hgf!wht
+
+    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^
+Send your questions and bug reports to this address.

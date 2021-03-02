@@ -1,0 +1,12 @@
+:
+#+-------------------------------------------------------
+# idmors
+# SCO UNIX Morse Speaker Driver Installation
+#--------------------------------------------------------
+/etc/conf/bin/idcheck -p mors
+if [ $? -lt 16 ] ; then
+	/etc/conf/bin/idinstall -a -e -k mors
+else
+	/etc/conf/bin/idinstall -u -e -k mors
+fi
+cd /etc/conf/cf.d; ./link_unix

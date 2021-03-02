@@ -1,0 +1,19 @@
+#---------------------
+# gosub.ep
+#---------------------
+
+	echo 'main'; gosub SUB; echo 'back to main'
+	return
+
+SUB
+	echo 'sub'
+	gosub SUB2
+	echo 'back to sub'
+	return
+
+
+SUB2
+	echo 'sub2'
+	return
+
+

@@ -1,0 +1,41 @@
+#----------------------------------------------------------------
+# Makefile for sample ecufriend
+# wht@wht.net
+#----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:38-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:58-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:38-wht@n4hgf-ECU release 3.20 BETA
+#:08-26-1991-05:59-wht@n4hgf2-default target was .o not executable
+#:07-25-1991-12:56-wht@n4hgf-ECU release 3.10
+#:04-21-1991-12:05-wht@n4hgf-convert to Make.src
+
+SHELL = /bin/sh
+PROGRAM = ecufriend
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h
+
+.c.o:;	$(BINTIME) $(CC) -c $(CFLAGS) $*.c 
+
+OBJ = $(PROGRAM).o
+
+all: $(PROGRAM)
+
+$(PROGRAM): $(OBJ)
+	$(BINTIME) $(CC) -o $@ $(LDFLAGS) $(OBJ) $(LIBS)
+
+$(OBJ): Makefile
+$(OBJ): ../ecushm.h
+
+clean:
+	rm -f $(OBJ) core Makefile.bak tags cscope.out
+
+clobber: clean
+	rm -f $(PROGRAM)
+
+depend:

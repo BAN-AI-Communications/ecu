@@ -1,0 +1,33 @@
+#  CHK=0xF093
+#--------------------------------------------------------------
+# oneline.ep
+#
+# send command in $s0, expecting a one line response
+# and a csh prompt ending in '% '
+#
+# returns: $s0 = one line response in $s0 if success
+#          $i0 = 1 if success, else 0
+#--------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:06-28-1989-19:36-wht-use named variables
+#:06-25-1989-13:56-wht-new do command syntax
+#:06-25-1989-12:33-wht-new if/while syntax
+#:06-22-1989-13:30-wht-creation
+
+	mkvar $icsave; $icsave = %colors
+	color gray
+	send $s0						# send command
+	lookfor -e %chr(0x0A) 50		# scan command echo
+	ifi $i0 == 0 icolor $i2;return	# if not found, return
+	lgets -e $s0 500 5 '\n'			# get one line response
+	lookfor '% ' 50					# get prompt, don't echo
+	# $i0 = 1 if prompt, else 0
+	icolor $icsave

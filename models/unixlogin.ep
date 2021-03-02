@@ -1,0 +1,172 @@
+#  CHK=0xE6DC
+#+-----------------------------------------------------------------
+#  unixlogin.ep - ecu UNIX login procedure
+#  Copyright 1989 Warren H. Tucker, III. All Rights Reserved
+#
+# %argv(1) = remote name
+# %argv(2) = user name
+# %argv(3) = password
+# %argv(4) = term type
+# %argv(5) = optional number of breaks needed
+#
+# To use to call system 'xyz' in the dialing directory, make a
+# procedure called xyz.ep doing something like:
+#
+#     $s0='password'
+#     do 'unixlogin' 'xyz' 'username' $s0 ''
+#
+# This procedure sets $i0 to 0 if connect succeeds, else 1
+# as required of an ecu dialing procedure
+#+-----------------------------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-14:00-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:05-10-1992-09:22-wht@n4hgf-%conn can be -1 now
+#:12-02-1991-22:07-wht@n4hgf-better doc
+#:07-12-1990-14:05-wht@n4hgf-use expresp
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:07-09-1989-23:50-wht-add breaks
+#:06-28-1989-19:36-wht-use named variables
+#:06-25-1989-13:56-wht-new do command syntax
+#:06-25-1989-12:33-wht-new if/while syntax
+#:06-23-1989-19:46-wht-improved hayes dialer reduces need to report dial fail
+#:06-19-1989-22:50-wht-use while and if statements
+#:06-14-1989-15:58-wht-add login capability when already connected
+#:06-11-1989-23:37-wht-creation
+
+	mkvar $i_csave,$i_ltimeout,$i_retries
+	mkvar $s_2048(2048) # handle bigger login big motd
+
+	$i_csave = %colors
+	$i_ltimeout = 30 # 3 seconds wait for first login prompt
+	$i_retries=3
+
+	color red;    echo -n '\nauto-logon to '
+	color yellow; echo -n %argv(1)
+	color red;    echo    ' on '+%date+' at '+%time+'\n'
+
+	ifi %argc < 5	# not enough args
+	{
+		color red
+		echo %argv(0)+' needs 5 arguments (got '+%itos(%argc)+')'
+		goto SORRY
+	}
+	mkvar $i_breaks
+	ifi %argc > 5 $i_breaks = %stoi(%argv(5))
+
+	ifi %conn <= 0 goto DIAL
+
+	ifs %rname == %argv(1)
+	{
+		color brown;  echo -n 'already connected to '
+		color yellow; echo    %rname
+		send ''
+		goto SEND_BREAKS
+	}
+
+HANGUP
+	ifi %conn <> 0 echo 'hanging up on '+%rname; hangup
+
+DIAL
+	color green
+	dial %argv(1); set $i1=$i0 #save dial result in $i1
+	ifi $i1 == 2 color red; echo 'interrupted'; goto SORRY
+	ifi $i1 != 0 goto SORRY
+
+# send breaks?
+SEND_BREAKS
+	ifi $i_breaks > 0
+	{
+		color blue; echo 'sending up to '+%itos($i_breaks)+' break(s) to remote'
+		nap 30
+		whilei $i_breaks > 0
+		{
+			color magenta; echo 'BREAK'
+			lbreak
+			expresp '~t[8]gin:'
+			ifi $i0 == 0
+				break;
+			nap 30
+			$i_breaks = $i_breaks - 1
+		}
+		flush
+	}
+
+# get login prompt from remote UNIX system: "login: "
+GET_LOGIN_PROMPT
+	$i_retries = 3
+GET_LOGIN_PROMPT_RETRY
+	ifi $i_retries <= 0
+	{
+		color red; echo '\ncannot seem to get in with these credentials'
+		goto SORRY
+	}
+	color blue; echo 'looking for login prompt'
+	color white
+	expresp -v '~t[8]gin:--~t[5]gin:--gin:--gin:'
+	ifi $i0 > 0
+	{
+		color red; echo '\nfailed to get login prompt'
+		goto SORRY
+	}
+	icolor $i_csave
+
+# give username to remote
+SEND_USERNAME
+	nap 10 # system not always ready when it says
+	send %argv(2)
+
+# get password prompt: "Password:" 
+GET_PASSWORD_PROMPT
+	color white
+	lookfor -e 'word:' 75
+	ifi $i0 != 1		# did not find 'Password: '
+	{
+		send ''
+		gotob GET_LOGIN_PROMPT_RETRY
+	}
+
+# send the password
+	nap 3 # system not always ready when it says
+	send %argv(3)
+	icolor $i_csave
+
+# get term type prompt "TERM = (ansi) "
+# also handle incorect login retry and 'Sorry' hangup indication
+GET_TERMTYPE_PROMPT
+	ifs %argv(4) == ''	# if no term type, don't wait for prompt
+	{
+		$i0 = 0			# return good status
+		goto SETCOLOR_AND_RETURN_STATUS
+	}
+	lgets -re $s_2048 100 50 ') '
+	ifi %instr($s_2048,'Sorry') > 0 hangup;goto SORRY
+	ifi %instr($s_2048,'incorrect') > 0		# exhausted retry?
+	{
+		set $i_retries=$i_retries-1
+		ifi $i_retries > 0 goto SEND_USERNAME
+		goto SORRY
+	}
+# send terminal type
+	ifi %instr($s_2048,'TERM') < 0
+		lookfor -e ') ' 30
+	send %argv(4)
+	lookfor -e '\n' 50
+	set $i0=0
+	goto SETCOLOR_AND_RETURN_STATUS
+
+# procedure failed
+SORRY
+	set $i0=1
+
+SETCOLOR_AND_RETURN_STATUS
+	icolor $i_csave
+	ifi $i0 == 0 ifi %conn !=0 prompt %rname+' >'
+	return $i0
+
+# vi:set tabstop=4 shiftwidth=4:

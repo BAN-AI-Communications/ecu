@@ -1,0 +1,170 @@
+FAS/i is a special-purpose, unsupported version of FAS 2.08 for
+those who need to have non-portable, but extended access to their tty driver.
+
+Reasons to use:
+
+1. You get cumulative statistics on such things as receievd and
+transmitted characters, modem signals and device errors.  As an
+example of the information available, the ecu interactive 'fasi'
+command produces:
+
+base address: 0218 irq=3 device is 16550
+MSR=*CTS*DSR*   MCR=*DTR*RTS*OUT2*
+LCR=*8db*1sb*NOPAR*   IER=*RDAV*TBMT*LS*MS*
+recv ring cnt=0  xmit ring cnt=0  xmit fifo size=16
+characters received    =        3097
+characters transmitted =       22407
+modem status events    =         137
+overrun errors=0  framing errors=0  parity errors=0
+rings detected=0  breaks detected=0
+xmtr flow off XON/XOFF=0  RTS/CTS=31
+rcvr flow off XON/XOFF=0  RTS/CTS=0
+driver:  'FAS/i 2.08.0'
+space.c: 'FAS/i 2.08:{1,4,03f8-03ff,COM1},{8,3,0210-024f,DIGI-PC8}'
+
+2. There are no other reasons to use.
+
+Reasons NOT to use:
+
+1.  It is not supported. It is released configured for one COM1 (irq 4)
+and one 8-port Digiboard PC-8.  I will help with any issue that I can,
+but I will be very uninterested in answering questions like "How do I
+get FAS/i to work with my PacificRim ModemBlaster 4800?"
+
+2. It is less efficient than FAS.  Statistics take CPU cycles to accumulate.
+Also, Uwe has done an indescribably superb job of optimizing the driver
+for efficiency.  I have not analyzed the effect my changes have made to
+the micromanagment of emitted code Uwe did, but it cannot have but harmed.
+
+3. The driver is non-standard.  It barks in the face of most of
+what I look for in well-produced software.
+
+4. Uwe will continue to work magic and this driver is unlikely to
+inherit it.
+
+5. FAS nor FAS/i appear to support DOS access to communications
+devices through MERGE.
+
+Now, you say, why does that Tucker kid want to turn my tty driver
+into a newt ("Well, [it] got better.")?  Because it can be very useful
+if you are developing asychronous communications systems.  I find
+it very useful to know how many times CTS fluctuated during a test
+session.  Like the 'ecufriend,' it isn't for everyone, but if you
+need it, there it is.
+
+>Message-Id: <m0jXaOF-0000ElC@geminix.in-berlin.de>
+>From: emory!geminix.in-berlin.de!gemini (Uwe Doering)
+>Subject: Re: [Request permission to distribute FAS 2.08 instrumented version]
+>To: wht@wht.net (Warren Tucker)
+>Date: Mon, 29 Apr 91 17:43:51 MES
+>
+>Hello Warren,
+>
+>>...I am writing is to ask your permission ...
+>>to include with ecu a modified FAS 2.08 I am calling FAS/i (for
+>>instrumentation) so you can have access to statistics 
+>> [some stuff deleted]
+>
+>You sent me the necessary patches some time ago. Since then I tried to
+>make up my mind about this issue. I decided now that I won't have the
+>patches in the official FAS release. There is a reason for that. I want
+>to keep FAS as clean as possible from the application program standpoint.
+>
+[some stuff deleted]
+>
+>You have my permission to release your special FAS version, but please
+>make it clear in the docs that _you_ do the support for it, and
+>that it is no official FAS release.
+>
+>      Uwe
+>-- 
+>Uwe Doering  |  INET : gemini@geminix.in-berlin.de
+>Berlin       |----------------------------------------------------------------
+>Germany      |  UUCP : ...!unido!fub!geminix.in-berlin.de!gemini
+
+The strength of my earlier comments is driven in part by Uwe's comments.
+I will be very disasppointed and red-faced if Uwe gets ONE query or
+request in regard to this hack.  I will be similarly dismayed if he
+gets one comment pro or con about folding these features into the
+official FAS.
+
+This is a dead-end, special-purpose junkbox addition that just happens
+to be potentially useful.
+
+Now, with all that out of the way, here are a few useful tidbits:
+
+1. Configuration and installation are for the most part similar to
+the standard FAS as of this writing.
+
+2. You will need to manually create a /usr/include/local directory
+before you begin any makes.
+
+3. The original FAS 2.08 functionality may be restored by turning
+off #define FASI in several places.
+
+4. It has been used only on SCO.
+
+5. To use with ECU, you'll need to hack -DFASI_IN_USE into the
+ecu Makefile.  The other programs in ecu don't need to know about it.
+(Hint: ecufriends can make good use of the features.)
+
+6. If you turn on FAS/i support in ecu, you get the undocumented
+fasi interactive and procedure commands and these %functions:
+
+Integer functions:
+%fasi       defined for all ecu versions; returns 1 if FAS/i
+            support included, else 0 if not. The other functions
+            will cause procedure termination with undefined function
+            errors "ifi %fasi==0".
+%msr        MSR current value
+%lnerr      accumulated FE+OE+PE count
+%ridet      accumulated RI count
+%brdet      accumulated BREAK count
+
+String functions:
+%msrtext    MSR current value in string form for easier (less efficient)
+            MSR inspecition.  You can do something like
+
+     $s20 = %msrtext
+     ifi %instr($s20,'CTS')
+         echo 'CTS present'
+     ifi %instr($s0,'RING')
+         echo 'We are receiving a RING this very instant')
+The returned string is one or more substrings separated by asterisks.
+So, you might get 'CTS*DSR*RING*'.  The list of substrings, one for each
+bit in the canonized 8250 MSR:
+
+dCTS        delta CTS   <---+
+dDSR        delta DSR       | you are unlikely to see these
+dRI         delta RI        | since the driver catches interrupts
+dDCD        delta DCD   <----
+CTS     
+DSR     
+RING        
+DCD     
+
+7. The fasiintf.c modules contains examples of each FAS/i-specific
+ioctl.  These are also the only 'documentation' ever likely to be
+produced for them other than this list:
+
+FASIC_SIP                  get entire fas_info struct
+FASIC_MSR                  get various registers
+FASIC_LCR     
+FASIC_IER    
+FASIC_MCR   
+FASIC_DVR_IDENT            get driver revision
+FASIC_SPACE_IDENT          get space.c revision
+FASIC_RESET_STAT           reset statistics
+
+8. This hacked 'release' is in the style of a purpose-specific
+driver.  If you have an SCO UNIX 3.2.x system with a standard COM1
+port and a Digiboard PC-8 on COM2, man are you in luck.  Otherwise,
+
+   while(!bored && !fed_up && !success)
+   {
+     adopt();
+     adapt();
+     improve();
+   } /* "... I always say." -- thanks to John Cleese */
+   exit(!success);
+

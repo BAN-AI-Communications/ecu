@@ -1,0 +1,1272 @@
+.*s 1 "Interactive Mode Commands"
+
+The following is a partial list of commands available in the
+interactive (non-procedure) mode.  It is not necessary to enter
+the entire command in most cases.  The portion of each command
+which must be entered is capitalized in the following section
+headers.
+
+Refer to the sections titled Interactive Command History
+and Line Editing for more information.
+
+.*s 2 "ANSIf : set/display receiver ANSI filter state"
+.DS L
+Usage: ansif [off | on | ]
+.DE
+
+If configured for it (and most versions are), ECU has an ANSI
+filter which when on intercepts ANSI screen control sequences in
+receive data stream and converts them to equivalent sequences for
+the local console (per the $TERM's termcap or terminfo
+description which may or may not be up to the task).  This
+command controls or displays this feature.  By default, this
+feature is turned on.
+
+.*s 2 "AUTORZ : Automatic ZMODEM Receive"
+Usage: autorz [off | on | ]
+
+ECU in the interactive mode (no procedure executing) can interpret a
+SUB, 'B', '0', '0' receive data sequence as a ZMODEM ZRQINIT frame and
+automatically begin a ZMODEM receive operation.  This command controls
+or displays this feature.  By default, this feature is turned on.
+
+.*s 2 "AX : ascii char to hex/oct/dec"
+.DS L
+usage: ax [<param>]
+.DE
+
+<param> may be a single ASCII character, a standard ASCII
+identifier (such as ETX), or a two-character control
+character identifier (such as ^C, typed as a caret followed
+by a C).
+
+If no argument is supplied, a table of control characters
+is printed containing decimal, octal, hex, ASCII identifiers
+and two-character control character identifier.
+
+.*s 2 "AYt : send telnet Are You There?"
+.DS L
+usage: ayt
+.DE
+
+If your ECU is in telnet connection, this command sends the
+AYT (Are You There?) command to the remote host.  If the
+remote is sane (and so disposed), it will reply with something
+like "[Yes]".
+
+
+.*s 2 "BAud : set/display line bit rate"
+.DS L
+usage: baud [<bit-rate>]
+.DE
+
+<bit-rate>, if specified, must be taken from the values
+110, 300, 600, 1200, 2400, 4800, 9600, 19200 and 38400.  On
+some systems, 19200 and 38400 may not be supported.  If a baud
+rate less than 300 is selected, 2 stop bits are automatically
+specified; other bit rates set 1 stop bit.  If <bit-rate>
+is not supplied, the current bit rate is displayed.
+
+The setting may be automatically changed as the result of a 'dial'
+command.  See also the
+.B dial
+and
+.B parity
+command descriptions.
+
+
+.*s 2 "BN : all console event alarm"
+.DS L
+Usage: bn [ off | on | alert ]
+       bn [ 0 | 1 | 2 ]
+.DE
+
+"bell notify": If no parameter is supplied, the current setting is
+displayed.  Specifying 0 or off disables the facility; 1 or on causes
+an audible alarm to be sounded upon receipt of a bell (0x07)
+character from the remote system; 2 or alert causes an audible alarm
+upon receipt of ANY characters.  This command may not be functional
+in the version for your system.
+
+On SCO, different alarm styles are sent depending upon the type of
+event causing the alarms.  The alarms consist of Morse characters.
+Even if you do not understand Morse, the patterns of the alarm
+tones are distinct enough to be distinguishable.
+
+Additionally on SCO, if you are running ECU from a multiscreen,
+the alarms will be signalled even if you have temporarily
+switched to another screen.
+
+BN is set to 1 (on) when ECU begins executing.
+
+.*s 2 "BReak : send break to remote"
+.DS L
+usage: break
+.DE
+
+This command sends a break signal to the remote system.
+On asynchronous ports this is done with a "long space disconnect."
+On telnet, an Interrupt Process command is sent.
+
+.*s 2 "CD : change current directory"
+.DS L
+usage: cd [<dir-path>]
+.DE
+
+This command allows you to change the working directory of
+the ECU process.  If <dir-path> is supplied, the previous
+working directory is displayed, and <dir-path> is made the
+new working directory.  A history of previous directory
+changes is maintained.  Entering the
+.B cd
+command shows the numbered history list and allows you to select a new
+directory by entering the number.  Other commands allow
+deletion of directories from the list or saving the list to
+file ~/.ecu/dir.  This file is automatically read at ECU
+startup, providing a convenient list of directories
+available for quick selection.  If you edit this file by hand,
+you may force ECU to re-read the file using the %read option.
+
+The %xmitcd option transmits "cd "+current_directory+CR to the remote,
+a convenience to set the remote current directory to the
+same as your local one.
+
+The %pushd # option pushes the current directory onto the same stack
+used by the
+.B pushd
+interactive command and changes the current directory to the numbered
+directory specified by #.  Use the
+.B popd
+interactive command to return to the previous directory.
+
+Other %options have usage information by entering them with no arguments.
+
+.*s 2 "CONXon : console xon/xoff flow control"
+.DS L
+usage: conxon [<arg>]
+where <arg> is on    honor ^S/^Q local flow control (DEFAULT)
+               off   pass ^S/^Q to remote
+.DE
+
+This command enables or disables console xon/xoff flow control.
+If the argument is omitted, the current flow control state is displayed.
+
+If on, typing ^S/^Q stops or restarts the local console driver
+output.  If off, ^S and ^Q are passed to the remote (for EMACS,
+of course -- who else?).
+
+.*s 2 "DA : decimal to ascii char"
+.DS L
+usage: da [<decimal-val>]
+.DE
+
+<decimal-val> is a decimal value between 0 and 256; the
+parity (sign) bit is stripped and the equivalent ASCII
+character value is displayed.
+
+If no argument is supplied, a table of control characters
+is printed containing decimal, octal, hex, ASCII identifiers
+and two-character control character identifier.
+
+.*s 2 "DCDwatch"
+.DS L
+usage: dcdwatch [<dcdwatch-param>]
+.DE
+
+This command controls the DCD watcher.  The optional parameter may be:
+.DS L
+   y  yes - enable DCD watcher
+   n  no - disable DCD watcher
+   t  terminate - terminate ECU on loss of DCD
+.DE
+Entering the command without an argument shows the current status.
+
+The DCD watcher when enabled causes ECU to monitor the DCD line
+(within the limits imposed by the OS with its CLOCAL=0 functionality).
+When the watcher is on and DCD drops, ecu automatically performs
+the action of the interactive or procedure
+.B hangup
+command.  If the 't'erminate option is chosen, then after
+hangup processing is complete, the ECU program will terminate.  
+
+The state of the watcher may be changed by the use of the dial
+command which uses a directory entry that changes the
+DCD watcher status.
+
+The DCD watcher depends upon the tty driver to return zero
+on a read when DCD is low when the termio flag CLOCAL is reset.
+The tty driver must ignore DCD if CLOCAL is set.
+If your system offers a "modem" and "direct" choice (by choice
+of filename), you probably need to use the "modem" choice for
+this to work properly.  However, the choice depends upon
+the needs of the underlying driver you are using.
+For instance, if you are using FAS in a shared modem application,
+your getty should use the "modem" choice and ECU should
+use the "direct" choice.  Some experimentation may be required.
+
+.*s 2 "Dial : dial remote destination"
+.DS L
+usage: dial [<dial-param>]
+.DE
+
+<dial-param> may take one of two forms, a telephone number
+to dial (initial digit) or a logical name (initial letter)
+which can be found in the user
+phone directory (in file ~/.ecu/phone).
+
+If a telephone number is supplied, the phone number is
+dialed; you must first have set the desired bit rate and
+parity using the
+.B baud
+and
+.B parity
+commands.
+(If the last character of a telephone number is a dollar sign,
+it is removed and is replaced with the contents of the first line
+in ~/.ecu/credit.  See the description of the dialing directory.)
+
+If a logical name is entered, the phone directory is searched; if
+the entry is found, the bit rate and parity is automatically
+set.  if a procedure file can be found in the current directory,
+the user's home .ecu subdirectory or the ECU library directory "ep"
+(normally /usr/local/lib/ecu/ep) whose name matches the logical
+name, then the procedure is executed with the argument '!INTERACTIVE'.
+
+If <dial-param> is not supplied, then a screen-oriented
+self-documenting <:-)> directory manager is executed; you may
+scan the directory to select a number to dial, as well
+as add, remove and edit entries.
+.*s 3 "Alternate Dialing Directory"
+
+The default dialing directory is ~/.ecu/phone.  You may change to
+another directory by issuing the interactive 
+.B dial
+command with no arguments to enter the dialing directory
+menu, selecting 'c'hange dial directory, and entering the name
+of a new directory.  The specified pathname must either be
+a fully qualified pathname or a pathname relative to the
+current working directory.  Once an alternate directory
+has been selected, it will be used by
+both the interactive command 'dial <logical>' and 
+the dialing directory menu.
+
+Using the dial command with a directory entry may change the 
+DCD watcher (dcdwatch) status.
+See the section on the
+.B dcdwatch
+command for more information.
+
+See the section below titled "Choosing a Dialout Line" for
+more information on using "Any" in the "tty"
+field of a directory entry.
+
+.*s 3 "Multi-Number Redial Cycle"
+
+While in the  dialing directory, you may "mark" one or more
+entries for a cyclical redial attempt.  When any entry is
+marked, typing ENTER (carriage return or line feed/newline)
+causes each marked entry to be dialed in turn until one of
+the remote systems is successfully connected.  When a
+successful connection occurs, ECU unmarks the 
+associated entry, leaving the others marked.  Thus, you
+may mark several entries and merely reenter the dialing
+directory after each connection is finished and press
+ENTER to reenter the redial cycle.  If a single entry
+is marked, ECU pauses 15 seconds between each dialing attempt,
+otherwise 5 seconds.  Pressing 'c' will cause the pause to
+be prematurely terminated and the next attempt to be made.
+Pressing your interrupt key (DEL, ^C or whatever) aborts
+the cycle.  If you interrupt an active dialing attempt, you 
+will be prompted as to whether or not you wish to cycle to the next
+entry or abort the cycle.
+
+If no entries are marked for redial, the current, highlighted
+directory entry is used for dialing.
+
+To unmark a single entry, press 'M' (uppercase M).
+To unmark all entries, press 'U'.
+
+.*s 3 "Automatic Dialing/Login Procedure"
+
+Upon dialing from the menu, if a procedure file can be found in
+the current directory, the user's home .ecu subdirectory or the
+ECU library subdirectory "ep" (normally /usr/local/lib/ecu/ep) whose name
+matches the logical name, then the procedure is executed with the
+argument '!MENU'.  It is the responsibility of the automatically
+executed procedure to establish connection with the remote system
+(by using the procedure
+.B dial
+command).  An example of an automatic login procedure
+can be found in the distribution subdirectory 'models'
+named 'sysname.ep'.  A companion procedure is 'unixlogin.ep'.
+
+For example,
+.DS L
+.--[ dialing directory ]-- /u1/wht/.ecu/phone -- ...
+| entry name | telephone number | tty | baud P | ...
+| sysname    | 555-1234         | Any | 2400 N | ...
+.DE
+.DS L
+#-----------------------------------------------------------
+# sysname.ep - procedure to call UNIX-like system 'sysname'
+#
+# CONFIDENTIAL - This function should be chmod 0600 because
+# it contains a password which you probably don't want to be
+# common knowledge.
+#
+# This procedure calls 'unixlogin.ep' to do the hard work.
+#-----------------------------------------------------------
+
+    mkvar $s_pwd(20)    # local variable preserves password
+    $s_pwd = 'password' # security by disappearing when the
+                        # procedure terminates
+
+#   also, by keeping the password text off the following line,
+#   the password will not be displayed if you abort (interrupt)
+#   the procedure
+
+    do 'unixlogin' %argv(0) 'username' $s_pwd 'ansi-or-whatever'
+.DE
+
+.*s 2 "DO : perform procedure"
+.DS L
+usage: do <procname> [<arg> ... ]
+.DE
+
+Perform ECU procedure.  Ecu searches for <procname>.ep in
+the current directory.  If the file is not found, the program
+looks for the file in the ~/.ecu directory and in the ep subdirectory
+of the library directory (usually /usr/local/lib/ecu/ep).  One or more
+arguments may be passed to the procedure.  Arguments
+are made available in the called procedure by use of the
+.B %argc
+integer function and
+.B %argv
+string function.
+
+Unlike arguments to the
+.B do
+procedure command, 
+arguments to the
+.B do
+interactive command are not quoted and may not contain
+embedded spaces or tabs.
+
+
+.*s 2 "DUplex : set/display duplex"
+.DS L
+usage: duplex [ Full | Half ]
+.DE
+
+This command specifies whether or not ECU is to locally echo
+characters typed by you at the keyboard.  The overwhelming
+majority of remote systems provide the echo function, in
+which case full duplex must be used.  For the rare occasions
+when the remote system does not echo your keyboard input,
+setting half duplex will allow you to see what you are
+typing.
+
+When communicating with another terminal in a "teletype
+conversation", setting half duplex is generally required.
+In such cases, use of the 
+.B nl ,
+.B nlin
+.R
+and
+.B nlout
+commands may also be required.
+
+The default setting for duplex is full.
+
+
+.*s 2 "ERTo : set/display expect-respond timeout"
+.DS L
+Usage: erto [<msec>]
+.DE
+
+This command specifies the default timeout period (in milliseconds)
+of the next "expect" in an ECU-executed expect-respond script.
+Remember that ECU expect-respond scripts can change timeouts on their
+own, so this number may not "stick." Entering the command with no
+arguments displays the current value (which, again, may not be the
+value ECU started with or the value you last selected).
+
+.DS L
+Examples:
+    ert
+    ert 20000
+.DE
+
+.*s 2 "ERVerbose : set/display expect-respond verbosity"
+.DS L
+Usage: erverbose [<yes-no>]
+.DE
+
+This command specifies the verbosity level of an ECU-executed
+expect-respond script.  Entering the command with no argument
+displays the current status of verbosity. To change the value, enter
+and argument beginning with an lower-case 'y' or 'n'.
+
+.DS L
+Examples:
+    erv
+    erv y
+.DE
+
+.*s 2 "EXit : drop carrier, exit program"
+.DS L
+usage: exit
+.DE
+
+This command terminates ECU promptly.  If your modem does
+not drop carrier upon loss of Data Terminal Ready (DTR),
+the command will terminate ECU,
+but may leave the communications line off hook.
+It is strongly recommended that you configure your
+modem to hang up the phone line when DTR drops.  A shorthand
+version of this command exists: '.' is equivalent to 
+.B exit .
+
+
+.*s 2 "FI : send text file to line"
+.DS L
+usage: fi [<filename>]  [ | f | e | s]
+                        f full speed transmission
+                        e echo pacing
+                        s single line transmission
+
+.DE
+
+"file insert": This command causes file characters to be inserted
+into the transmit data stream as though they had been entered at the
+keyboard.  No error correction is provided, although XON/XOFF flow
+control is obeyed.
+
+If <filename> is not entered on the command line, a prompt for the
+filename is made.  Once the filename has been entered and file has
+been opened, you are asked whether the file should be transmitted at
+full speed, by "echo pacing" or by a single line at a time.  You may
+also append an 'f', 'e' or 's' argument to the command line.
+
+If your remote can tolerate it, full speed transmission is the
+fastest.  Some systems are not capable of receiving large amount of
+data ("streaming data") without pauses.  Even with "full" speed
+transmission, some "pacing" (inter-character delay) is introduced to
+ease loading on the remote system.  Pressing the interrupt key (DEL)
+stops a full speed transmission.
+
+By specifying echo pacing, it is possible to increase the likelihood
+of proper receipt.  Echo pacing reads the return data stream to
+attempt to keep from overloading the remote.  Pressing the interrupt
+key (DEL) stops an echo paced transmission.
+
+As a last resort, if echo pacing is not working for you, (i.e., you
+are using the command in an environment where the remote does not
+echo your characters), single line at a time transmission is
+available.  With "single" line transmission, you must press the
+space key to initiate sending each line.  Pressing the 'ESC' or 's'
+key stops the transfer.
+
+.*s 2 "FKEy : function key definition"
+.DS L
+usage: fkey [<keyset_name>]
+       fkey -r
+.DE
+
+This command allows the mapping of function keys F1-F12,
+PgUp, PgDn, End and Ins and the cursor up, down, left and
+right keys to emit a desired sequence of characters when a
+function key is pressed.  <keyset_name> specifies which key
+set in ~/.ecu/keys is to be selected. Sample entry:
+.DS I
+hayes
+    F1:escape:+ + +
+    F2:autoans:A T S 0 = 1 cr
+    F3:dial:A T D T
+bbs
+    F1:cancel:^K
+    F2:yes:y cr
+.DE
+
+-r resets the key handler to the same state as when ECU
+was started.  See the section above titled "Standard Function Keys".
+
+If a keyset_name matches a logical dial directory name, it
+is loaded after a connection is established.
+
+The characters in the mapped string may be any printable character
+or one of the following:
+.DS I
+map -> character       map -> character
+---    -----------     ---    ------------
+nul    0 000 00 ^@  |  dle    16 020 10 ^P
+soh    1 001 01 ^A  |  dc1    17 021 11 ^Q
+stx    2 002 02 ^B  |  dc2    18 022 12 ^R
+etx    3 003 03 ^C  |  dc3    19 023 13 ^S
+eot    4 004 04 ^D  |  dc4    20 024 14 ^T
+enq    5 005 05 ^E  |  nak    21 025 15 ^U
+ack    6 006 06 ^F  |  syn    22 026 16 ^V
+bel    7 007 07 ^G  |  etb    23 027 17 ^W
+bs     8 010 08 ^H  |  can    24 030 18 ^X
+ht     9 011 09 ^I  |  em     25 031 19 ^Y
+nl    10 012 0a ^J  |  sub    26 032 1a ^Z
+vt    11 013 0b ^K  |  esc    27 033 1b ^[
+ff    12 014 0c ^L  |  fs     28 034 1c ^\e
+cr    13 015 0d ^M  |  gs     29 035 1d ^]
+so    14 016 0e ^N  |  rs     30 036 1e ^^
+si    15 017 0f ^O  |  us     31 037 1f ^_
+.DE
+
+.*s 2 "FKMap : funckeymap (function key recognition) management"
+.DS L
+usage: fkmap 
+       fkmap <keyname>
+       fkmap <keyname> <keylist>
+       fkmap -l <name>
+       fkmap -r
+       fkmap -s <file>
+.DE
+
+This command manages the mechanism ECU uses to recognize function
+keys when they are entered at the console.  Entering the command
+with no arguments displays the current mapping in funckeymap format.
+
+If supplied, the first argument to the command must be the
+recognized name of a function key from the list:
+.DS L
+ F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12
+ Home End PgUp PgDn CUP CUL CU5 CUR CUD
+.DE
+The case of the entered argument is unimportant.
+
+If only one argument is supplied, the mapping for the specified key
+is displayed.  If more than one argument is supplied, the keyboard
+mapping is changed.  Arguments 2-n are character code specifiers
+in the format used to define a funckeymap entry.
+
+.B WARNING :
+If found to be syntactically correct, a mapping change
+is installed immediately.  If incorrect mapping of the HOME
+key is requested, you may lose control of ECU.
+
+The -l form reads an entire funckeymap definition matching <name>
+from ~/.ecu/funckeymap (if not found there, in a file by the same
+name in the library directory).  This form behaves exactly
+in the same manner as the command line switch -F.
+Due to the drastic nature of this command, if it fails to
+execute properly, ECU terminates itself.  Note that
+improper use of this form of the command can still render
+ECU an albatross (with Home unrecognizable).
+
+The -r form rereads the original funckeymap definition (as
+at program invocation), reseting the mapping.  The -s switch
+saves the current mapping to <file>.
+
+Switches may not be combined.  Only one switch may appear.
+
+.DS L
+Examples:
+
+    fkmap f10       display F10 mapping
+    fkmap Home ^Z   map Home to ^Z
+                    after this command, type ^Z for Home
+.DE
+
+.*s 2 "HAngup : hang up modem"
+.DS L
+usage: hangup
+.DE
+
+This causes DTR to be momentarily interrupted,
+terminating any outstanding connection.
+Your DCE (modem) must be able to drop carrier upon loss of DTR.
+
+.*s 2 "HElp : invoke help"
+.DS L
+usage: help [<cmd-name>]
+.DE
+
+Issuing this command with no argument displays a list of
+commands followed by a request for a command for further
+information.
+
+.*s 2 "KBDTest : test keyboard mapping"
+.DS L
+usage: kbdtest
+.DE
+
+This command runs a keyboard test which asks you to press function keys
+(e.g., F1).  For each key pressed, ECU gives you the actual character
+sequence generated by the key.  It also tells you which function key it
+recognizes (if any).  mapping of keyboard generated character sequences
+to ECU internal key codes.  The command is useful for verifying and
+debugging a "funckeymap" entry.  To exit the test at any time, press the
+escape key.
+
+.*s 2 "LLp : set session log to /dev/lp"
+.DS L
+usage: llp
+.DE
+
+This command is a
+shorthand version of 'log /dev/lp'.  /dev/lp must not be
+under the control of a print spooler.
+
+
+.*s 2 "LOFf : turn off session logging"
+.DS L
+usage: loff
+.DE
+
+This command is shorthand for 'log off'.  If session logging
+is active, it is turned off.
+
+.*s 2 "LOG : session logging control"
+.DS L
+usage: log [-s] [-r] [ | off | filename ]
+    -s "scratch" previous file contents; otherwise append
+    -r "raw" logging; otherwise non-printable characters
+        other than tab and newline are omitted from the log
+.DE
+
+This command controls session logging; issuing the command
+with no argument causes the status of session logging to be
+displayed.  The special argument 'off' causes active logging
+to be terminated.  Other argument values cause logging to
+start using the argument as a filename.  Issuing a 
+.B log
+command with a filename when logging is already active causes the
+previous file to be closed and the new file to be opened.
+Switches are meaningful only when used in conjunction with a
+filename to start logging.
+
+
+.*s 2 "NL : display CR/LF mapping"
+.DS L
+usage: nl
+.DE
+
+Display the current setting of CR/LF mapping.  For more
+information, refer to the
+.B nlin
+and
+.B nlout
+command descriptions.
+
+
+.*s 2 "NLIn : set receive CR/LF mapping"
+.DS L
+usage: nlin [<y-n>]
+.DE
+
+This command controls whether or not a newline (NL/LF)
+character is sent to the screen upon receipt of a carriage
+return (CR) from the remote system.  Most remote computers
+supply a NL after CR.  When communicating with another
+terminal in a "teletype conversation", this is generally not
+the case (see also the 
+.B duplex
+command).
+
+Issuing the command without <y-n> causes the current setting
+to be displayed.  The format of <y-n> is flexible: 'y' or '1'
+enables appending NL to CR, 'n' or '0' causes the
+feature to be disabled.
+
+
+.*s 2 "NLOut : set transmit CR/LF mapping"
+.DS L
+usage: nlout [<y-n>]
+.DE
+
+This command controls whether or not a newline (NL/LF)
+character is sent to the remote system upon transmission of
+a carriage return (CR) entered by the keyboard.  Most remote
+computers do not require (indeed "dislike") a NL after CR.
+When communicating with another terminal in a "teletype
+conversation", this is generally not the case (see also the
+.B duplex
+command).
+
+Issuing the command without <y-n> causes the current setting
+to be displayed.  The format of <y-n> is flexible: 'y' or '1'
+enables appending NL to CR, 'n' or '0' causes the
+feature to be disabled.
+
+
+.*s 2 "OA : octal to ascii char"
+.DS L
+usage: oa [<octal-val>]
+.DE
+
+<octal-val> is a octal value between 0 and 0377; the parity
+(sign) bit is stripped and the equivalent ASCII character
+value is displayed.
+
+If no argument is supplied, a table of control characters
+is printed containing decimal, octal, hex, ASCII identifiers
+and two-character control character identifier.
+
+
+.*s 2 "PARity : set/display line parity"
+.DS L
+usage: parity [ None | Even | Odd ]
+.DE
+
+This command controls the parity of characters transmitted
+by the keyboard.  Issuing the command with no argument
+displays the current setting.  When the argument is
+supplied, only the first character is required.  Even or odd
+parity implies seven data bits; no parity implies eight data
+bits.  Parity of incoming characters is not checked.
+
+The setting may be automatically changed as the result of an
+interactive or procedure
+.B dial
+command.  See the 
+.B baud
+and 
+.B dial
+command descriptions.
+
+
+.*s 2 "PId : display process ids"
+.DS L
+usage: pid
+.DE
+
+This command displays the process id of the ECU transmitter
+process, the ECU receiver process and the process ids of
+ECU's parent and group.
+
+.*s 2 "PLog : procedure logging"
+.DS L
+usage: plog [ <filename> | off]
+.DE
+
+This command enables or disables procedure logging.
+
+.*s 2 "POpd : pop to previous directory"
+.DS L
+usage: popd [ | <#> | all]
+.DE
+
+This command returns to a previous directory after a
+.B pushd
+command has been previously executed.
+
+If no argument is supplied, the directory at the immediately previous
+level is restored.  
+
+If a numeric argument is supplied, the directory
+at the specified level is restored; the level numbers may be obtained by
+issuing a
+.B pushd
+command with no arguments.
+
+If the 'all' argument is supplied, it is treated as a numeric argument of 0;
+that is the directory stack is cleared and the directory at level 0 is
+restored.
+
+The directory stack is shared between interactive and procedure
+commands.  Neither beginning nor ending a procedure affects the
+directory stack level.
+
+.DS L
+Examples:
+   popd
+   popd 3
+   popd all
+.DE
+
+.*s 2 "PTrace : control procedure trace"
+.DS L
+usage: ptrace [ on | off | #]
+     on  - set trace state to 1
+     off - set trace state to 0
+     #   - set trace to numeric value #
+.DE
+
+This command controls whether or not procedure execution is
+to be traced. Trace output is written to
+the screen and varies in its nature depending
+upon the command being traced.  Specifically,
+any change to a string or integer variable
+is noted.  If tracing is enabled, the output will also be
+written to the procedure log file (see the
+.b plog
+interactive and procedure commands).
+
+The majority of procedure tracing features use the current trace
+state as a binary condition.  That is, either tracing is done
+or not.  However, the procedure command
+.B expresp
+emits varying levels of debugging output in a manner similar to
+the uucico -x flag.
+
+Issuing the command with no argument shows current status.
+
+.*s 2 "PUshd : push to new directory"
+.DS L
+usage: pushd [ | <dir>]
+.DE
+
+This command either 1) saves the current directory pathname on
+a stack and establishes a new current directory or
+2) displays the current stack and current directory.
+The stack size is 10.
+
+If no argument is supplied, the directory stack is displayed.
+
+The directory stack is shared between interactive and procedure
+commands.  Neither beginning nor ending a procedure affects the
+directory stack level.
+
+.DS L
+Examples:
+   pushd
+   pushd /tmp
+.DE
+
+.*s 2 "PWd : print working directory"
+.DS L
+usage: pwd
+.DE
+
+This command prints the current working directory of the ECU
+process.
+
+
+.*s 2 "REDial : redial last number"
+.DS L
+usage: redial [<retry-count> [<pause-interval>]]
+.DE
+
+This command redials a number previously dialed with the 'dial' command.
+Modem status is tested and multiple retries may be made.  <retry-count>
+specifies how many retries are to be made.  <pause-interval> specifies
+how many seconds the program pauses after a failure to connect.  You
+must specify <retry-count> in order to specify <pause-interval>.  The
+default value for <retry-count> is 10, for <pause-interval> is 60.
+
+You should know that in some jurisdictions, it is ILLEGAL to dial the
+same telephone number more than a specified number of times during some
+interval of time.  In any case, a <pause-interval> less than 15 seconds
+is silently changed to 15 seconds.
+
+.*s 2 "REV : ECU revision/make date"
+.DS L
+usage: rev
+.DE
+
+This command displays ECU's revision, the date and time ECU was
+made and the status of CFG configuration switches used to make
+ECU.
+
+.*s 2 "RK : receive via C-Kermit"
+.DS L
+usage: rk
+.DE
+
+This command invokes C-Kermit to
+receive
+files. ECU searches the PATH list for 'kermit' or 'ckermit',
+expecting to find Columbia University C-Kermit version 5A(173)
+or later.  The file ~/.kermrc must be set up to have any desired
+initialization parameters you desire (refer to C-Kermit
+documentation for more information).
+The remote protocol must have been started prior to the
+execution of this command.
+
+WARNING: until further notice, avoid suspending Kermit
+with ^\Z.  ECU is totally unprepared to act as a job control
+process group leader.
+
+.*s 2 "RTScts : control RTS/CTS flow control"
+.DS L
+usage: rtscts [ off | on | no | yes | 0..7 ]
+.DE
+
+This command controls the RTS/CTS flow control feature of
+the line driver (which may or may not work).
+This is a very confusing area though it should not be.
+
+If no argument is supplied, the current setting is
+displayed.  Specifying 0 or n disables the facility;
+1 or y causes RTS/CTS flow control to be enabled.
+
+What the command does is to manipulate the RTSFLOW and CTSFLOW
+bits of the termio c_cflag word (see 
+.B termio(S) ).
+
+SCO's sio driver before UNIX 3.2v4/ODT 2.0
+does half duplex flow control.
+FAS does hardware flow control based on the device magic
+number, but if you use a device number specifying no hardware flow
+control, RTSFLOW and CTSFLOW can be used to specify SCO-style flow
+control.
+CRTSFL offers full duplex line control
+on 3.2v4 and later ONLY for SCO's sio driver.
+
+.DS I
+ arg | RTSFLOW | CTSFLOW    arg | RTSFLOW | CTSFLOW | CRTSFL
+-----+---------+---------  -----+---------+---------+--------
+ off |   0     |   0         0  |   0     |   0     |
+ on  |   0     |   1         1  |   0     |   1     |
+ no  |   0     |   0         2  |   1     |   0     |
+ yes |   0     |   1         3  |   1     |   1     |
+                             4  |   0     |   0     |   1
+.DE
+Choice 4 only works on SCO 3.2v4 and ODT 2.0.
+As you can see, numeric values are masks.
+If the 4 bit is present in the numeric value, it
+overrides the lower-order bits:  Specifying 7 as an argument
+specifies CRTSFL is to be used if it is supported, otherwise
+RTSFLOW and CTSFLOW.
+
+Under System V Release 4, an TCGETX/TCSETX manipulation
+is performed, modifying the x_hflag bits as follows:
+.DS I
+argument | RTSXOFF | CTSXON    argument | RTSXOFF | CTSXON 
+---------+---------+---------  ---------+---------+---------
+  off    |   0     |   0         0      |   0     |   0
+  on     |   0     |   1         1      |   0     |   1
+  no     |   0     |   0         2      |   1     |   0
+  yes    |   0     |   1         3      |   1     |   1
+.DE
+Under SunOS 4.1, only CTS support is provided.  You should read
+the termio and zs man pages.  Arguments result in the stated
+manipulations of the termio element c_cflag:
+.DS I
+argument | CRTSCTS    argument | CRTSCTS
+---------+---------  ----------+---------
+  off    |   0           0     |   0
+  on     |   1           1     |   1
+  no     |   0     
+  yes    |   1    
+.DE
+
+.*s 2 "RX : receive via XMODEM/CRC"
+.DS L
+usage: rx
+.DE
+
+This command invokes ecurz to receive files from the remote
+system using XMODEM/CRC.
+
+After entering the command, you are prompted as to whether
+or not file CR/LF characters are to be converted to
+newlines.  If you are transferring text files from a system
+which contain CR/LF line terminators, you must answer yes
+to this question.  You should answer no when transferring
+binary files, such as executables, .arc files and the like.
+File transfer progress is presented on a visual display.  To
+abort the transfer, press your interrupt key (usually DEL
+unless reset with stty(C)).
+
+
+.*s 2 "RY : receive via YMODEM Batch"
+.DS L
+usage: ry
+.DE
+
+This command invokes ecurz to receive files from the remote
+system using YMODEM batch with CRC-16 error correction.  The
+YMODEM is "true YMODEM", not XMODEM-1k.  File transfer
+progress is presented on a visual display.  To abort the
+transfer, press your interrupt key (usually DEL unless reset
+with stty(C)).
+
+
+.*s 2 "RZ : receive via ZMODEM/CRC32"
+.DS L
+usage: rz
+.DE
+
+This command invokes ecurz to receive files from the remote
+system using ZMODEM/CRC32.  
+The remote sender must have been started prior to the
+execution of this command.
+File transfer progress is
+presented on a visual display.  
+To abort the transfer, press
+your interrupt key (usually DEL unless reset with stty(C)).
+
+If automatic ZMODEM frame detection is enabled and
+ECU is in the interactive mode,
+this command is executed automatically.
+Automatic ZMODEM frame detection is NOT supported 
+during procedure execution.
+
+
+.*s 2 "SDNAME : select screen dump file name"
+.DS L
+usage: sdname [<filename>]
+.DE
+
+When the "cursor 5" key is pressed, the screen contents are
+dumped to a file.  By default, this file is named '~/.ecu/screen.dump'.
+This command either displays or changes the current screen
+dump file name, depending upon whether or not a argument
+is supplied.
+
+The actions of this command have no effect on the
+operation of the
+.b scrdump
+procedure command.
+
+See the section titled "Screen Dump" for more information.
+
+.*s 2 "SK : send via C-Kermit"
+.DS L
+usage: sk [<file-list>]
+.DE
+
+This command invokes C-Kermit to
+send
+files. ECU searches the PATH list for 'kermit' or 'ckermit',
+expecting to find Columbia University C-Kermit V (version 5A(173)
+or later).  The file ~/.kermrc must be set up to have any desired
+initialization parameters you desire (refer to C-Kermit
+documentation for more information).
+The remote protocol must have been started prior to the
+execution of this command.
+
+WARNING: until further notice, avoid suspending Kermit
+with ^\Z.  ECU is totally unprepared to act as a job control
+process group leader.
+
+After entering the command, you are prompted as to whether
+or not file newline characters are to be converted to CR/LF.
+If you are transferring text files to a system which
+requires CR/LF line terminators, you must answer yes to this
+question.  You should answer no when transferring binary
+files, such as executables, .arc files and the like.  You
+are prompted to enter a list of files to send, which may
+contain one or more wildcard specifications.
+
+.*s 2 "STat : verbose status summary"
+.DS L
+usage: stat
+.DE
+
+This command displays comprehensive status and statistics.
+Example display:
+.DS L
+HOME % stat
+Date: 09-16-1996 07:55:55 (UTC 21:55)
+Communications line: /dev/tty2f 9600-N-1  XON/XOFF input on output on
+Hardware flow control configuration: RTSFLOW off CTSFLOW off CRTSFL off
+Flow control setting: 0
+Connected to yuriatin: yuriatin ()
+at 07:55:49 (elapsed 00:00:06)
+Duplex: full  DCD watcher: off
+Console: /dev/ttyp1 80x36 <pty>
+         HONOR ^S/^Q locally
+Acquired by ecuungetty: /dev/tty2f
+Current directory: /u1/src/ecu-3.48
+Total chars transmitted: 1 (since CONNECT 1)
+Total chars received:    25 (since CONNECT 25)
+No function key set loaded
+Session logging not active
+Bell notify is ON
+CR conversion:  incoming CR  outgoing CR
+Keyboard ESC/funckey time constant = 300 msec
+Pids: xmtr=21108 rcvr=21112 parent=20666 pgrp=20666
+.DE
+
+
+An example display for a telnet session:
+
+.DS L
+Date: 09-16-1996 07:57:49 (UTC 21:57)
+Communications line: /dev/telnet 115200-N-1
+IP address = 148.62.9.5:23  network TERM=`ANSI'
+Connected to kepler: <telnet connect> (kepler)
+at 07:57:45 (elapsed 00:00:04)
+Console: /dev/console 80x24 <pty>
+         HONOR ^S/^Q locally
+Current directory: /u1/wht/s/s/x
+Total chars transmitted: 0 (since CONNECT 0)
+Total chars received:    90 (since CONNECT 90)
+No function key set loaded
+Session logging not active
+Bell notify is ON
+CR conversion:  incoming CR  outgoing CR
+Keyboard ESC/funckey time constant = 300 msec
+Pids: xmtr=18548 rcvr=18550 parent=18031 pgrp=18548
+.DE
+
+.*s 2 "SX : send via XMODEM/CRC"
+.DS L
+usage: sx [<file-name>]
+.DE
+
+This command invokes ecusz to send a file to the remote
+system using XMODEM/CRC.
+
+After entering the command, you are prompted as to whether
+or not file CR/LF characters are to be converted to
+newlines.  If you are transferring text files from a system
+which contain CR/LF line terminators, you must answer yes
+to this question.  You should answer no when transferring
+binary files, such as executables, .arc files and the like.
+
+You are prompted to enter a filename to send.  File transfer
+progress is presented on a visual display.  To abort the
+transfer, press your interrupt key (usually DEL unless reset
+with stty(C)).
+.DS L
+ .--[ Send XMODEM/CRC ]----- dir: /u1/src/ecu -----------.
+ |                                                       |
+ |  File to send:                                        |
+ |  ____________________________________________________ |
+ |                                                       |
+ |  Binary: Y (no NL-CR/LF translation)                  |
+ |                                                       |
+ |   TAB:next  ^B:prev  END:perform transfer  ESC:abort  |
+ `-- enter file(s) to send ------------------------------'
+.DE
+
+.*s 2 "SY : send via YMODEM Batch"
+.DS L
+usage: sy [<file-list>]
+.DE
+
+This command invokes ecusz to send file(s) to the remote
+system using YMODEM/CRC.
+
+You are prompted to enter filename(s) to send, which may
+consist of one or more wildcard specifications.  File
+transfer progress is presented on a visual display.  To
+abort the transfer, press your interrupt key (usually DEL
+unless reset with stty(C)).
+.DS L
+ .--[ Send YMODEM/CRC ]----- dir: /u1/src/ecu -----------.
+ |                                                       |
+ |  File to send:                                        |
+ |  ____________________________________________________ |
+ |                                                       |
+ |  Binary: Y (no NL-CR/LF translation)                  |
+ |                                                       |
+ |   TAB:next  ^B:prev  END:perform transfer  ESC:abort  |
+ `-- enter file(s) to send ------------------------------'
+.DE
+
+.*s 2 "SZ : send via ZMODEM/CRC32"
+.DS L
+usage: sz [<file-list>]
+.DE
+
+This command sends files to the remote system using ZMODEM/CRC32.
+The remote receiver must have been started prior to the
+execution of this command unless the remote has automatic
+ZMODEM frame detection.
+
+You are prompted to enter filename(s) to send, which may
+consist of one or more wildcard specifications.  File
+transfer progress is presented on a visual display.  To
+abort the transfer, press your interrupt key (usually DEL
+unless reset with stty(C)).
+
+Note: not all ZMODEM receiving software supports transfer of only
+newer files or of resuming interrupted transfers.  If the remote
+receiver does not support the feature, it may skip (reject) all
+your files.  Retry the transfer specifying 'N' to 'Transfer only
+newer files' and/or 'Resume interrupted transfer'.
+
+.pp
+.DS L
+.--[ Send ZMODEM/CRC32 ]--- dir: /tmp ---------------------------.
+|                                                                |
+|  File(s) to send:                                              |
+|  ckermit-5a-130                                                |
+|                                                                |
+|  Binary: Y (no NL-CR/LF translation)                           |
+|  Overwrite destination files: Y                                |
+|  Send full pathames:  N                                        |
+|  Transfer only newer files:   N                                |
+|  Resume interrupted transfer: N                                |
+|  Window size: 0                                                |
+|                                                                |
+|     TAB:next  ^B:prev  END:perform transfer  ESC:abort         |
+`-- enter file(s) to send ---------------------------------------'
+`-- Y: no conversion, N: NLs converted to CR/LF -----------------'
+`-- Y: overwrite, N: protect destination files ------------------'
+`-- Y: full pathnames, N: strip directory portion from names ----'
+`-- Y: resume transfer at remote file EOF, N send all -----------'
+`-- Y: send only if source newer than destination, N send all ---'
+`-- window size (max bytes sent before ACK required) 0 = stream -'
+.DE
+
+.*s 2 "TELOpt : set/display telnet option display state"
+.DS L
+Usage: telopt [off | on | ]
+.DE
+
+If configured for it, ECU can make internet (telnet) connections.
+When in one, telnet options are exchanged between ECU and
+the remote telnetd.
+This command controls or displays whether or not ECU
+displays visible evidence of such traffic.  By default, this
+feature is turned off.
+
+There is little traffic once the session begins. You most likely
+wish to use the -z switch or use the procedure version
+of this command in an _rc.ep file.
+
+.*s 2 "TIme : time of day"
+.DS L
+usage: time
+.DE
+
+This command displays the local date and time as well as the
+current UTC.
+
+.*s 2 "TTy : console tty name"
+.DS L
+usage: tty
+.DE
+
+This command displays the current console tty name.
+
+
+.*s 2 "XA : hex to ascii char"
+.DS L
+usage: xa [<hex-val>]
+.DE
+
+<hex-val> is a hexadecimal value between 0 and FF; the
+parity (sign) bit is stripped and the equivalent ASCII
+character value is displayed.
+
+If no argument is supplied, a table of control characters
+is printed containing decimal, octal, hex, ASCII identifiers
+and two-character control character identifier.
+
+
+.*s 2 "XON : line xon/xoff flow control"
+.DS L
+usage: xon [<arg>]
+where <arg> is on    input and output flow control
+               off   no flow control
+               in    input flow control
+               out   output flow control
+.DE
+
+This command enables or disables xon/xoff flow control.
+If the argument is omitted, the current flow control state is displayed.
+
+.*s 2 "! : execute shell"
+.DS L
+usage: !
+       !<command>
+.DE
+
+The '!' command is a shell escape.  The environment variable
+SHELL is read to determine what shell program to execute
+(e.g., /bin/sh, etc).  If '!' is entered by itself, an
+interactive shell is started; press ^D to exit back to ECU.
+If <command> is supplied, it is executed by the shell with
+an immediate return to ECU.
+

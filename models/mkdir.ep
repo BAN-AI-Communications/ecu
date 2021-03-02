@@ -1,0 +1,2 @@
+#  CHK=0x91D9
+ system 'mkdir '+%argv(1)

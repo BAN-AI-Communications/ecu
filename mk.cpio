@@ -1,0 +1,36 @@
+#!/bin/sh
+#+------------------------------------------------------------------
+#  mk.cpio - ECU cpio maker
+#  wht@wht.net
+#
+# argument 1 is destination filename
+# files to be included must be in shar.fls
+#-------------------------------------------------------------------
+#+:EDITS:
+#:04-26-2000-11:16-wht@bob-RELEASE 4.42
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:01-11-1994-16:35-wht@n4hgf-append .Z here
+#:03-05-1993-03:23-wht@n4hgf-make cpio independent of shell/make vagaries
+
+DEST=$1.Z
+DIR=`/bin/pwd`
+DIR=`basename $DIR`
+
+	echo "*****************************************************************"
+	echo making $DEST from distribution in $DIR
+	echo "*****************************************************************"
+	cd doc; make; cd ..
+	rm -f /tmp/ecu.cpio.fls ./cpio.fls
+	make shar.fls
+	cat shar.fls > /tmp/ecu.cpio.fls
+	echo doc/ecu.man >> /tmp/ecu.cpio.fls
+	echo doc/proc.man >> /tmp/ecu.cpio.fls
+	sed -e 's:^:'$DIR'/:' < /tmp/ecu.cpio.fls > cpio.fls; 
+	rm -f $DEST
+	cd ..;cat $DIR/cpio.fls | sort -y | cpio -o -H odc | compress > $DEST
+	cd $DIR
+	zcat $DEST | cpio -itv | head

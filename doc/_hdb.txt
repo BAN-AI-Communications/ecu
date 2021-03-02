@@ -1,0 +1,226 @@
+.*s 1 "HoneyDanBer UUCP Interface"
+
+.*s 2 "Control Files"
+
+This section describes how ecu uses verious HDB UUCP control
+files found in the UUCP library directory (e.g., /usr/lib/uucp on
+SCO and ISC or /etc/uucp on SunOS and SVR4).
+
+.*s 3 "Devices"
+
+ECU reads this file to determine what tty devices are available
+for outgoing calls. The fourth field must contain a bit rate or
+range of bit rates acceptable for the line.  The fifth field of
+each entry must contain either the full pathname of an (SCO)
+modem dialer program (with leading slash) or the name of an entry
+in the HDB Dialers file (no leading slash).  For more
+information, consult the UUCP documentation for your system and
+see "Dialers" and "Choosing a Dialout Line" below.
+
+.*s 3 "Dialers"
+
+.B Dialers
+entries may be specified in the Devices entry. 
+ECU provides Dialers support that is largely compatible
+with most System V HDB uucico programs.  Refer to
+your system's UUCP documentation for general
+usage instructions.  Refer to the procedure command
+.B expresp
+for a precise list of escape sequences supported by ECU.
+
+.*s 3 "Sysfiles"
+
+Sysfiles support is not yet provided.  The Devices and
+Dialers files must have their default names.
+
+.*s 3 "Systems"
+
+No use is made of the
+.B Systems
+file at this time.  ECU provides the
+equivalent function with its dialing directory.
+
+.*s 2 "Choosing a Dialout Line"
+
+When using the interactive
+.B dial
+command, or when dialing from the initial menu,
+if a logical or system name is specified, the directory
+entry is fetched and examined.  If the tty field specifies
+a value other than "Any", the specific line requested is
+opened, if available, and dialing commences. 
+If the specified line is not available, the dial attempt
+fails.
+
+If "Any" is found in the dialing directory entry tty field, then
+ECU finds an available Devices line which matches the bit rate
+specified in the entry. 
+
+Other special tty field entries allow regular expression or
+literal matching of Devices types.  See the description of the  dialing
+directory for more details.
+
+A line is match "Any" only if its class begins with the three
+characters "ACU."  UUCP will only select a line whose Devices
+entry class matches the active Systems entry class (usually
+"ACU"), so usually you may make a modem accessible to ECU, but not
+to UUCP, by setting it's class to ACUECU.
+
+On systems employing ecuungetty, if a line being considered for
+selection is found to be a line enabled for login, but
+currently idle, the ecuungetty interface, described below,
+is used to acquire the line for outgoing use.
+
+The DCD watcher (see the interactive and procedure commands
+.B dcdwatch )
+depends upon the tty driver to return zero
+on a read when DCD is low when the termio flag CLOCAL is reset.
+The tty driver must ignore DCD if CLOCAL is set.
+If your system offers a "modem" and "direct" choice (by choice
+of filename), you probably need to use the "modem" choice for
+this to work properly.  However, the choice depends upon
+the needs of the underlying driver you are using.
+For instance, if you are using FAS in a shared modem application,
+your getty should use the "modem" choice and ECU should
+use the "direct" choice.  Some experimentation may be required.
+
+One of the symptoms of an incorrect line choice is ECU hangs,
+line errors such as EIO and EBUSY.  These problems may
+be caused by other problems, but incorrect line choice is
+the most frequent cause.
+
+
+.*s 2 "SCO Tty Naming"
+
+On SCO,
+TTY devices must be named in the style of:
+.DS I
+/dev/tty#N
+        ^^
+        ||
+        |`------ uppercase letter for modem control
+        |        lowercase for non-modem control
+        `--------digit (1-4)
+.DE
+
+If you are using FAS or other third-party driver, you may
+use ECU with ports not normally named in the /dev/tty#N
+style in one of two ways under UNIX and one way under XENIX:
+
+.DS I
+1.  Under XENIX or UNIX, create a link to the port
+    with a compatible name:
+
+          ln /dev/ttyF00 /dev/tty1a
+          ln /dev/ttyFM00 /dev/tty1A
+
+2.  Under UNIX, add additional lines to the
+    /etc/conf/node.d file and rebuild the kernel
+    environment (this is the recommended approach
+    for UNIX):
+
+fas ttyF00  c   48
+fas tty1a   c   48
+fas ttyF01  c   49
+fas tty1b   c   49
+fas ttyFM00 c   208
+fas tty1A   c   208
+fas ttyFM01 c   209
+fas tty1B   c   209
+.DE
+
+Note the device numbers are examples only.  Consult the driver
+documentation for proper choices.
+
+If you cannot live within this restriction, search for the #define
+SCO_TTY_NAMING in ecu.h (that depends on SCO's M_SYSV) and disable it.
+
+.*s 2 "Ecuungetty (Getty Interface)"
+
+This section applies to the SCO version of the program.  It
+may also apply to others in part.  Specifically, as of this
+writing, this section does not apply to the SunOS version
+due to the differences in utmp arrangement.  In some versions,
+the mechanism may execute and do no harm, yet essentially be a no-op.
+
+When an idle dialin (enabled) line is chosen for dialout,
+ECU makes use of
+.B ecuungetty
+(in the ecu library directory, normally /usr/local/lib/ecu)
+to signal the line's getty to release the line (via SIGUSR1).
+.B Ecuungetty
+is again employed to signal the getty to reacquire the
+line when outgoing communication is complete (via SIGUSR2).
+
+Ecuungetty is a privileged program, which must be owned by root
+and have the setuid-on-execute bit set.  An encrypted id is passed
+by ecu to ecuungetty to validate requests and to prevent abuse of
+ecuungetty by crackers, malcontents and other twentieth-century
+phenomena.
+
+On systems supporting ecuungetty, a choice is provided
+by Configure as to how to handle lines which do not appear in
+your UUCP Devices file.  Lines in Devices (generally) are
+involved in shared dial-in/dial-out or UUCP services; lines which
+are are not in Devices are not involved in such use.  
+
+If you answer yes to the new Configure question 'Do you want
+ecuungetty to manage only lines in Devices?' then ECU will manage
+the ownership and permissions only of lines in Devices.  This
+means ECU will not `monkey' with the ownership or permissions of
+serial lines NOT in Devices (which of course implies permissions
+must be already be set correctly for you to be able to access the
+chosen line).
+
+.*s 2 "SCO Dialer Programs"
+
+The concept of a dialer program (an executable binary
+as opposed to a Dialers entry) is an SCO enhancement and
+is unlikely to be of benefit to users of other versions (too bad!).
+ECU will support dialer programs under any version, but other
+users of the Devices file (read "your vendor-supplied uucico")
+will most likely barf on non-SCO systems.
+
+If the
+.B Devices
+file can be found in /usr/lib/uucp,
+and a valid entry for the attached line can be found,
+ECU will use the Dialers script or dialer program specified in the
+.B Devices
+entry.
+
+.*s 2 "Gendial Dialer Package"
+
+Sample SCO-style modem dialer program sources may be found
+in the gendial/ subdirectory of the distribution.
+Some of them, particularly dialgHA24 and dialgT2500, are very
+robust and succeed where other programs may fail.  They retry
+modem initialization and reset/hangup commands .
+
+The code is divided into one general module and several modem-
+and DCE-specific modules.  A program is built by combining
+the gendial.o with the appropriate dceFOO.o module to produce
+a dialgFOO executable.
+
+To write a dialer for a modem not already in the gendial package,
+copy template.c to dceMYMODEM.c and edit it to contain the
+necessary variable assignments and initialization, dialing and hangup
+code.  The existing dce*.c modules provide examples.
+Edit the gendial/Make.src file to add rule lines for your program.
+(Do not modify Makefile alone
+since a "Configure" will overwrite Makefile.)
+
+.DS L
+dialgMYMODEM: gendial.o dceMYMODEM.o
+    $(CC) $(LDFLAGS) gendial.o dceMYMODEM.o $(LIBS) -o $@
+.DE
+
+To be "correct," you should run the Configure procedure
+in the main ecu directory to make a new Makefile,
+but this has the unfortunate side effect of rebuilding all
+of the Makefiles which are built from Make.src files.
+If this happens, the next make will rebuild all of the
+objects.
+
+In this case, it is "OK" to cheat and copy the new Make.src lines to
+Makefile.  A later Configure will not cause loss of the new lines.

@@ -1,0 +1,23 @@
+stratus
+	F1:F1:esc O q
+	F2:F2:esc O r
+	F3:F3:esc O s
+	F4:F4:esc O t
+	F5:F5:esc O u
+	F6:F6:esc O v
+	F7:F7:esc O w
+	F8:status:dc4
+	F9:no status:nl
+	F10:redisp:esc O y
+	F11:redisp:syn
+	PGDN:cancel:esc O Q
+	END:enter:esc O M
+	PGUP:dispform:esc O R
+	CUU:^:dle
+	CUD:v:so
+	CUL:<:stx
+	CUR:>:ack
+
+remecu
+	F1:Home:0xC8
+	F2:End:0xC6

@@ -1,0 +1,30 @@
+#  CHK=0x067D
+#+----------------------------------------------
+# senddate.ep
+#-----------------------------------------------
+#+:EDITS:
+#:01-24-1997-02:37-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:00-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:39-wht@n4hgf-ECU release 3.30
+#:09-10-1992-13:59-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:07-11-1989-16:55-wht-get cmd became lgets
+#:06-28-1989-19:36-wht-use named variables
+#:06-27-1989-17:02-wht-working
+
+	mkvar icsave;$icsave = %colors
+	color blue
+	echo -n 'remote root password? '
+	color black
+	$s0 = %cgets
+	icolor $icsave
+	do 'su' 'root' $s0
+	$s0 = ''		# forget password
+	lookfor '% ' 50 # swallow prompt
+	send 'date'
+	lookfor -e '% ' 50
+	system -l 'senddate'
+	lookfor -e quiet 20
+	send -n %chr(0x04)

@@ -1,0 +1,18 @@
+Unusual characters and excessively long lines in news articles
+can cause problems on some installations.  While ECU is guaranteed
+unuseful on such systems, news will travel through them to
+reach some ECU customers.
+The distributed manuals have been fed through the "col -b" filter
+to reduce difficulties.
+
+When a patch requires manual changes, the patch set will contain
+changes for the nroff source.  However, it is quite, quite
+impractical to patch the nroff output itself.
+
+If you do not have nroff and the mm macro set, I will be happy
+to mail you a manual with the nroff underlining and bolding intact.
+I say happy.  If the demand grows too much, I'll make some
+other arrangements.
+
+If there is sufficient interest, I'll make a "nice and pretty"
+laser-printed manual available for a nominal charge.

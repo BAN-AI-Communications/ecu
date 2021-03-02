@@ -1,0 +1,42 @@
+#!/bin/csh
+#+-----------------------------------------------------------------------
+# zgcc
+# arg[1]  - filename containing list of files
+# arg[2]  - output filename
+# arg[3]  - path to afterlint and mkoldproto
+# arg[4-] - CFLAGS
+#------------------------------------------------------------------------
+#+:EDITS:
+#:04-26-2000-11:16-wht@bob-RELEASE 4.42
+#:01-24-1997-02:38-wht@yuriatin-SOURCE RELEASE 4.00
+#:09-11-1996-20:01-wht@yuriatin-3.48-major telnet,curses,structural overhaul
+#:11-23-1995-11:20-wht@kepler-source control 3.37 for tsx-11
+#:11-14-1995-10:23-wht@kepler-3.37.80-source control point: SOCKETS
+#:05-04-1994-04:40-wht@n4hgf-ECU release 3.30
+#:09-10-1992-14:00-wht@n4hgf-ECU release 3.20
+#:08-22-1992-15:39-wht@n4hgf-ECU release 3.20 BETA
+#:01-21-1992-05:53-wht@n4hgf-add path as arg3
+#:08-11-1991-23:47-wht@n4hgf-thanks for the -p1 suggestion to sef@kithrup.com
+#zgcc -- build prototyping "PROTOTYPES"
+echo C sources in $1';' result file $2
+unset noclobber
+set p=$argv[3]
+rm -f zg.t
+if (-e /unix)
+	echo 'building old-style prototypes for XENIX compiler compatibility'
+	echo 'unnamed struct/union as parameter warning probably about FILE :-('
+endif
+foreach i(`cat $1`)
+if (-e /unix)
+	cc -DBUILDING_PROTOTYPES -p1 /lib/p1 -Zg $argv[4-] $i | \
+		$p/mkoldproto > zg1.t
+else
+	cc -DBUILDING_PROTOTYPES -Zg $argv[4-] $i > zg1.t
+endif
+sort zg1.t > zg2.t
+echo '/*' $i '*/' >> zg.t
+cat zg2.t >> zg.t
+end
+$p/afterlint zg.t $2
+rm -f zg.t zg?.t
+echo Output in $2
