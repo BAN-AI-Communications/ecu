@@ -1,5 +1,5 @@
 ECU 3.20 presents itself to the world by default as a much
-better clone of an SCO multiscreen terminal than ever before.
+better clone of an SCO multi-screen terminal than ever before.
 
 This includes
    video display control and
@@ -14,8 +14,8 @@ macro perspective.
 
 Keyboard management is divided into two parts:
 
-  o  Function key recognition
-  o  Function key action
+  *  Function key recognition
+  *  Function key action
 
 Function key recognition means detecting function key presses
 in the ecu keyboard input stream.  This is controlled by the
@@ -32,8 +32,8 @@ function keys.  Pre-3.20 users take note: funckeymaps serves the
 purpose previously handled by ~/.ecu/nonansikeys.  This is a rare
 backward compatibility problem (the 2nd in ECU history).
 Starting with 3.20, SCO multiscreens require an entry, whereas
-earlier versions had multiscreen support built in.  The TERM name
-for SCO multiscreens is "ansi", hence the name "nonansikeys".  I
+earlier versions had multi-screen support built in.  The TERM name
+for SCO multi-screens is "ansi", hence the name "nonansikeys".  I
 think you'll agree the new name is more appropriate.
 
 If ~/.ecu/funckeymap does not exist, ECU searches for a file
@@ -53,10 +53,10 @@ There are some additional notes in the distribution file
 models/funckeymap.  Please forgive any conflicts.  I can only
 type so fast and the code gets priority.
 
-An example entry for an SCO multiscreen console:
+An example entry for an SCO multi-screen console:
 
 #+-------------------------------------------------------------------
-#   SCO  multiscreen  ($TERM=ansi)
+#   SCO  multi-screen  ($TERM=ansi)
 #--------------------------------------------------------------------
 ansi
 ansi43
@@ -98,13 +98,13 @@ Kbdtest3 will prompt you to press each function key in return.
 The program is generally self-explanatory, but some notes are
 worthy of note:
 
-  o If it asks you for a key not on your keyboard, pick some
+  * If it asks you for a key not on your keyboard, pick some
     reasonable alternate
 
-  o If you simply cannot find an alternate, you will have to type
+  * If you simply cannot find an alternate, you will have to type
     a slash ('/') to signify no key choice exists.
 
-  o If you are on an xterm, you may get spurious or no response
+  * If you are on an xterm, you may get spurious or no response
     for the "unusual" keys like Home and End.  Just type a
     slash for the time being and go on.  When you are finished,
     re-read the manual section titled "Function Key Mapping
@@ -126,7 +126,7 @@ unique key sequence.
 
 Kbdtest3 writes funckeymap entries to ./kbdtest3.out.  When you
 edit the file, you will see the results of each kbdtest3
-run appended one after the other.  Presumabaly you quit using kbdtest3
+run appended one after the other.  Presumably you quit using kbdtest3
 when you were satisfied, so skip to the bottom of the file and examine the
 last entry.  If it looks good, cut that section out and put
 it in ~/.ecu/funckeys.  Also, -*PLEASE*- send it to wht@wht.net
@@ -156,14 +156,14 @@ startup definitions or ~/.keys actions.  These are described
 in the manual section titled "Function Key Actions", but a
 few quick notes here might serve well:
 
-   o  startup default actions
+   *  startup default actions
       All of the 23 function keys save 2 are preset to generate
       the same sequence they would on an SCO.  See the manual
       subsection "Standard Function Keys" for a list
       The 'Home' and 'Cursor 5' keys have reserved meanings
-      and may not be overriden.
+      and may not be overridden.
 
-   o  ~/.keys and the interactive command fkey
+   *  ~/.keys and the interactive command fkey
       You can override the defaults by loading a custom keyset
       you have placed in ~/.fkeys.  The interactive command
       fkey may be explicitly used to load a keyset.

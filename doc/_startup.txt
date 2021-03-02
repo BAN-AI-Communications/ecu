@@ -115,7 +115,7 @@ startup screen are:
 
  END          proceed with session, dialing remote if
               logical directory entry name or literal
-              telephone number enetered
+              telephone number entered
 
  ^D           enter phone directory
 
@@ -184,8 +184,8 @@ trailing period will be removed.
 .*s 3 "Switches"
 
 Many switches are used to override defaults specified
-at the time the Confifgure procedure was used.
-Note these defaults may also be overriden interactively if the command
+at the time the Configure procedure was used.
+Note these defaults may also be overridden interactively if the command
 does not specify automatic startup option (-p or dialing argument).
 Also, the value chosen by a dialing directory entry or an
 initial procedure will override

@@ -17,7 +17,7 @@ TTYIN_READ_ERROR     136  could not read from console
 LINE_OPEN_ERROR      137  could not attach (open) requested line
 PWENT_ERROR          138  error in /etc/passwd processing
 USAGE                139  command line syntax error
-CONFIG_ERROR         140  missing or erroroenous configuration file
+CONFIG_ERROR         140  missing or erroneous configuration file
 CURSES_ERROR         141  error in curses use
 RCVR_FATAL_ERROR     142  receiver died unexpectedly
 MALLOC               143  critical memory allocation failure

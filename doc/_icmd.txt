@@ -93,7 +93,7 @@ event causing the alarms.  The alarms consist of Morse characters.
 Even if you do not understand Morse, the patterns of the alarm
 tones are distinct enough to be distinguishable.
 
-Additionally on SCO, if you are running ECU from a multiscreen,
+Additionally on SCO, if you are running ECU from a multi-screen,
 the alarms will be signalled even if you have temporarily
 switched to another screen.
 

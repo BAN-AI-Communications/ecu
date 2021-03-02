@@ -27,7 +27,7 @@ for these environments:
                                   them at time of release
                                   PLEASE GIVE ME FEEDBACK!
 
-  Linux 1.1.58                    tested well enough under redhat 5
+  Linux 1.1.58                    tested well enough under RedHat 5
     or later                      (telnet support automatic)
 
   HP-UX 9.01                      reasonably functional; a few
@@ -37,7 +37,7 @@ for these environments:
   Motorola Delta [68]8K SVR40     stable; some testing completed
                                   (telnet support automatic)
 
-  Motorola Delta [68]8K SVR32     compiles OK with Green Hills and gcc;
+  Motorola Delta [68]8K SVR32     compiles OK with Green Hills and GCC;
                                   (now known to NOT work)
                                   no machine to debug upon
 
@@ -125,7 +125,7 @@ peculiar problems.  As others adopt, modify and redistribute the
 code, it tends to fall apart.  I regularly get mail from folks
 who have found fragmented or damaged buckets of code with my
 e-mail address in it.  Invariably, it has come from some off-net
-BBS where someone has tried to pkzip it or something :).
+BBS where someone has tried to PKZIP it or something :).
 
 Your license to redistribute this version of ECU is, of course,
 unlimited.  Even though I'll spend hours poring over patches
@@ -145,7 +145,7 @@ paragraph, "substantially" refers to changes of more than a
 bug-fix or cosmetic nature.  For larger changes, read
 README.porting and, if appropriate, submit patches to
 wht@wht.net.  If they "pass muster" (we are usually
-easy), then the changes will be incorportated into a released
+easy), then the changes will be incorporated into a released
 patch level of ECU.
 
 You can give modified versions to a associate, but if s/he gives
@@ -189,7 +189,7 @@ don't blame them for errors creeping in since then <smile>).
 This is tedious work and special thanks go to them.
 
 Robert Lipe has contributed greatly to ECU in various esoteric areas
-(wild signals and tty driver dependencies pareticularly).  Also,
+(wild signals and tty driver dependencies particularly).  Also,
 I do not believe there ever has been an alpha revision Robert has
 not compiled and tested at least a bit (usually thoroughly).
 Robert also did early stabs at the ports to Solaris 2.x.

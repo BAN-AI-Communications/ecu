@@ -49,7 +49,7 @@ procedure "_rc.ep" serves as an exact analog of the -b command.  The
 .B baud
 command with the
 .B setline
-command gives you programatic control over the actual choice of the
+command gives you pragmatic control over the actual choice of the
 line and rate or the defaults for the setup screen, depending upon
 other options.  NOTE: using the baud command in _rc.ep will override
 any command line -b specification.
@@ -136,7 +136,7 @@ usage: color -r <reverse-foreground> [<reverse-background>]
 
 This command changes the current normal or reverse video colors in a
 manner similar to the setcolor(C) command.  It has no effect on systems
-using other than an SCO multiscreen color monitor.  
+using other than an SCO multi-screen color monitor.  
 If the second (background) color is
 omitted, it is assumed to be black.
 
@@ -225,7 +225,7 @@ of course -- who else?).
 usage: cursor <row> [<col>]
 
 This command places the cursor at a specified position on
-the video screen.  The top left of the scrren is row 0, column 0.
+the video screen.  The top left of the screen is row 0, column 0.
 If <col> is not specified, it is assumed 0 (left margin).
 .DS L
 Example:
@@ -616,7 +616,7 @@ file.
 
 -v causes the expect-respond conversation between ECU and the
 remote system to be displayed on the screen.  This switch is
-automatically enabled if procdedure tracing is enabled.
+automatically enabled if procedure tracing is enabled.
 
 Multiple v's (e.g., -vv, -vvv) up to 3 'v's produce
 more verbose debug output. -vv causes each base level
@@ -667,7 +667,7 @@ tokens while others have a use in only one of the two types.
    \er - send or expect carriage return
    \e\e - send or expect backslash (same as \e134)
    \e~ - send or expect tilde (same as \e176)
-   \e### - send or expect character respresenting three
+   \e### - send or expect character representing three
            character octal value ### (*MUST* be three digits
            with leading zeroes as necessary)
    ~m[##] - set expect timeout to ## milliseconds (NOT
@@ -1272,7 +1272,7 @@ description of the
 .B continue ,
 and
 .B else
-commmands for examples of how the command is used.
+commands for examples of how the command is used.
 
 .*s 2 "ifs"
 
@@ -1293,7 +1293,7 @@ description of the
 .B continue ,
 and
 .B else
-commmands
+commands
 and many other examples throughout the document,
 for examples of how the command is used.
 
@@ -1705,7 +1705,7 @@ usage: ptrace [ <str> | off ]
 .DE
 
 This command controls procedure execution tracing.  Trace
-output is written to the screen and varys in its nature depending upon
+output is written to the screen and varies in its nature depending upon
 the command being traced.  Specifically, any change to a string or
 integer variable is noted.  If tracing is enabled, the output will also
 be written to any active procedure log file (see the
@@ -1974,7 +1974,7 @@ The actions of the interactive
 command have no effect on the execution of this command.
 
 See the section titled "Screen Dump" for more information.
-The subsection titled "Multiscreen and Non-Multiscreen" will be
+The subsection titled "Multi-screen and Non-Multi-screen" will be
 of particular interest when using screen dumps in an
 automated environment.
 
@@ -2052,7 +2052,7 @@ may only be used in _rc.ep.  Using the
 .B setline
 command with the
 .B baud
-command gives you programatic control over the actual
+command gives you pragmatic control over the actual
 choice of the line and rate or the defaults for the setup screen,
 depending upon other options.
 
@@ -2209,7 +2209,7 @@ If 0, transfer was normal.  Other $i0 values possible:
   1-126:   count of files not transmitted (see ~/.ecu/log)
   127:     127 or more files not transmitted (see ~/.ecu/log)
 .DE
-Other ecusz error codes are shown here for refernce, but
+Other ecusz error codes are shown here for reference, but
 they are converted by ECU to printed messages and result in procedure
 termination.
 .DS L
@@ -2318,7 +2318,7 @@ usage: whilei <int> <rel-op> <int> <statement>
 
 This command executes a loop one or more statements
 based on a test of two integer quantities.
-The <rel-op> argument is descibed in a earlier subsection
+The <rel-op> argument is described in a earlier subsection
 titled "Relational Operators."
 See the
 description of the
@@ -2326,7 +2326,7 @@ description of the
 .B continue ,
 and
 .B else
-commmands
+commands
 and many other examples throughout the document,
 for examples of how the command is used.
 
@@ -2358,7 +2358,7 @@ usage: whiles <str> <rel-op> <str> <statement>
 
 This command executes a loop of one or more statements
 based on a test of two string values.  
-The <rel-op> argument is descibed in a earlier subsection
+The <rel-op> argument is described in a earlier subsection
 titled "Relational Operators."
 See the
 description of the
@@ -2366,7 +2366,7 @@ description of the
 .B continue ,
 and
 .B else
-commmands
+commands
 and many other examples throughout the document,
 for examples of how the command is used.
 .*s 2 "xon"

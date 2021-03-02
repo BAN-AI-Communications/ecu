@@ -55,7 +55,7 @@ After
 has been pressed, XMTR presents a reverse video prompt on the
 display, indicating its readiness to accept a command.  During
 input, the command may be edited using the same control keys
-specified with stty(C).  Additonal editing
+specified with stty(C).  Additional editing
 using the left and right arrow keys and the
 Ins(ert) key are usually available.
 Command input may be aborted by pressing ESC.
@@ -90,7 +90,7 @@ through
 and
 the cursor control keys.
 
-The unshifted keypad '5' key is permanently mapped to
+The un-shifted keypad '5' key is permanently mapped to
 produce a screen snapshot when it is pressed and XMTR is
 reading from the keyboard.
 

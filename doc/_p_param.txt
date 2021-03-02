@@ -137,7 +137,7 @@ You may be able to get away with using them, but it is not recommended.
 
 String constants are formed by placing alphanumeric characters
 between single quote characters (apostrophes).  The backslash ('\e')
-character is used to "escape" certains characters:
+character is used to "escape" certian characters:
 .DS L
     \e\e             one backslash
     \en             newline

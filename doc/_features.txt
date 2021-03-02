@@ -68,17 +68,17 @@ they are detected.
 .DS L
 mb      bold on ("XENIX" extension)
 me      bold off ("XENIX" extension)
-us      underscrore on
-ue      underscrore off
+us      underscore on
+ue      underscore off
 vb      visual bell
 .DE
 
-On SCO, termcap terminal contrtol is used.  Other
+On SCO, termcap terminal control is used.  Other
 versions use terminfo.
 A future SCO version of ECU may use terminfo instead of termcap.
 
-On SCO multiscreens, SCO "extensions" to "ANSI" are supported
-as described below in "Multiscreen Local Terminals."
+On SCO multi-screen, SCO "extensions" to "ANSI" are supported
+as described below in "Multi-screen Local Terminals."
 
 .*s 2 "Host Video Control Sequences"
 
@@ -86,7 +86,7 @@ as described below in "Multiscreen Local Terminals."
 
 The following sequences are 
 properly interpreted by ECU for all local terminal types
-(multiscreen, rlogin/xterm pseudotty, serial).
+(multi-screen, rlogin/xterm pseudotty, serial).
 
 .DS L
 Sequence  | Description
@@ -148,14 +148,14 @@ home position, ECU responds with:
 
 ESC [ 1 ; 1 R     ( hex 1B 5B 31 3B 31 52 )
 
-.*s 3 "Multiscreen Local Terminals"
+.*s 3 "Multi-screen Local Terminals"
 
 In addition to the above, if you are operating from an SCO color
-multiscreen, additional (SCO and MS-DOS/ANSI.SYS) sequences
+multi-screen, additional (SCO and MS-DOS/ANSI.SYS) sequences
 are supported (see screen(HW)):
 
 .DS L
-Additional Multiscreen SGR Sequences
+Additional Multi-screen SGR Sequences
 Sequence    | Description  (no termcap mapping)
 ------------+-----------------------------------------------
 ESC [ 8 m   | non-display
@@ -248,7 +248,7 @@ Several predefined entries are supplied with the program
 distribution in models/funckeymap.  If you have a terminal or
 console with a keyboard not already in this file, you must
 construct one using the terminal's reference manual or by direct
-discovery (typing the key and empricially noting its generated
+discovery (typing the key and empirically noting its generated
 sequence).  The program kbdtest3 (the source is provided in the
 distribution) can assist you in building funckeymap entries.
 certain keys are pressed.  kbdtest.c is a more primitive version
@@ -319,7 +319,7 @@ the internal ECU function key name and must be chosen from the
 following strings (with no regard to case): "F1", "F2", "F3",
 "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Home",
 "End", "PgUp", "PgDn", "CUU" (cursor up), "CUL" (cursor left),
-"CU5" (unshifted cursor pad 5), "CUR" (cursor right) and "CUD"
+"CU5" (un-shifted cursor pad 5), "CUR" (cursor right) and "CUD"
 (cursor down). The
 second field contains the name of the key as it appears on the
 keyboard (such as "F16" for End on the Wyse 60).  The
@@ -349,7 +349,7 @@ All function keys with the exception of the
 .B Home ,
 .B BkTab
 (shift TAB),
-and keypad unshifted 5 key can be programmed to 
+and keypad un-shifted 5 key can be programmed to 
 either
 .DS L
     transmit preselected character sequences or
@@ -464,7 +464,7 @@ excess is silently discarded.
 The following feature may no longer work in 4.00 or later.
 The documentation is retained since some optimistic hacker
 may need the feature badly enough to go spelunking for it.
-In any case, it only applies to users of SCO multiscreens
+In any case, it only applies to users of SCO multi-screens
 (at the PC console).
 
 If you are on an SCO machine and you have installed the custom
@@ -520,7 +520,7 @@ left of the cursor.
 Your line kill key (as specified to stty) in command mode or
 the ^U character in screen mode erases the entire line.  Esc
 in command mode cancels the command.  Esc in screen mode usually
-cancels the screen or subfunction in a screen.
+cancels the screen or sub-function in a screen.
 
 The DEL character erases the character beneath the cursor.  In
 the common, but degenerate case of using DEL as the backspace
@@ -615,8 +615,8 @@ of the interactive
 command.
 
 While a long entry in a field may be truncated on the display,
-when the entry is edited, it's full contents will be dispalyed on the
-edit subform.
+when the entry is edited, it's full contents will be displayed on the
+edit sub-form.
 
 Entering or editing a dialing directory entry is for the most part
 straightforward.  A note on the use of the "tty" field is useful, however.
@@ -677,7 +677,7 @@ A specific tty line may also be specified.  This is the only means
 of attaching a line not mentioned in the Devices file.
 
 NOTE:  If the bell rings and you are not allowed to leave a field,
-it is because you MUST enter acceptible data before you can leave
+it is because you MUST enter acceptable data before you can leave
 a field using other than the ESCape key.
 
 The "debug level" parameter allows you to specify a number between 0 and
@@ -701,7 +701,7 @@ of the
 interactive command for more information.
 DCD watch is only valid for asynchronous connections.
 Also, ECU support for DCD watch depends upon support
-in the unerlying kernel. Some platforms offer no, flaky or partial
+in the underlying kernel. Some platforms offer no, flaky or partial
 support for the feature.
 
 The following sample dialing directory screen shows an edit in
@@ -737,7 +737,7 @@ progress.
 In the directory editor main window,
 You may use the vi conventions of 'j' for down and 'k' for up.
 You may also use the up and down arrow keys if you are on an SCO
-multiscreen or if the function keys have been properly defined
+multi-screen or if the function keys have been properly defined
 with funckeymap.  Also, '/' performs the same function as 'f'ind.
 PgUp and PgDn scrolls the directory list several items at a time.
 The alternative keys, ^U and ^D, may be used.
@@ -769,15 +769,15 @@ The ECU help command presents a display of interactive commands.  The user
 is then prompted to enter a command name for further, Unix-style
 "usage" information.
 
-.*s 2 "Multiscreen Event Alarm"
+.*s 2 "Multi-screen Event Alarm"
 
-On an SCO machine running on a main console multiscreen, by using the 
+On an SCO machine running on a main console multi-screen, by using the 
 .B BN
 (bell notify) interactive command, an audible alert is sent to all
-multiscreens when an ASCII BEL (bell) is received or when a file
+multi-screens when an ASCII BEL (bell) is received or when a file
 transfer completes.  An additional option causes an alert when ANY
 data is received from the line.  This makes it simple to do work on
-other multiscreen consoles and be alerted when attention to the
+other multi-screen consoles and be alerted when attention to the
 communications session is required.
 
 For instance, the Unix utility "talk" rings the bell when another
@@ -788,10 +788,10 @@ remote sites can be configured to ring the bell as in:
 make foo bar; bell; make more_stuff; bell;
 .DE
 to call attention to the ECU user when work is being done
-on other multiscreen consoles.
+on other multi-screen consoles.
 
 This feature is only available when you are running ECU from a
-main console multiscreen on an SCO machine.
+main console multi-screen on an SCO machine.
 
 .*s 2 "Built-in Modem Dialer"
 

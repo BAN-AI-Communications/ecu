@@ -2,7 +2,7 @@
 
 .*s 2 "Control Files"
 
-This section describes how ecu uses verious HDB UUCP control
+This section describes how ecu uses various HDB UUCP control
 files found in the UUCP library directory (e.g., /usr/lib/uucp on
 SCO and ISC or /etc/uucp on SunOS and SVR4).
 
