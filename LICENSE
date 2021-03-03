@@ -1,58 +1,24 @@
-RIGHTS TO USE
+This is free and unencumbered software released into the public domain.
 
-This program, it sources, objects and utilities
-are in the public domain.
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
 
-Alas, placing "popular" programs in the public
-domain can cause peculiar problems.  As others
-adopt, modify and redistribute the code, it tends
-to fall apart.  I regularly get mail from folks
-who have found fragmented or damaged buckets of
-code with my e-mail address in it.  Invariably,
-it has come from some off-net BBS where someone
-has tried to PKZIP it or something :).
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
 
-Your license to redistribute this version of ECU
-is, of course, unlimited.  Even though I'll spend
-hours poring over patches trying to help a user,
-my patience with folks who modify my code without
-CLEARLY marking it so is at end.  
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 
-These are my requests:
-
-1.  If you use or redistribute this program, it
-    should retain the ECU name unless you ask me.
-	This means the base name of the program
-	executable must be "ecu" and the program must
-	announce itself with the strings "ECU" and
-	"wht@n4hgf".
-
-2.  If you modify the program "substantially" you
-    should not redistribute it without asking me.
-	For purposes of this paragraph,
-	"substantially" refers to changes of more
-	than a bug-fix or cosmetic nature.  For
-	larger changes, read README.porting and, if
-	appropriate, submit patches to wht@wht.net.
-	If they "pass muster" (we are usually easy),
-	then the changes will be incorporated into a
-	released patch level of ECU.
-
-    You can give modified versions to an
-	associate, but if he/she gives it to someone
-	else, does the fourth party know not to contact
-	me for bug fixes?
-
-3.  You are still free to use substantial code
-    fragments or entire logical subsections of
-	the program in any way you see fit, obeying of
-	course any other copyrights and requests made by
-	other authors whose code fragments appear within
-	ECU.
-
-4.  Anybody who has contributed to ECU
-    development will find it awfully easy to get
-	my permission to do anything they want with ECU
-	("Noooooooooooooooooo ...  not THAT!")
-
-End of RIGHTS TO USE
+For more information, please refer to <http://unlicense.org/>
