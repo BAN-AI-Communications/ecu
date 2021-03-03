@@ -69,7 +69,7 @@ int Rxframeind;				 /* ZBIN ZBIN32,or ZHEX type of frame received */
 int Rxtype;					 /* Type of header received */
 int Txfcs32;				 /* TURE means send binary frames with 32 bit
 							  * FCS */
-int Zrwindow;				 /* RX window size (controls garbage count) */
+//int Zrwindow;				 /* RX window size (controls garbage count) */
 long Rxpos;					 /* Received file position */
 long Txpos;					 /* Transmitted file position */
 
@@ -589,7 +589,7 @@ char *hdr;
 	char *hdrtyp = "?";
 
 	report_rx_ind(1);
-	n = Zrwindow + Bitrate;	 /* Max bytes before start of frame */
+	n = 1400 + Bitrate;	 /* Max bytes before start of frame */
 	Rxframeind = Rxtype = 0;
 
   startover:

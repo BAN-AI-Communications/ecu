@@ -55,6 +55,7 @@
 #ifndef _ecu_h
 #define _ecu_h
 
+#define pprintf printf
 #include "ecu_config.h"
 
 #if !defined(STDIO_H_INCLUDED)

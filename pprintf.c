@@ -41,16 +41,17 @@
 #if !defined(BUILDING_PROTOTYPES)
 
 #include <stdio.h>
-#include <varargs.h>
+//#include <varargs.h>
 
 /* This must be a typedef not a #define! */
 typedef char *pointer;
 typedef int *intp;
 
+#define pprintf vsprintf
 /*+-------------------------------------------------------------------------
 	pprintf(format,va_alist)
 --------------------------------------------------------------------------*/
-void
+/*void
 pprintf(format, va_alist)
 char *format;
 va_dcl
@@ -60,8 +61,8 @@ va_dcl
 	char *tp;
 	char tempfmt[64];
 #define ACCUM_MAX_ALLOWABLE 1024
-    char accum_string[ACCUM_MAX_ALLOWABLE + 1024]; /* fairly fail-safe */
-	char *dp = accum_string;
+    char accum_string[ACCUM_MAX_ALLOWABLE + 1024];*/ /* fairly fail-safe */
+/*	char *dp = accum_string;
 
 	va_start(args);
 
@@ -154,7 +155,7 @@ va_dcl
 	va_end(args);
 	pputs(accum_string);
 
-}							 /* end of pprintf */
+}*/							 /* end of pprintf */
 
 #endif /* !defined(BUILDING_PROTOTYPES) */
 

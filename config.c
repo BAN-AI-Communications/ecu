@@ -317,7 +317,7 @@ char *gcc_opts[] =
 #else
 	"\t-O2 -fno-builtin\\\n",
 #endif
-	"\t-fpcc-struct-return -fwritable-strings -finline-functions\\\n",
+	"\t-finline-functions\\\n",
 	"\t-W -Wuninitialized -Wunused -Wshadow -Wcomment -Wswitch\\\n",
 	"\t-Dconst=\\\n",
 	(char *)0

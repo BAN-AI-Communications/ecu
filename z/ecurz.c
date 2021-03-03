@@ -1,5 +1,6 @@
 char *version = "@(#)ecurz 3.38";
 
+#define _XOPEN_SOURCE
 /*+-------------------------------------------------------------------------
 	ecurz.c - X/Y/ZMODEM receive program
   Derived from public domain source by Chuck Forsberg, Omen Technologies
@@ -211,7 +212,7 @@ int log_packets;
 int npats;
 int oldBlklen = -1;			 /* last block length */
 int telnet;
-int this_file_errors;
+extern int this_file_errors;
 int tryzhdrtype = ZRINIT;	 /* Header type to send corresponding to Last
 							  * rx close */
 jmp_buf tohere;				 /* For the interrupt on RX timeout */

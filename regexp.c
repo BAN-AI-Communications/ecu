@@ -27,6 +27,7 @@
 #include "esd.h"
 #include "var.h"
 
+#define pprintf printf
 #undef uchar
 #define uchar unsigned char
 

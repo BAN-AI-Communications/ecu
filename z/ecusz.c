@@ -1,5 +1,6 @@
 char *version = "@(#)ecusz 3.38";
 
+#define _XOPEN_SOURCE
 #define BUFFERED_WRITE
 /*+-------------------------------------------------------------------------
 	ecusz.c - X/Y/ZMODEM send program
@@ -131,10 +132,11 @@ char *getenv();
 #endif
 #include "zmodem.h"
 #include <sys/param.h>
+#include <errno.h>
 
 extern unsigned short crctab[];	/* wht */
 extern unsigned long total_data_bytes_xfered;	/* zcurses.c */
-extern int errno;
+//extern int errno;
 extern int show_window;
 extern int Rxtimeout;		 /* Tenths of seconds to wait for something */
 extern char Rxhdr[4];		 /* Received header */

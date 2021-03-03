@@ -115,8 +115,8 @@ int quit_on_init_proc_done = 0;
 int rc_ep_has_run = 0;
 struct TIMEB starting_timeb;
 
-int hertz;					 /* HZ from environ or sys/param.h */
-UINT32 hzmsec;				 /* clock period in msec rounded up */
+extern int hertz;					 /* HZ from environ or sys/param.h */
+extern UINT32 hzmsec;				 /* clock period in msec rounded up */
 
 #ifdef CFG_Malloc3X
 char *startbrk;

@@ -29,7 +29,8 @@
 #include <sys/locking.h>
 #endif
 
-#include <varargs.h>
+#include <string.h>
+#include <stdarg.h>
 
 /* This must be a typedef not a #define! */
 typedef char *pointer;
@@ -71,10 +72,11 @@ char *event_note;
 	}
 }							 /* end of logevent */
 
+void vlogevent(pid, format, va_alist) { } 
 /*+-------------------------------------------------------------------------
 	vlogevent(pid,format,va_alist)
 --------------------------------------------------------------------------*/
-void
+/*void
 vlogevent(pid, format, va_alist)
 int pid;
 char *format;
@@ -175,7 +177,7 @@ va_dcl
 	va_end(args);
 	logevent(pid, accum_string);
 
-}							 /* end of vlogevent */
+}*/							 /* end of vlogevent */
 
 /* vi: set tabstop=4 shiftwidth=4: */
 /* end of logevent.c */

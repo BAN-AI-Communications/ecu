@@ -107,6 +107,7 @@
 /*:09-19-1990-19:36-wht@n4hgf-logevent now gets pid for log from caller */
 /*:08-14-1990-20:41-wht@n4hgf-ecu3.00-flush old edit history */
 
+#define _XOPEN_SOURCE
 #include "../ecu_config.h"
 #include "../ecucurses.h"
 #include "../ecu_types.h"
