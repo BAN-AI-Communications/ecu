@@ -476,7 +476,7 @@ mkoldproto: mkoldproto.l
 	rm lex.yy.?
 
 neat:
-	rm -f core tags cscope.out makedate.c makedate.o
+	rm -f ecu.core core tags cscope.out makedate.c makedate.o
 	rm -f *~ *# *.orig *.rej make.log a.out *.q
 	rm -f */*~ */*# */*.orig */*.rej
 	rm -f makedirs kbdtest kbdtest3
