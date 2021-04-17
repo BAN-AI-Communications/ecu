@@ -63,7 +63,7 @@ communications program originally written for users of SCO UNIX
 V.3.2/386 and XENIX V on 80286 and 80386 systems.  Support for
 other systems has been added and further porting is possible with
 "minor" effort to other systems based on or similar to UNIX
-System V (see README.porting).  
+System V (see README.porting).
 
 ECU provides the classic terminal communications facility of
 passing keyboard data to a serial line and incoming data to the
@@ -130,7 +130,7 @@ BBS where someone has tried to PKZIP it or something :).
 Your license to redistribute this version of ECU is, of course,
 unlimited.  Even though I'll spend hours poring over patches
 trying to help a user, my patience with folks who modify my code
-without CLEARLY marking it so is at end.  
+without CLEARLY marking it so is at end.
 
 These are my requests:
 
