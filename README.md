@@ -1,5 +1,7 @@
 # ECU
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/4f384a777370a1f7f820/maintainability)](https://codeclimate.com/github/BAN-AI-Communications/go-hdlc/maintainability)
+
 Extended Call Utility
 
 ----
